@@ -8,8 +8,10 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="Autofac" Version="8.2.0" />
       <PackageReference Include="BenchmarkDotNet" Version="0.14.0" />
       <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.0" />
+      <PackageReference Include="Ninject" Version="3.3.6" />
     </ItemGroup>
 
     <ItemGroup>

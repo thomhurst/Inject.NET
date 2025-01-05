@@ -7,7 +7,9 @@ var config = ManualConfig.Create(DefaultConfig.Instance)
 
 BenchmarkRunner.Run([
     BenchmarkConverter.TypeToBenchmarks(typeof(MicrosoftDependencyInjectionBenchmark), config),
-    BenchmarkConverter.TypeToBenchmarks(typeof(InjectDotNetBenchmark), config)
+    BenchmarkConverter.TypeToBenchmarks(typeof(InjectDotNetBenchmark), config),
+    BenchmarkConverter.TypeToBenchmarks(typeof(NinjectBenchmark), config),
+    BenchmarkConverter.TypeToBenchmarks(typeof(AutofacBenchmark), config),
 ]);
 
 var output = new DirectoryInfo(Environment.CurrentDirectory)

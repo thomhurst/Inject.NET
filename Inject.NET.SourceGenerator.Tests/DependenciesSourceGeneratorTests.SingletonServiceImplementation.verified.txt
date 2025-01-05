@@ -10,7 +10,7 @@ public class SingletonServiceImplementationServiceRegistrar : ServiceRegistrar
 {
 	public SingletonServiceImplementationServiceRegistrar()
 	{
-		Register<global::Inject.NET.SourceGenerator.Sample.Models.IClass>((scope, type) => new global::Inject.NET.SourceGenerator.Sample.Models.Class1(), Lifetime.Singleton);
+		Register<Interface1>((scope, type) => new Class1(), Lifetime.Singleton);
 	}
 }
 

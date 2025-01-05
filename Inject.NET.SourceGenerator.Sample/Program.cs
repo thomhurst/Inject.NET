@@ -3,7 +3,7 @@ using Inject.NET.Attributes;
 using Inject.NET.Extensions;
 using Inject.NET.SourceGenerator.Sample.ServiceProviders;
 
-var serviceProvider = await SingletonGeneric2.BuildAsync();
+var serviceProvider = await MyServiceProvider.BuildAsync();
 
 var typedGeneric = serviceProvider.CreateScope().GetRequiredService<Interface5>();
 

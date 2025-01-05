@@ -20,7 +20,7 @@ public class DependenciesSourceGeneratorTests : TestsBase<DependenciesSourceGene
                 Path.Combine(Sourcy.Git.RootDirectory.FullName,
                     "Inject.NET.SourceGenerator.Sample",
                     "Models",
-                    "IClass.cs"),
+                    "Interface1.cs"),
             ]
         },
         async generatedFiles => { await Assert.That(generatedFiles.Length).IsEqualTo(2); });
@@ -41,7 +41,7 @@ public class DependenciesSourceGeneratorTests : TestsBase<DependenciesSourceGene
                 Path.Combine(Sourcy.Git.RootDirectory.FullName,
                     "Inject.NET.SourceGenerator.Sample",
                     "Models",
-                    "IClass.cs"),
+                    "Interface1.cs"),
             ]
         },
         async generatedFiles => { await Assert.That(generatedFiles.Length).IsEqualTo(2); });
@@ -62,7 +62,7 @@ public class DependenciesSourceGeneratorTests : TestsBase<DependenciesSourceGene
                 Path.Combine(Sourcy.Git.RootDirectory.FullName,
                     "Inject.NET.SourceGenerator.Sample",
                     "Models",
-                    "IClass.cs"),
+                    "Interface1.cs"),
             ]
         },
         async generatedFiles => { await Assert.That(generatedFiles.Length).IsEqualTo(2); });
@@ -83,7 +83,7 @@ public class DependenciesSourceGeneratorTests : TestsBase<DependenciesSourceGene
                 Path.Combine(Sourcy.Git.RootDirectory.FullName,
                     "Inject.NET.SourceGenerator.Sample",
                     "Models",
-                    "IClass.cs"),
+                    "Interface1.cs"),
             ]
         },
         async generatedFiles => { await Assert.That(generatedFiles.Length).IsEqualTo(2); });
@@ -104,7 +104,7 @@ public class DependenciesSourceGeneratorTests : TestsBase<DependenciesSourceGene
                 Path.Combine(Sourcy.Git.RootDirectory.FullName,
                     "Inject.NET.SourceGenerator.Sample",
                     "Models",
-                    "IClass.cs"),
+                    "Interface1.cs"),
             ]
         },
         async generatedFiles => { await Assert.That(generatedFiles.Length).IsEqualTo(2); });
@@ -125,7 +125,7 @@ public class DependenciesSourceGeneratorTests : TestsBase<DependenciesSourceGene
                 Path.Combine(Sourcy.Git.RootDirectory.FullName,
                     "Inject.NET.SourceGenerator.Sample",
                     "Models",
-                    "IClass.cs"),
+                    "Interface1.cs"),
             ]
         },
         async generatedFiles => { await Assert.That(generatedFiles.Length).IsEqualTo(2); });
@@ -146,7 +146,7 @@ public class DependenciesSourceGeneratorTests : TestsBase<DependenciesSourceGene
                 Path.Combine(Sourcy.Git.RootDirectory.FullName,
                     "Inject.NET.SourceGenerator.Sample",
                     "Models",
-                    "IClass.cs"),
+                    "Interface1.cs"),
             ]
         },
         async generatedFiles => { await Assert.That(generatedFiles.Length).IsEqualTo(2); });
@@ -167,7 +167,7 @@ public class DependenciesSourceGeneratorTests : TestsBase<DependenciesSourceGene
                 Path.Combine(Sourcy.Git.RootDirectory.FullName,
                     "Inject.NET.SourceGenerator.Sample",
                     "Models",
-                    "IClass.cs"),
+                    "Interface1.cs"),
             ]
         },
         async generatedFiles => { await Assert.That(generatedFiles.Length).IsEqualTo(2); });

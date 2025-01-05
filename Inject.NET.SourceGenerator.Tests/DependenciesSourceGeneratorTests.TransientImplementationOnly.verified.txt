@@ -10,7 +10,7 @@ public class TransientImplementationOnlyServiceRegistrar : ServiceRegistrar
 {
 	public TransientImplementationOnlyServiceRegistrar()
 	{
-		Register<global::Inject.NET.SourceGenerator.Sample.Models.Class1>((scope, type) => new global::Inject.NET.SourceGenerator.Sample.Models.Class1(), Lifetime.Transient);
+		Register<Class1>((scope, type) => new Class1(), Lifetime.Transient);
 	}
 }
 

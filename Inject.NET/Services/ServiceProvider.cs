@@ -23,7 +23,25 @@ internal class ServiceProvider : ITenantedServiceProvider
     internal async ValueTask InitializeAsync()
     {
         await BuildTenants();
-        await _singletonScope.BuildAsync();
+        
+        _singletonScope.PreBuild();
+        
+        await using var scope = CreateScope();
+        
+        foreach (var type in _serviceFactories.Factories.Keys)
+        {
+            scope.GetServices(type);
+        }
+        
+        foreach (var (type, keyedFactory) in _serviceFactories.KeyedFactories)
+        {
+            foreach (var key in keyedFactory.Keys)
+            {
+                scope.GetServices(type, key);
+            }
+        }
+        
+        await _singletonScope.FinalizeAsync();
     }
 
     private async Task BuildTenants()

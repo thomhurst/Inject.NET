@@ -25,7 +25,7 @@ internal class SingletonScope(IServiceProvider serviceProvider, ServiceFactories
     
     public IServiceProvider ServiceProvider { get; } = serviceProvider;
 
-    public async ValueTask BuildAsync()
+    public void PreBuild()
     {
         foreach (var type in GetSingletonTypes())
         {
@@ -36,7 +36,10 @@ internal class SingletonScope(IServiceProvider serviceProvider, ServiceFactories
         {
             GetServices(type, key);
         }
+    }
 
+    internal async Task FinalizeAsync()
+    {
         _singletons = _singletonsBuilder.ToFrozenDictionary(
             d => d.Key,
             d => d.Value.ToFrozenSet()

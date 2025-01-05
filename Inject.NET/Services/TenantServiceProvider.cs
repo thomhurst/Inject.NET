@@ -9,9 +9,26 @@ internal class TenantServiceProvider(ServiceProvider defaultServiceProvider, Ser
 {
     private readonly TenantedSingletonScope _singletonScope = new(defaultServiceProvider, serviceFactories);
 
-    internal ValueTask InitializeAsync()
+    internal async ValueTask InitializeAsync()
     {
-        return _singletonScope.BuildAsync();
+        _singletonScope.PreBuild();
+
+        await using var scope = CreateScope();
+        
+        foreach (var type in serviceFactories.Factories.Keys)
+        {
+            scope.GetServices(type);
+        }
+        
+        foreach (var (type, keyedFactory) in serviceFactories.KeyedFactories)
+        {
+            foreach (var key in keyedFactory.Keys)
+            {
+                scope.GetServices(type, key);
+            }
+        }
+        
+        await _singletonScope.FinalizeAsync();
     }
     
     public async ValueTask DisposeAsync()

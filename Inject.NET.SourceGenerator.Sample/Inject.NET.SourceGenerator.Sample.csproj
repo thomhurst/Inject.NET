@@ -8,9 +8,9 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\Inject.NET.SourceGenerator\Inject.NET.SourceGenerator\Inject.NET.SourceGenerator.csproj" 
+      <ProjectReference Include="..\Inject.NET.SourceGenerator\Inject.NET.SourceGenerator\Inject.NET.SourceGenerator.csproj" 
                         OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-      <ProjectReference Include="..\..\Inject.NET\Inject.NET.csproj" />
+      <ProjectReference Include="..\Inject.NET\Inject.NET.csproj" />
     </ItemGroup>
 
     <PropertyGroup>

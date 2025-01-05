@@ -18,7 +18,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\Inject.NET\Inject.NET.csproj" />
+        <ProjectReference Include="..\Inject.NET\Inject.NET.csproj" />
         <ProjectReference Include="..\Inject.NET.SourceGenerator\Inject.NET.SourceGenerator.csproj"/>
     </ItemGroup>
 

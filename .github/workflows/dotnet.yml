@@ -31,6 +31,6 @@ jobs:
         working-directory: "Inject.NET.Pipeline"
         env:
           DOTNET_ENVIRONMENT: ${{ github.ref == 'refs/heads/main' && 'Production' || 'Development' }}
-          NuGet__ApiKey: ${{ github.ref == 'refs/heads/main' && secrets.NuGet__ApiKey || null }}
+          NuGet__ApiKey: ${{ github.ref == 'refs/heads/main' && secrets.NUGET__APIKEY || null }}
           PULL_REQUEST_BRANCH: ${{ github.event.pull_request.head.ref }}
           PUBLISH_PACKAGES: ${{ github.event.inputs.publish-packages }}

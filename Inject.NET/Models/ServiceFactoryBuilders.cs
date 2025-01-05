@@ -7,7 +7,6 @@ namespace Inject.NET.Models;
 public record ServiceFactoryBuilders
 {
     public List<IServiceDescriptor> Descriptors { get; } = [];
-    public List<IKeyedServiceDescriptor> KeyedDescriptors { get; } = [];
 
     public void Add<T>(Type type, Lifetime lifetime, Func<IServiceScope, Type, T> factory)
     {
@@ -30,21 +29,21 @@ public record ServiceFactoryBuilders
         });
     }
 
-    public void Add<T>(Type type, Lifetime lifetime, string key, Func<IServiceScope, Type, string, T> factory)
+    public void Add<T>(Type type, Lifetime lifetime, string key, Func<IServiceScope, Type, T> factory)
     {
-        KeyedDescriptors.Add(new KeyedServiceDescriptor
+        Descriptors.Add(new ServiceDescriptor
         {
             ServiceType = type,
             ImplementationType = typeof(T),
             Key = key,
             Lifetime = lifetime,
-            Factory = (ss, t, k) => factory(ss, t, k)!
+            Factory = (ss, t) => factory(ss, t)!
         });
     }
     
     public void AddOpenGeneric([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type serviceType, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type implementationType, Lifetime lifetime, string key)
     {
-        KeyedDescriptors.Add(new OpenGenericKeyedServiceDescriptor
+        Descriptors.Add(new OpenGenericServiceDescriptor
         {
             ServiceType = serviceType,
             ImplementationType = implementationType,

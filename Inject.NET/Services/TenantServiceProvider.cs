@@ -8,24 +8,16 @@ internal class TenantServiceProvider(ServiceProviderRoot rootServiceProviderRoot
     : IServiceProvider
 {
     private readonly TenantedSingletonScope _singletonScope = new(rootServiceProviderRoot, serviceFactories);
-
+    
     internal async ValueTask InitializeAsync()
     {
         _singletonScope.PreBuild();
 
         await using var scope = CreateScope();
         
-        foreach (var type in serviceFactories.EnumerableDescriptors.Keys)
+        foreach (var type in serviceFactories.Descriptors.Keys)
         {
-            scope.GetServices(type);
-        }
-        
-        foreach (var (type, keyedFactory) in serviceFactories.KeyedEnumerableDescriptors)
-        {
-            foreach (var key in keyedFactory.Keys)
-            {
-                scope.GetServices(type, key);
-            }
+            scope.GetServices(type.Type, type.Key);
         }
         
         await _singletonScope.FinalizeAsync();

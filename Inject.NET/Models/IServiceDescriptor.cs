@@ -6,4 +6,5 @@ public interface IServiceDescriptor
 {
     Type ServiceType { get; }
     Lifetime Lifetime { get; init; }
+    string? Key { get; init; }
 }

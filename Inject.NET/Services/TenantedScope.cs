@@ -1,31 +1,46 @@
 using Inject.NET.Interfaces;
 using Inject.NET.Models;
+using IServiceProvider = Inject.NET.Interfaces.IServiceProvider;
 
 namespace Inject.NET.Services;
 
-internal class TenantedScope(IServiceScope defaultScope, SingletonScope singletonScope, ServiceFactories serviceFactories) : ServiceScope((ServiceProviderRoot) defaultScope.Root, singletonScope, serviceFactories)
+internal sealed class TenantedScope(IServiceScope defaultScope, IServiceScope singletonScope, ServiceFactories serviceFactories) : IServiceScope
 {
-    public override IEnumerable<object> GetServices(Type type)
+    private readonly ServiceScope _scope = new((ServiceProviderRoot)defaultScope.Root, singletonScope, serviceFactories);
+
+    public object? GetService(Type type)
+    {
+        return _scope.GetService(type);
+    }
+
+    public IEnumerable<object> GetServices(Type type)
     {
         return
         [
             defaultScope.GetServices(type),
-            ..base.GetServices(type)
+            .._scope.GetServices(type)
         ];
     }
 
-    public override IEnumerable<object> GetServices(Type type, string key)
+    public object? GetService(Type type, string? key)
+    {
+        return _scope.GetService(type, key);
+    }
+
+    public IEnumerable<object> GetServices(Type type, string? key)
     {
         return
         [
             defaultScope.GetServices(type, key),
-            ..base.GetServices(type, key)
+            .._scope.GetServices(type, key)
         ];
     }
 
-    public override async ValueTask DisposeAsync()
+    public IServiceProvider Root => _scope.Root;
+
+    public async ValueTask DisposeAsync()
     {
         await defaultScope.DisposeAsync();
-        await base.DisposeAsync();
+        await _scope.DisposeAsync();
     }
 }

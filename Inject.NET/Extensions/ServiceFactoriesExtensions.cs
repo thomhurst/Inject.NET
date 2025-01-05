@@ -9,12 +9,11 @@ public static class ServiceFactoriesExtensions
     {
         return new ServiceFactories
         (
-            EnumerableDescriptors: factoryBuilders.Descriptors.GroupBy(x => x.ServiceType)
-                .ToFrozenDictionary(x => x.Key, x => x.ToFrozenSet()),
-            
-            KeyedEnumerableDescriptors: factoryBuilders.KeyedDescriptors.GroupBy(x => x.ServiceType)
-                .ToFrozenDictionary(x => x.Key, x => x.GroupBy(y => y.Key)
-                    .ToFrozenDictionary(y => y.Key, y => y.ToFrozenSet()))
+            Descriptors: factoryBuilders.Descriptors.GroupBy(x => new CacheKey(x.ServiceType, x.Key))
+                .ToFrozenDictionary(
+                    x => x.Key,
+                    x => x.ToFrozenSet()
+                )
         );
     }
 }

@@ -31,7 +31,7 @@ public class TenantServiceRegistrar : IServiceRegistrar
         return this;
     }
 
-    public IServiceRegistrar RegisterKeyed<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(Func<IServiceScope, Type, string, T> factory, Lifetime lifetime, string key)
+    public IServiceRegistrar RegisterKeyed<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(Func<IServiceScope, Type, T> factory, Lifetime lifetime, string key)
     {
         ServiceFactoryBuilders.Add(typeof(T), lifetime, key, factory);
 
@@ -57,7 +57,9 @@ public class TenantServiceRegistrar : IServiceRegistrar
     {
         OnBeforeBuild(this);
 
-        var serviceProvider = new TenantServiceProvider((ServiceProviderRoot)rootServiceProvider, ServiceFactoryBuilders.AsReadOnly());
+        var serviceProviderRoot = (ServiceProviderRoot)rootServiceProvider;
+        
+        var serviceProvider = new TenantServiceProvider(serviceProviderRoot, ServiceFactoryBuilders.AsReadOnly());
         
         await serviceProvider.InitializeAsync();
         

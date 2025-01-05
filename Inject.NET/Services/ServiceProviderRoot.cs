@@ -7,7 +7,7 @@ namespace Inject.NET.Services;
 
 internal class ServiceProviderRoot : IServiceProviderRoot
 {
-    private readonly SingletonScope _singletonScope;
+    internal readonly SingletonScope _singletonScope;
     private readonly ServiceFactories _serviceFactories;
     private readonly IDictionary<string, IServiceRegistrar> _tenantRegistrars;
 
@@ -28,17 +28,9 @@ internal class ServiceProviderRoot : IServiceProviderRoot
         
         await using var scope = CreateScope();
         
-        foreach (var type in _serviceFactories.EnumerableDescriptors.Keys)
+        foreach (var type in _serviceFactories.Descriptors.Keys.Select(x => x.Type).Distinct())
         {
             scope.GetServices(type);
-        }
-        
-        foreach (var (type, keyedFactory) in _serviceFactories.KeyedEnumerableDescriptors)
-        {
-            foreach (var key in keyedFactory.Keys)
-            {
-                scope.GetServices(type, key);
-            }
         }
         
         await _singletonScope.FinalizeAsync();
@@ -62,7 +54,7 @@ internal class ServiceProviderRoot : IServiceProviderRoot
         return _singletonScope.GetService(type);
     }
     
-    internal object? GetSingleton(Type type, string key)
+    internal object? GetSingleton(Type type, string? key)
     {
         return _singletonScope.GetService(type, key);
     }
@@ -80,8 +72,13 @@ internal class ServiceProviderRoot : IServiceProviderRoot
         return false;
     }
     
-    internal bool TryGetSingletons(Type type, string key, out IReadOnlyList<object> singletons)
+    internal bool TryGetSingletons(Type type, string? key, out IReadOnlyList<object> singletons)
     {
+        if (key is null)
+        {
+            return TryGetSingletons(type, out singletons);
+        }
+        
         var foundSingletons = _singletonScope.GetServices(type, key).ToArray();
         
         if (foundSingletons.Length > 0)

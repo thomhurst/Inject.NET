@@ -33,7 +33,7 @@ public class ServiceRegistrar : ITenantedServiceRegistrar
         return this;
     }
 
-    public ITenantedServiceRegistrar RegisterKeyed<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(Func<IServiceScope, Type, string, T> factory, Lifetime lifetime, string key)
+    public ITenantedServiceRegistrar RegisterKeyed<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(Func<IServiceScope, Type, T> factory, Lifetime lifetime, string key)
     {
         ServiceFactoryBuilders.Add(typeof(T), lifetime, key, factory);
 

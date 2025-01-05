@@ -28,7 +28,7 @@ public static class ServiceProviderWriter
             $"{serviceProviderType.DeclaredAccessibility.ToString().ToLower(CultureInfo.InvariantCulture)} partial class {serviceProviderType.Name}");
         sourceCodeWriter.WriteLine("{");
 
-        sourceCodeWriter.WriteLine("public static Task<ITenantedServiceProvider> BuildAsync() =>");
+        sourceCodeWriter.WriteLine("public static Task<IServiceProviderRoot> BuildAsync() =>");
         sourceCodeWriter.WriteLine($"\tnew {serviceProviderType.Name}ServiceRegistrar().BuildAsync();");
 
         sourceCodeWriter.WriteLine("}");

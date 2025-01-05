@@ -1,0 +1,43 @@
+name: Speed Comparison
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+jobs:
+  run-time-benchmarks:
+    environment: ${{ github.ref == 'refs/heads/main' && 'Production' || 'Pull Requests' }}
+    strategy: 
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        class: [RepeatTests, BasicTest]
+      fail-fast: false
+    runs-on: ${{ matrix.os }}
+    concurrency: 
+      group: "speed-comparison-run-time-${{matrix.os}}-${{matrix.class}}"
+      cancel-in-progress: true
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Run Benchmark
+        run: ${{ matrix.os != 'windows-latest' && 'sudo -E ' || '' }}dotnet run -c Release
+        working-directory: "Benchmarks"
+        env:
+          CLASS_NAME: ${{ matrix.class }}
+
+      - name: Upload Markdown
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ${{ matrix.os }}_markdown_run_time_${{ matrix.class }}
+          path: |
+            **/BenchmarkDotNet.Artifacts/**

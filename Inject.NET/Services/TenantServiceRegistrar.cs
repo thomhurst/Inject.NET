@@ -57,7 +57,7 @@ public class TenantServiceRegistrar : IServiceRegistrar
     {
         OnBeforeBuild(this);
 
-        var serviceProvider = new TenantServiceProvider((ServiceProvider)rootServiceProvider, ServiceFactoryBuilders.AsReadOnly());
+        var serviceProvider = new TenantServiceProvider((ServiceProviderRoot)rootServiceProvider, ServiceFactoryBuilders.AsReadOnly());
         
         await serviceProvider.InitializeAsync();
         

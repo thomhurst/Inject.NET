@@ -5,7 +5,7 @@ using IServiceProvider = Inject.NET.Interfaces.IServiceProvider;
 
 namespace Inject.NET.Services;
 
-internal class ServiceProvider : ITenantedServiceProvider
+internal class ServiceProviderRoot : IServiceProviderRoot
 {
     private readonly SingletonScope _singletonScope;
     private readonly ServiceFactories _serviceFactories;
@@ -13,7 +13,7 @@ internal class ServiceProvider : ITenantedServiceProvider
 
     private FrozenDictionary<string, IServiceProvider> _tenants = null!;
 
-    internal ServiceProvider(ServiceFactories serviceFactories, IDictionary<string, IServiceRegistrar> tenantRegistrars)
+    internal ServiceProviderRoot(ServiceFactories serviceFactories, IDictionary<string, IServiceRegistrar> tenantRegistrars)
     {
         _serviceFactories = serviceFactories;
         _tenantRegistrars = tenantRegistrars;

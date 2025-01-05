@@ -28,7 +28,7 @@ namespace Inject.NET.SourceGenerator.Sample.ServiceProviders;
 
 public partial class WithTenant
 {
-	public static Task<ITenantedServiceProvider> BuildAsync() =>
+	public static Task<IServiceProviderRoot> BuildAsync() =>
 		new WithTenantServiceRegistrar().BuildAsync();
 }
 

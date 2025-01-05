@@ -1,6 +1,6 @@
 ﻿namespace Inject.NET.Interfaces;
 
-public interface ITenantedServiceProvider : IServiceProvider
+public interface IServiceProviderRoot : IServiceProvider
 {
     IServiceProvider GetTenant(string tenantId);
 }

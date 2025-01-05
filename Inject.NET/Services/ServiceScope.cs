@@ -6,14 +6,14 @@ using IServiceProvider = Inject.NET.Interfaces.IServiceProvider;
 
 namespace Inject.NET.Services;
 
-internal class ServiceScope(ServiceProvider rootServiceProvider, ServiceFactories serviceFactories)
+internal class ServiceScope(ServiceProviderRoot rootServiceProviderRoot, ServiceFactories serviceFactories)
     : IServiceScope
 {
     private readonly ConcurrentDictionary<Type, List<object>> _cachedObjects = [];
     private readonly ConcurrentDictionary<Type, ConcurrentDictionary<string, List<object>>> _cachedKeyedObjects = [];
     private readonly List<object> _forDisposal = [];
     
-    public IServiceProvider RootServiceProvider { get; } = rootServiceProvider;
+    public IServiceProvider RootServiceProviderRoot { get; } = rootServiceProviderRoot;
 
     ~ServiceScope()
     {
@@ -45,7 +45,7 @@ internal class ServiceScope(ServiceProvider rootServiceProvider, ServiceFactorie
             }
         }
         
-        if (!rootServiceProvider.TryGetSingletons(type, out var singletons))
+        if (!rootServiceProviderRoot.TryGetSingletons(type, out var singletons))
         {
             singletons = [];
         }
@@ -98,7 +98,7 @@ internal class ServiceScope(ServiceProvider rootServiceProvider, ServiceFactorie
             yield break;
         }
         
-        if (!rootServiceProvider.TryGetSingletons(type, key, out var singletons))
+        if (!rootServiceProviderRoot.TryGetSingletons(type, key, out var singletons))
         {
             singletons = [];
         }

@@ -6,10 +6,10 @@ using Inject.NET.Services;
 namespace Inject.NET.SourceGenerator.Sample.ServiceProviders;
 public class SingletonGenericServiceRegistrar : ServiceRegistrar
 {
-public SingletonGenericServiceRegistrar()
-{
-RegisterOpenGeneric(typeof(Generic<>), typeof(Generic<>), Lifetime.Singleton);
-}
+	public SingletonGenericServiceRegistrar()
+	{
+		RegisterOpenGeneric(typeof(Generic<>), typeof(Generic<>), Lifetime.Singleton);
+	}
 }
 
   
@@ -20,8 +20,8 @@ using Inject.NET.Interfaces;
 namespace Inject.NET.SourceGenerator.Sample.ServiceProviders;
 public partial class SingletonGeneric
 {
-public static Task<ITenantedServiceProvider> BuildAsync() =>
-new SingletonGenericServiceRegistrar().BuildAsync();
+	public static Task<ITenantedServiceProvider> BuildAsync() =>
+	new SingletonGenericServiceRegistrar().BuildAsync();
 }
 
 ]

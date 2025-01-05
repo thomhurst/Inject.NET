@@ -4,10 +4,14 @@ using Inject.NET.Enums;
 using Inject.NET.Extensions;
 using Inject.NET.Services;
 namespace Inject.NET.SourceGenerator.Sample.ServiceProviders;
-public class SingletonImplementationOnlyServiceRegistrar : ServiceRegistrar
+public class WithTenantServiceRegistrar : ServiceRegistrar
 {
-	public SingletonImplementationOnlyServiceRegistrar()
+	public WithTenantServiceRegistrar()
 	{
+		{
+			var tenant = GetOrCreateTenant("tenant1");
+			tenant.Register<global::Inject.NET.SourceGenerator.Sample.Models.InheritsFromClass1>((scope, type) => new global::Inject.NET.SourceGenerator.Sample.Models.InheritsFromClass1(), Lifetime.Singleton);
+		}
 		Register<global::Inject.NET.SourceGenerator.Sample.Models.Class1>((scope, type) => new global::Inject.NET.SourceGenerator.Sample.Models.Class1(), Lifetime.Singleton);
 	}
 }
@@ -18,10 +22,10 @@ using System.Threading.Tasks;
 using Inject.NET.Enums;
 using Inject.NET.Interfaces;
 namespace Inject.NET.SourceGenerator.Sample.ServiceProviders;
-public partial class SingletonImplementationOnly
+public partial class WithTenant
 {
 	public static Task<ITenantedServiceProvider> BuildAsync() =>
-	new SingletonImplementationOnlyServiceRegistrar().BuildAsync();
+	new WithTenantServiceRegistrar().BuildAsync();
 }
 
 ]

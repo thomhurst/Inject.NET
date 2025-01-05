@@ -12,22 +12,22 @@ public static class ServiceRegistrarWriter
         Compilation compilation, TypedServiceProviderModel serviceProviderModel)
     {
         var attributes = serviceProviderModel.Type.GetAttributes();
-
-        var sourceCodeWriter = new StringBuilder();
         
-        sourceCodeWriter.AppendLine("using System;");
-        sourceCodeWriter.AppendLine("using Inject.NET.Enums;");
-        sourceCodeWriter.AppendLine("using Inject.NET.Extensions;");
-        sourceCodeWriter.AppendLine("using Inject.NET.Services;");
+        var sourceCodeWriter = new SourceCodeWriter();
+        
+        sourceCodeWriter.WriteLine("using System;");
+        sourceCodeWriter.WriteLine("using Inject.NET.Enums;");
+        sourceCodeWriter.WriteLine("using Inject.NET.Extensions;");
+        sourceCodeWriter.WriteLine("using Inject.NET.Services;");
 
-        sourceCodeWriter.AppendLine($"namespace {serviceProviderModel.Type.ContainingNamespace.ToDisplayString()};");
+        sourceCodeWriter.WriteLine($"namespace {serviceProviderModel.Type.ContainingNamespace.ToDisplayString()};");
 
-        sourceCodeWriter.AppendLine(
+        sourceCodeWriter.WriteLine(
             $"public class {serviceProviderModel.Type.Name}ServiceRegistrar : ServiceRegistrar");
-        sourceCodeWriter.AppendLine("{");
+        sourceCodeWriter.WriteLine("{");
         
-        sourceCodeWriter.AppendLine($"public {serviceProviderModel.Type.Name}ServiceRegistrar()");
-        sourceCodeWriter.AppendLine("{");
+        sourceCodeWriter.WriteLine($"public {serviceProviderModel.Type.Name}ServiceRegistrar()");
+        sourceCodeWriter.WriteLine("{");
         
         foreach (var attributeData in attributes)
         {
@@ -38,7 +38,8 @@ public static class ServiceRegistrarWriter
                 continue;
             }
 
-            if (SymbolEqualityComparer.Default.Equals(attributeClass,
+            if (attributeClass.IsGenericType 
+                && SymbolEqualityComparer.Default.Equals(attributeClass.OriginalDefinition,
                     compilation.GetTypeByMetadataName("Inject.NET.Attributes.WithTenantAttribute`1")))
             {
                 WriteWithTenant(sourceCodeWriter, compilation, (string)attributeData.ConstructorArguments.First().Value!,
@@ -47,30 +48,7 @@ public static class ServiceRegistrarWriter
                 continue;
             }
 
-            INamedTypeSymbol? serviceType;
-            INamedTypeSymbol? implementationType;
-
-            if (attributeClass.TypeArguments.Length == 0 && attributeData.ConstructorArguments.Length == 1)
-            {
-                serviceType = attributeData.ConstructorArguments[0].Value as INamedTypeSymbol;
-                implementationType = serviceType;
-            }
-            else if (attributeClass.TypeArguments.Length == 0 && attributeData.ConstructorArguments.Length == 2)
-            {
-                serviceType = attributeData.ConstructorArguments[0].Value as INamedTypeSymbol;
-                implementationType = attributeData.ConstructorArguments[1].Value as INamedTypeSymbol;
-            }
-            else if (attributeClass.TypeArguments.Length == 1)
-            {
-                serviceType = attributeClass.TypeArguments[0] as INamedTypeSymbol;
-                implementationType = serviceType;
-            }
-            else if (attributeClass.TypeArguments.Length == 2)
-            {
-                serviceType = attributeClass.TypeArguments[0] as INamedTypeSymbol;
-                implementationType = attributeClass.TypeArguments[1] as INamedTypeSymbol;
-            }
-            else
+            if(!TryGetServiceAndImplementation(attributeData, out var serviceType, out var implementationType))
             {
                 continue;
             }
@@ -82,22 +60,22 @@ public static class ServiceRegistrarWriter
             
             var parameters = GetParameters(implementationType, compilation);
 
-            WriteRegistration(sourceCodeWriter, attributeData, serviceType, implementationType, parameters);
+            WriteRegistration(sourceCodeWriter, attributeData, serviceType, implementationType, parameters, null);
         }
         
-        sourceCodeWriter.AppendLine("}");
+        sourceCodeWriter.WriteLine("}");
 
-        sourceCodeWriter.AppendLine("}");
+        sourceCodeWriter.WriteLine("}");
         
         sourceProductionContext.AddSource($"{serviceProviderModel.Type.Name}ServiceRegistrar.g.cs", sourceCodeWriter.ToString());
     }
 
-    private static void WriteWithTenant(StringBuilder sourceCodeWriter, Compilation compilation, string tenantId,
+    private static void WriteWithTenant(SourceCodeWriter sourceCodeWriter, Compilation compilation, string tenantId,
         INamedTypeSymbol tenantDefinitionClass)
     {
-        sourceCodeWriter.AppendLine("{");
+        sourceCodeWriter.WriteLine("{");
         
-        sourceCodeWriter.AppendLine($"var tenant = GetOrCreateTenant(\"{tenantId}\")");
+        sourceCodeWriter.WriteLine($"var tenant = GetOrCreateTenant(\"{tenantId}\");");
 
         var attributes = tenantDefinitionClass.GetAttributes();
         
@@ -110,20 +88,7 @@ public static class ServiceRegistrarWriter
                 continue;
             }
 
-            INamedTypeSymbol? serviceType;
-            INamedTypeSymbol? implementationType;
-            
-            if (attributeClass.TypeArguments.Length == 1)
-            {
-                serviceType = attributeClass.TypeArguments[0] as INamedTypeSymbol;
-                implementationType = serviceType;
-            }
-            else if (attributeClass.TypeArguments.Length == 2)
-            {
-                serviceType = attributeClass.TypeArguments[0] as INamedTypeSymbol;
-                implementationType = attributeClass.TypeArguments[1] as INamedTypeSymbol;
-            }
-            else
+            if(!TryGetServiceAndImplementation(attributeData, out var serviceType, out var implementationType))
             {
                 continue;
             }
@@ -135,13 +100,52 @@ public static class ServiceRegistrarWriter
             
             var parameters = GetParameters(implementationType, compilation);
 
-            WriteRegistration(sourceCodeWriter, attributeData, serviceType, implementationType, parameters);
+            WriteRegistration(sourceCodeWriter, attributeData, serviceType, implementationType, parameters, "tenant.");
         }
         
-        sourceCodeWriter.AppendLine("}");
+        sourceCodeWriter.WriteLine("}");
     }
 
-    private static void WriteRegistration(StringBuilder sourceCodeWriter, AttributeData attributeData, INamedTypeSymbol serviceType, INamedTypeSymbol implementationType, Parameter[] parameters)
+    private static bool TryGetServiceAndImplementation(AttributeData attributeData,
+        out INamedTypeSymbol? serviceType, out INamedTypeSymbol? implementationType)
+    {
+        var attributeClass = attributeData.AttributeClass!;
+        
+        if (attributeClass.TypeArguments.Length == 0 && attributeData.ConstructorArguments.Length == 1)
+        {
+            serviceType = attributeData.ConstructorArguments[0].Value as INamedTypeSymbol;
+            implementationType = serviceType;
+            return true;
+        }
+
+        if (attributeClass.TypeArguments.Length == 0 && attributeData.ConstructorArguments.Length == 2)
+        {
+            serviceType = attributeData.ConstructorArguments[0].Value as INamedTypeSymbol;
+            implementationType = attributeData.ConstructorArguments[1].Value as INamedTypeSymbol;
+            return true;
+        }
+
+        if (attributeClass.TypeArguments.Length == 1)
+        {
+            serviceType = attributeClass.TypeArguments[0] as INamedTypeSymbol;
+            implementationType = serviceType;
+            return true;
+        }
+
+        if (attributeClass.TypeArguments.Length == 2)
+        {
+            serviceType = attributeClass.TypeArguments[0] as INamedTypeSymbol;
+            implementationType = attributeClass.TypeArguments[1] as INamedTypeSymbol;
+            return true;
+        }
+
+        serviceType = null;
+        implementationType = null;
+        return false;
+    }
+
+    private static void WriteRegistration(SourceCodeWriter sourceCodeWriter, AttributeData attributeData,
+        INamedTypeSymbol serviceType, INamedTypeSymbol implementationType, Parameter[] parameters, string? prefix)
     {
         var key = attributeData.NamedArguments.FirstOrDefault(x => x.Key == "Key").Value.Value as string;
 
@@ -155,16 +159,16 @@ public static class ServiceRegistrarWriter
         {
             if (key != null)
             {
-                sourceCodeWriter.AppendLine(
+                sourceCodeWriter.WriteLine(
                     $"""
-                     RegisterOpenGeneric(typeof({serviceType.GloballyQualified()}), typeof({implementationType.GloballyQualified()}), Lifetime.{lifetime}, "{key}");
+                     {prefix}RegisterOpenGeneric(typeof({serviceType.GloballyQualified()}), typeof({implementationType.GloballyQualified()}), Lifetime.{lifetime}, "{key}");
                      """);
             }
             else
             {
-                sourceCodeWriter.AppendLine(
+                sourceCodeWriter.WriteLine(
                     $"""
-                     RegisterOpenGeneric(typeof({serviceType.GloballyQualified()}), typeof({implementationType.GloballyQualified()}), Lifetime.{lifetime});
+                     {prefix}RegisterOpenGeneric(typeof({serviceType.GloballyQualified()}), typeof({implementationType.GloballyQualified()}), Lifetime.{lifetime});
                      """);
             }
             
@@ -173,16 +177,16 @@ public static class ServiceRegistrarWriter
         
         if (key != null)
         {
-            sourceCodeWriter.AppendLine(
+            sourceCodeWriter.WriteLine(
                 $"""
-                 Register<{serviceType.GloballyQualified()}>((scope, type, key) => new {implementationType.GloballyQualified()}({string.Join(", ", parameters.Select(x => x.WriteSource()))}), Lifetime.{lifetime}, "{key}");
+                 {prefix}Register<{serviceType.GloballyQualified()}>((scope, type, key) => new {implementationType.GloballyQualified()}({string.Join(", ", parameters.Select(x => x.WriteSource()))}), Lifetime.{lifetime}, "{key}");
                  """);
         }
         else
         {
-            sourceCodeWriter.AppendLine(
+            sourceCodeWriter.WriteLine(
                 $"""
-                 Register<{serviceType.GloballyQualified()}>((scope, type) => new {implementationType.GloballyQualified()}({string.Join(", ", parameters.Select(x => x.WriteSource()))}), Lifetime.{lifetime});
+                 {prefix}Register<{serviceType.GloballyQualified()}>((scope, type) => new {implementationType.GloballyQualified()}({string.Join(", ", parameters.Select(x => x.WriteSource()))}), Lifetime.{lifetime});
                  """);
         }
     }

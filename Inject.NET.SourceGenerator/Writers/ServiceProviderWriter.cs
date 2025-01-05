@@ -11,25 +11,25 @@ public static class ServiceProviderWriter
     {
         ServiceRegistrarWriter.GenerateServiceRegistrarCode(sourceProductionContext, tuple.Compilation, tuple.ServiceProviderModel);
         
-        var sourceCodeWriter = new StringBuilder();
+        var sourceCodeWriter = new SourceCodeWriter();
         
-        sourceCodeWriter.AppendLine("using System;");
-        sourceCodeWriter.AppendLine("using System.Threading.Tasks;");
-        sourceCodeWriter.AppendLine("using Inject.NET.Enums;");
-        sourceCodeWriter.AppendLine("using Inject.NET.Interfaces;");
+        sourceCodeWriter.WriteLine("using System;");
+        sourceCodeWriter.WriteLine("using System.Threading.Tasks;");
+        sourceCodeWriter.WriteLine("using Inject.NET.Enums;");
+        sourceCodeWriter.WriteLine("using Inject.NET.Interfaces;");
 
         var serviceProviderType = tuple.ServiceProviderModel.Type;
         
-        sourceCodeWriter.AppendLine($"namespace {serviceProviderType.ContainingNamespace.ToDisplayString()};");
+        sourceCodeWriter.WriteLine($"namespace {serviceProviderType.ContainingNamespace.ToDisplayString()};");
 
-        sourceCodeWriter.AppendLine(
+        sourceCodeWriter.WriteLine(
             $"{serviceProviderType.DeclaredAccessibility.ToString().ToLower(CultureInfo.InvariantCulture)} partial class {serviceProviderType.Name}");
-        sourceCodeWriter.AppendLine("{");
+        sourceCodeWriter.WriteLine("{");
 
-        sourceCodeWriter.AppendLine("public static Task<ITenantedServiceProvider> BuildAsync() =>");
-        sourceCodeWriter.AppendLine($"new {serviceProviderType.Name}ServiceRegistrar().BuildAsync();");
+        sourceCodeWriter.WriteLine("public static Task<ITenantedServiceProvider> BuildAsync() =>");
+        sourceCodeWriter.WriteLine($"new {serviceProviderType.Name}ServiceRegistrar().BuildAsync();");
 
-        sourceCodeWriter.AppendLine("}");
+        sourceCodeWriter.WriteLine("}");
 
         sourceProductionContext.AddSource(
             $"{serviceProviderType.Name}ServiceProvider.g.cs",

@@ -6,10 +6,10 @@ using Inject.NET.Services;
 namespace Inject.NET.SourceGenerator.Sample.ServiceProviders;
 public class TransientImplementationOnlyServiceRegistrar : ServiceRegistrar
 {
-public TransientImplementationOnlyServiceRegistrar()
-{
-Register<global::Inject.NET.SourceGenerator.Sample.Models.Class1>((scope, type) => new global::Inject.NET.SourceGenerator.Sample.Models.Class1(), Lifetime.Transient);
-}
+	public TransientImplementationOnlyServiceRegistrar()
+	{
+		Register<global::Inject.NET.SourceGenerator.Sample.Models.Class1>((scope, type) => new global::Inject.NET.SourceGenerator.Sample.Models.Class1(), Lifetime.Transient);
+	}
 }
 
   
@@ -20,8 +20,8 @@ using Inject.NET.Interfaces;
 namespace Inject.NET.SourceGenerator.Sample.ServiceProviders;
 public partial class TransientImplementationOnly
 {
-public static Task<ITenantedServiceProvider> BuildAsync() =>
-new TransientImplementationOnlyServiceRegistrar().BuildAsync();
+	public static Task<ITenantedServiceProvider> BuildAsync() =>
+	new TransientImplementationOnlyServiceRegistrar().BuildAsync();
 }
 
 ]

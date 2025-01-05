@@ -6,10 +6,10 @@ using Inject.NET.Services;
 namespace Inject.NET.SourceGenerator.Sample.ServiceProviders;
 public class SingletonServiceImplementationServiceRegistrar : ServiceRegistrar
 {
-public SingletonServiceImplementationServiceRegistrar()
-{
-Register<global::Inject.NET.SourceGenerator.Sample.Models.IClass>((scope, type) => new global::Inject.NET.SourceGenerator.Sample.Models.Class1(), Lifetime.Singleton);
-}
+	public SingletonServiceImplementationServiceRegistrar()
+	{
+		Register<global::Inject.NET.SourceGenerator.Sample.Models.IClass>((scope, type) => new global::Inject.NET.SourceGenerator.Sample.Models.Class1(), Lifetime.Singleton);
+	}
 }
 
   
@@ -20,8 +20,8 @@ using Inject.NET.Interfaces;
 namespace Inject.NET.SourceGenerator.Sample.ServiceProviders;
 public partial class SingletonServiceImplementation
 {
-public static Task<ITenantedServiceProvider> BuildAsync() =>
-new SingletonServiceImplementationServiceRegistrar().BuildAsync();
+	public static Task<ITenantedServiceProvider> BuildAsync() =>
+	new SingletonServiceImplementationServiceRegistrar().BuildAsync();
 }
 
 ]

@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net9.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <SignAssembly>false</SignAssembly>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="FluentAssertions" Version="7.0.0" />
+      <PackageReference Include="ModularPipelines.DotNet" Version="2.42.140" />
+      <PackageReference Include="ModularPipelines.Git" Version="2.42.140" />
+      <PackageReference Include="Sourcy.DotNet" Version="0.0.66" />
+      <PackageReference Include="Sourcy.Git" Version="0.0.66" />
+    </ItemGroup>
+
+</Project>

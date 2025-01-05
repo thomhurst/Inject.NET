@@ -9,7 +9,7 @@ public class Program
 {
     public static async Task Main(string[] args)
     {
-        var serviceProvider = await MyServiceProvider1.BuildAsync();
+        var serviceProvider = await MyServiceProvider.BuildAsync();
 
         var @class = serviceProvider.CreateScope().GetRequiredService<Class5>();
         

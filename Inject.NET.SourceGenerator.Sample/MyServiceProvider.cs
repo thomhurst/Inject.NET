@@ -11,4 +11,4 @@ namespace Inject.NET.SourceGenerator.Sample;
 [Scoped<Class6>]
 [Singleton<IClass, Class1>]
 [ServiceProvider]
-public partial class MyServiceProvider1;
+public partial class MyServiceProvider;

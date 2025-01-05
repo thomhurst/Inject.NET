@@ -9,11 +9,11 @@ namespace Inject.NET.Services;
 internal class ServiceScope(ServiceProviderRoot root, SingletonScope singletonScope, ServiceFactories serviceFactories)
     : IServiceScope
 {
-    private ConcurrentDictionary<Type, object>? _cachedObjects;
-    private ConcurrentDictionary<Type, ConcurrentDictionary<string, object>>? _cachedKeyedObjects;
+    private Dictionary<Type, object>? _cachedObjects;
+    private Dictionary<Type, ConcurrentDictionary<string, object>>? _cachedKeyedObjects;
     
-    private ConcurrentDictionary<Type, List<object>>? _cachedEnumerables;
-    private ConcurrentDictionary<Type, ConcurrentDictionary<string, List<object>>>? _cachedKeyedEnumerables;
+    private Dictionary<Type, List<object>>? _cachedEnumerables;
+    private Dictionary<Type, ConcurrentDictionary<string, List<object>>>? _cachedKeyedEnumerables;
     
     private List<object>? _forDisposal;
     

@@ -9,7 +9,7 @@ namespace Benchmarks;
 [SimpleJob(RuntimeMoniker.Net90)]
 public class MicrosoftDependencyInjectionBenchmark
 {
-    private ServiceProvider _serviceProvider;
+    private ServiceProvider _serviceProvider = null!;
 
     [GlobalSetup]
     public void GlobalSetup()

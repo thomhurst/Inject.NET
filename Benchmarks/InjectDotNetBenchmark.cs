@@ -18,9 +18,9 @@ public class InjectDotNetBenchmark
     [Singleton<Interface3, Class3>]
     [Transient<Interface4, Class4>]
     [Scoped<Interface5, Class5>]
-    public class MyServiceProvider;
+    public partial class MyServiceProvider;
     
-    private IServiceProviderRoot _serviceProviderRoot;
+    private IServiceProviderRoot _serviceProviderRoot = null!;
 
     [GlobalSetup]
     public async Task GlobalSetup()

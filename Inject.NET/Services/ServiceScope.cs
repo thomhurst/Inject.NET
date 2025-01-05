@@ -6,14 +6,15 @@ using IServiceProvider = Inject.NET.Interfaces.IServiceProvider;
 
 namespace Inject.NET.Services;
 
-internal class ServiceScope(ServiceProviderRoot rootServiceProviderRoot, ServiceFactories serviceFactories)
+internal class ServiceScope(ServiceProviderRoot root, ServiceFactories serviceFactories)
     : IServiceScope
 {
     private readonly ConcurrentDictionary<Type, List<object>> _cachedObjects = [];
     private readonly ConcurrentDictionary<Type, ConcurrentDictionary<string, List<object>>> _cachedKeyedObjects = [];
-    private readonly List<object> _forDisposal = [];
     
-    public IServiceProvider RootServiceProviderRoot { get; } = rootServiceProviderRoot;
+    private HashSet<object>? _forDisposal;
+    
+    public IServiceProvider Root { get; } = root;
 
     ~ServiceScope()
     {
@@ -45,7 +46,7 @@ internal class ServiceScope(ServiceProviderRoot rootServiceProviderRoot, Service
             }
         }
         
-        if (!rootServiceProviderRoot.TryGetSingletons(type, out var singletons))
+        if (!root.TryGetSingletons(type, out var singletons))
         {
             singletons = [];
         }
@@ -65,7 +66,7 @@ internal class ServiceScope(ServiceProviderRoot rootServiceProviderRoot, Service
             {
                 item = Constructor.Construct(this, type, null, serviceDescriptor);
                 
-                _forDisposal.Add(item);
+                (_forDisposal ??= []).Add(item);
             }
             
             _cachedObjects.GetOrAdd(type, []).Add(item);
@@ -98,7 +99,7 @@ internal class ServiceScope(ServiceProviderRoot rootServiceProviderRoot, Service
             yield break;
         }
         
-        if (!rootServiceProviderRoot.TryGetSingletons(type, key, out var singletons))
+        if (!root.TryGetSingletons(type, key, out var singletons))
         {
             singletons = [];
         }
@@ -118,7 +119,7 @@ internal class ServiceScope(ServiceProviderRoot rootServiceProviderRoot, Service
             {
                 item = Constructor.Construct(this, type, key, serviceDescriptor);
                 
-                _forDisposal.Add(item);
+                (_forDisposal ??= []).Add(item);
             }
             
             _cachedKeyedObjects.GetOrAdd(type, []).GetOrAdd(key, []).Add(item);
@@ -129,6 +130,11 @@ internal class ServiceScope(ServiceProviderRoot rootServiceProviderRoot, Service
     
     public virtual async ValueTask DisposeAsync()
     {
+        if (_forDisposal is null or { Count: 0 })
+        {
+            return;
+        }
+        
         await Parallel.ForEachAsync(_forDisposal, async (obj, _) =>
         {
             if (obj is IAsyncDisposable asyncDisposable)

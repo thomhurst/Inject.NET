@@ -8,7 +8,7 @@ using IServiceProvider = Inject.NET.Interfaces.IServiceProvider;
 
 namespace Inject.NET.Services;
 
-internal class SingletonScope(IServiceProvider rootServiceProviderRoot, ServiceFactories serviceFactories) : IServiceScope
+internal class SingletonScope(IServiceProvider root, ServiceFactories serviceFactories) : IServiceScope
 {
     private readonly ConcurrentDictionary<Type, List<object>> _singletonsBuilder = [];
     private FrozenDictionary<Type, FrozenSet<object>> _singletons = FrozenDictionary<Type, FrozenSet<object>>.Empty;
@@ -23,7 +23,7 @@ internal class SingletonScope(IServiceProvider rootServiceProviderRoot, ServiceF
     
     private bool _isBuilt;
     
-    public IServiceProvider RootServiceProviderRoot { get; } = rootServiceProviderRoot;
+    public IServiceProvider Root { get; } = root;
 
     public void PreBuild()
     {

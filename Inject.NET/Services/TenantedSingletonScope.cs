@@ -2,11 +2,11 @@
 
 namespace Inject.NET.Services;
 
-internal class TenantedSingletonScope(ServiceProviderRoot rootServiceProviderRoot, ServiceFactories serviceFactories) : SingletonScope(rootServiceProviderRoot, serviceFactories)
+internal class TenantedSingletonScope(ServiceProviderRoot root, ServiceFactories serviceFactories) : SingletonScope(root, serviceFactories)
 {
     public override IEnumerable<object> GetServices(Type type)
     {
-        if (rootServiceProviderRoot.TryGetSingletons(type, out var defaultSingletons))
+        if (root.TryGetSingletons(type, out var defaultSingletons))
         {
             return
             [
@@ -20,7 +20,7 @@ internal class TenantedSingletonScope(ServiceProviderRoot rootServiceProviderRoo
 
     public override IEnumerable<object> GetServices(Type type, string key)
     {
-        if (rootServiceProviderRoot.TryGetSingletons(type, key, out var defaultSingletons))
+        if (root.TryGetSingletons(type, key, out var defaultSingletons))
         {
             return
             [

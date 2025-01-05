@@ -8,5 +8,5 @@ public interface IServiceScope : IAsyncDisposable
     object? GetService(Type type, string key);
     IEnumerable<object> GetServices(Type type, string key);
     
-    IServiceProvider RootServiceProviderRoot { get; }
+    IServiceProvider Root { get; }
 }

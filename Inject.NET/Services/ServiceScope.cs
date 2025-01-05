@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Collections.Frozen;
 using Inject.NET.Enums;
 using Inject.NET.Interfaces;
 using Inject.NET.Models;
@@ -6,11 +7,14 @@ using IServiceProvider = Inject.NET.Interfaces.IServiceProvider;
 
 namespace Inject.NET.Services;
 
-internal class ServiceScope(ServiceProviderRoot root, ServiceFactories serviceFactories)
+internal class ServiceScope(ServiceProviderRoot root, SingletonScope singletonScope, ServiceFactories serviceFactories)
     : IServiceScope
 {
-    private readonly ConcurrentDictionary<Type, List<object>> _cachedObjects = [];
-    private readonly ConcurrentDictionary<Type, ConcurrentDictionary<string, List<object>>> _cachedKeyedObjects = [];
+    private ConcurrentDictionary<Type, object>? _cachedObjects;
+    private ConcurrentDictionary<Type, ConcurrentDictionary<string, object>>? _cachedKeyedObjects;
+    
+    private ConcurrentDictionary<Type, List<object>>? _cachedEnumerables;
+    private ConcurrentDictionary<Type, ConcurrentDictionary<string, List<object>>>? _cachedKeyedEnumerables;
     
     private List<object>? _forDisposal;
     
@@ -18,12 +22,34 @@ internal class ServiceScope(ServiceProviderRoot root, ServiceFactories serviceFa
     
     public object? GetService(Type type)
     {
+        if (_cachedObjects?.TryGetValue(type, out var cachedObject) == true)
+        {
+            return cachedObject;
+        }
+        
+        if (serviceFactories.Descriptor.TryGetValue(type, out var descriptor))
+        {
+            if (descriptor.Lifetime == Lifetime.Singleton)
+            {
+                return singletonScope.GetService(type);
+            }
+            
+            var obj = Constructor.Construct(this, type, null, descriptor);
+            
+            (_cachedObjects ??= [])[type] = obj;
+            (_forDisposal ??= []).Add(obj);
+
+            return obj;
+        }
+        
         return GetServices(type).LastOrDefault();
     }
 
     public virtual IEnumerable<object> GetServices(Type type)
     {
-        if (_cachedObjects.TryGetValue(type, out var cachedObjects))
+        var cachedEnumerables = _cachedEnumerables ??= [];
+        
+        if (cachedEnumerables.TryGetValue(type, out var cachedObjects))
         {
             foreach (var cachedObject in cachedObjects)
             {
@@ -33,9 +59,9 @@ internal class ServiceScope(ServiceProviderRoot root, ServiceFactories serviceFa
             yield break;
         }
 
-        if (!serviceFactories.Factories.TryGetValue(type, out var factories))
+        if (!serviceFactories.EnumerableDescriptors.TryGetValue(type, out var factories))
         {
-            if(!type.IsGenericType || !serviceFactories.Factories.TryGetValue(type.GetGenericTypeDefinition(), out factories))
+            if(!type.IsGenericType || !serviceFactories.EnumerableDescriptors.TryGetValue(type.GetGenericTypeDefinition(), out factories))
             {
                 yield break;
             }
@@ -64,7 +90,7 @@ internal class ServiceScope(ServiceProviderRoot root, ServiceFactories serviceFa
                 (_forDisposal ??= []).Add(item);
             }
             
-            _cachedObjects.GetOrAdd(type, []).Add(item);
+            cachedEnumerables.GetOrAdd(type, []).Add(item);
 
             yield return item;
         }
@@ -72,12 +98,35 @@ internal class ServiceScope(ServiceProviderRoot root, ServiceFactories serviceFa
 
     public object? GetService(Type type, string key)
     {
+        if (_cachedKeyedObjects?.TryGetValue(type, out var dictionary) == true
+            && dictionary.TryGetValue(key, out var cachedObject))
+        {
+            return cachedObject;
+        }
+
+        if (serviceFactories.KeyedDescriptor.TryGetValue(type, out var keyedDictionary)
+            && keyedDictionary.TryGetValue(key, out var keyedDescriptor))
+        {
+            if (keyedDescriptor.Lifetime == Lifetime.Singleton)
+            {
+                return singletonScope.GetService(type, key);
+            }
+            
+            var obj = Constructor.Construct(this, type, key, keyedDescriptor);
+            
+            (_cachedKeyedObjects ??= []).GetOrAdd(type, [])[key] = obj;
+            (_forDisposal ??= []).Add(obj);
+
+            return obj;
+        }
+        
         return GetServices(type, key).LastOrDefault();
     }
 
     public virtual IEnumerable<object> GetServices(Type type, string key)
     {
-        if (_cachedKeyedObjects.TryGetValue(type, out var dictionary)
+        var cachedKeyedEnumerables = _cachedKeyedEnumerables ??= [];
+        if (cachedKeyedEnumerables.TryGetValue(type, out var dictionary)
             && dictionary.TryGetValue(key, out var cachedObjects))
         {
             foreach (var cachedObject in cachedObjects)
@@ -88,7 +137,7 @@ internal class ServiceScope(ServiceProviderRoot root, ServiceFactories serviceFa
             yield break;
         }
 
-        if (!serviceFactories.KeyedFactories.TryGetValue(type, out var keyedFactories)
+        if (!serviceFactories.KeyedEnumerableDescriptors.TryGetValue(type, out var keyedFactories)
             || !keyedFactories.TryGetValue(key, out var factories))
         {
             yield break;
@@ -117,7 +166,7 @@ internal class ServiceScope(ServiceProviderRoot root, ServiceFactories serviceFa
                 (_forDisposal ??= []).Add(item);
             }
             
-            _cachedKeyedObjects.GetOrAdd(type, []).GetOrAdd(key, []).Add(item);
+            cachedKeyedEnumerables.GetOrAdd(type, []).GetOrAdd(key, []).Add(item);
 
             yield return item;
         }

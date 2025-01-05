@@ -4,12 +4,23 @@ using Inject.NET.Interfaces;
 
 namespace Inject.NET.Models;
 
-public record ServiceFactories
+public record ServiceFactories(
+    FrozenDictionary<Type, FrozenSet<IServiceDescriptor>> EnumerableDescriptors,
+    FrozenDictionary<Type, FrozenDictionary<string, FrozenSet<IKeyedServiceDescriptor>>> KeyedEnumerableDescriptors
+    )
 {
-    internal ServiceFactories()
-    {
-    }
-    
-    public required FrozenDictionary<Type, FrozenSet<IServiceDescriptor>> Factories { get; init; }
-    public required FrozenDictionary<Type, FrozenDictionary<string, FrozenSet<IKeyedServiceDescriptor>>> KeyedFactories { get; init; }
+    public FrozenDictionary<Type, IServiceDescriptor> Descriptor { get; } =
+        EnumerableDescriptors.ToFrozenDictionary(
+            x => x.Key,
+            x => x.Value.Last()
+        );
+
+    public FrozenDictionary<Type, FrozenDictionary<string, IKeyedServiceDescriptor>> KeyedDescriptor { get; } =
+        KeyedEnumerableDescriptors.ToFrozenDictionary(
+            x => x.Key, x => x.Value.ToFrozenDictionary(
+                y => y.Key,
+                y => y.Value.Last()
+            )
+        );
+
 }

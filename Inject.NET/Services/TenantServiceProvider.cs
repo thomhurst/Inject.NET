@@ -15,12 +15,12 @@ internal class TenantServiceProvider(ServiceProviderRoot rootServiceProviderRoot
 
         await using var scope = CreateScope();
         
-        foreach (var type in serviceFactories.Factories.Keys)
+        foreach (var type in serviceFactories.EnumerableDescriptors.Keys)
         {
             scope.GetServices(type);
         }
         
-        foreach (var (type, keyedFactory) in serviceFactories.KeyedFactories)
+        foreach (var (type, keyedFactory) in serviceFactories.KeyedEnumerableDescriptors)
         {
             foreach (var key in keyedFactory.Keys)
             {
@@ -38,6 +38,6 @@ internal class TenantServiceProvider(ServiceProviderRoot rootServiceProviderRoot
 
     public IServiceScope CreateScope()
     {
-        return new TenantedScope(rootServiceProviderRoot.CreateScope(), serviceFactories);
+        return new TenantedScope(rootServiceProviderRoot.CreateScope(), _singletonScope, serviceFactories);
     }
 }

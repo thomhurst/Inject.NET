@@ -1,13 +1,14 @@
-﻿using System;
-using Inject.NET.Attributes;
+﻿using Inject.NET.Attributes;
 using Inject.NET.Extensions;
-using Inject.NET.SourceGenerator.Sample.ServiceProviders;
 
 var serviceProvider = await MyServiceProvider.BuildAsync();
 
-var typedGeneric = serviceProvider.CreateScope().GetRequiredService<Interface5>();
-
-Console.WriteLine(typedGeneric);
+for (var i = 0; i < 500_000; i++)
+{
+    await using var scope = serviceProvider.CreateScope();
+    
+    scope.GetRequiredService<Interface5>();
+}
 
 [ServiceProvider]
 [Singleton<Interface1, Class1>]

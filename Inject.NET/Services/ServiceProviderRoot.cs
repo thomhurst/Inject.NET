@@ -28,12 +28,12 @@ internal class ServiceProviderRoot : IServiceProviderRoot
         
         await using var scope = CreateScope();
         
-        foreach (var type in _serviceFactories.Factories.Keys)
+        foreach (var type in _serviceFactories.EnumerableDescriptors.Keys)
         {
             scope.GetServices(type);
         }
         
-        foreach (var (type, keyedFactory) in _serviceFactories.KeyedFactories)
+        foreach (var (type, keyedFactory) in _serviceFactories.KeyedEnumerableDescriptors)
         {
             foreach (var key in keyedFactory.Keys)
             {
@@ -55,6 +55,16 @@ internal class ServiceProviderRoot : IServiceProviderRoot
         }
 
         _tenants = tenants.ToFrozenDictionary(x => x.Id, x => x.ServiceProvider);
+    }
+    
+    internal object? GetSingleton(Type type)
+    {
+        return _singletonScope.GetService(type);
+    }
+    
+    internal object? GetSingleton(Type type, string key)
+    {
+        return _singletonScope.GetService(type, key);
     }
 
     internal bool TryGetSingletons(Type type, out IReadOnlyList<object> singletons)
@@ -86,7 +96,7 @@ internal class ServiceProviderRoot : IServiceProviderRoot
 
     public IServiceScope CreateScope()
     {
-        return new ServiceScope(this, _serviceFactories);
+        return new ServiceScope(this, _singletonScope, _serviceFactories);
     }
 
     public IServiceProvider GetTenant(string tenantId)

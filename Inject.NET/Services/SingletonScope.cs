@@ -11,11 +11,14 @@ namespace Inject.NET.Services;
 internal class SingletonScope(IServiceProvider root, ServiceFactories serviceFactories) : IServiceScope
 {
     private readonly ConcurrentDictionary<Type, List<object>> _singletonsBuilder = [];
-    private FrozenDictionary<Type, FrozenSet<object>> _singletons = FrozenDictionary<Type, FrozenSet<object>>.Empty;
+    private FrozenDictionary<Type, FrozenSet<object>> _singletonEnumerables = FrozenDictionary<Type, FrozenSet<object>>.Empty;
+    private FrozenDictionary<Type, object> _singletons = FrozenDictionary<Type, object>.Empty;
     
     private readonly ConcurrentDictionary<Type, ConcurrentDictionary<string, List<object>>> _keyedSingletonsBuilder = [];
-    private FrozenDictionary<Type, FrozenDictionary<string, FrozenSet<object>>> _keyedSingletons =
+    private FrozenDictionary<Type, FrozenDictionary<string, FrozenSet<object>>> _keyedSingletonEnumerables =
         FrozenDictionary<Type, FrozenDictionary<string, FrozenSet<object>>>.Empty;
+    private FrozenDictionary<Type, FrozenDictionary<string, object>> _keyedSingletons =
+        FrozenDictionary<Type, FrozenDictionary<string, object>>.Empty;
 
     private readonly ConcurrentDictionary<Type, object[]> _openGenericSingletons = [];
     private readonly ConcurrentDictionary<Type, ConcurrentDictionary<string, object[]>> _openGenericKeyedSingletons = [];
@@ -40,12 +43,12 @@ internal class SingletonScope(IServiceProvider root, ServiceFactories serviceFac
 
     internal async Task FinalizeAsync()
     {
-        _singletons = _singletonsBuilder.ToFrozenDictionary(
+        _singletonEnumerables = _singletonsBuilder.ToFrozenDictionary(
             d => d.Key,
             d => d.Value.ToFrozenSet()
         );
         
-        _keyedSingletons = _keyedSingletonsBuilder.ToFrozenDictionary(
+        _keyedSingletonEnumerables = _keyedSingletonsBuilder.ToFrozenDictionary(
             outerDictionary => outerDictionary.Key,
             outerDictionary => outerDictionary.Value.ToFrozenDictionary(
                 innerDictionary => innerDictionary.Key,
@@ -55,8 +58,8 @@ internal class SingletonScope(IServiceProvider root, ServiceFactories serviceFac
 
         IEnumerable<object> allSingletons =
         [
-            _singletons.SelectMany(s => s.Value),
-            _keyedSingletons.SelectMany(s => s.Value)
+            _singletonEnumerables.SelectMany(s => s.Value),
+            _keyedSingletonEnumerables.SelectMany(s => s.Value)
                 .Select(x => x.Value),
         ];
 
@@ -67,17 +70,35 @@ internal class SingletonScope(IServiceProvider root, ServiceFactories serviceFac
             await singletonAsyncInitialization.InitializeAsync();
         }
 
+        _singletons = _singletonEnumerables.ToFrozenDictionary(
+            x => x.Key,
+            x => x.Value.Last()
+        );
+
+        _keyedSingletons = _keyedSingletonEnumerables.ToFrozenDictionary(
+            x => x.Key,
+            x => x.Value.ToFrozenDictionary(
+                y => y.Key,
+                y => y.Value.Last()
+            )
+        );
+
         _isBuilt = true;
     }
 
     public object? GetService(Type type)
     {
+        if (_singletons.TryGetValue(type, out var singleton))
+        {
+            return singleton;
+        }
+        
         return GetServices(type).LastOrDefault();
     }
 
     public virtual IEnumerable<object> GetServices(Type type)
     {
-        if (_singletons.TryGetValue(type, out var list))
+        if (_singletonEnumerables.TryGetValue(type, out var list))
         {
             return list;
         }
@@ -115,14 +136,14 @@ internal class SingletonScope(IServiceProvider root, ServiceFactories serviceFac
 
     private IEnumerable<IServiceDescriptor> SingletonFactories(Type type)
     {
-        return serviceFactories.Factories.Where(x => x.Key == type)
+        return serviceFactories.EnumerableDescriptors.Where(x => x.Key == type)
             .SelectMany(x => x.Value)
             .Where(x => x.Lifetime == Lifetime.Singleton);
     }
     
     private IEnumerable<IKeyedServiceDescriptor> KeyedSingletonFactories(Type type, string key)
     {
-        return serviceFactories.KeyedFactories.Where(x => x.Key == type)
+        return serviceFactories.KeyedEnumerableDescriptors.Where(x => x.Key == type)
             .SelectMany(x => x.Value)
             .Where(x => x.Key == key)
             .SelectMany(x => x.Value)
@@ -131,18 +152,24 @@ internal class SingletonScope(IServiceProvider root, ServiceFactories serviceFac
 
     public object? GetService(Type type, string key)
     {
+        if (_keyedSingletons.TryGetValue(type, out var dictionary)
+            && dictionary.TryGetValue(key, out var singleton))
+        {
+            return singleton;
+        }
+        
         return GetServices(type, key).LastOrDefault();
     }
 
     public virtual IEnumerable<object> GetServices(Type type, string key)
     {
-        if (_keyedSingletons.TryGetValue(type, out var innerDictionary)
+        if (_keyedSingletonEnumerables.TryGetValue(type, out var innerDictionary)
             && innerDictionary.TryGetValue(key, out var list))
         {
             return list;
         }
         
-        if (_keyedSingletons.TryGetValue(type, out var openGenericInnerDictionary)
+        if (_keyedSingletonEnumerables.TryGetValue(type, out var openGenericInnerDictionary)
             && openGenericInnerDictionary.TryGetValue(key, out var openGenericSingletons))
         {
             return openGenericSingletons;
@@ -175,7 +202,7 @@ internal class SingletonScope(IServiceProvider root, ServiceFactories serviceFac
     
     private IEnumerable<Type> GetSingletonTypes()
     {
-        return serviceFactories.Factories
+        return serviceFactories.EnumerableDescriptors
             .Where(x => x.Value.Items.Any(y => y.Lifetime == Lifetime.Singleton))
             .GroupBy(x => x.Key)
             .Select(x => x.Key)
@@ -184,7 +211,7 @@ internal class SingletonScope(IServiceProvider root, ServiceFactories serviceFac
     
     private IEnumerable<(Type Type, string Key)> GetKeyedSingletonTypes()
     {
-        foreach (var typeGroups in serviceFactories.KeyedFactories
+        foreach (var typeGroups in serviceFactories.KeyedEnumerableDescriptors
                      .Where(x => x.Value.Values.Any(y => y.Items.Any(z => z.Lifetime == Lifetime.Singleton)))
                      .GroupBy(x => x.Key)
                      .Where(x => !x.Key.IsGenericTypeDefinition)
@@ -200,8 +227,8 @@ internal class SingletonScope(IServiceProvider root, ServiceFactories serviceFac
     
     public async ValueTask DisposeAsync()
     {
-        foreach (var item in _singletons.SelectMany(x => x.Value)
-                     .Concat(_keyedSingletons.SelectMany(x => x.Value)
+        foreach (var item in _singletonEnumerables.SelectMany(x => x.Value)
+                     .Concat(_keyedSingletonEnumerables.SelectMany(x => x.Value)
                          .SelectMany(x => x.Value)))
         {
             await Disposer.DisposeAsync(item);

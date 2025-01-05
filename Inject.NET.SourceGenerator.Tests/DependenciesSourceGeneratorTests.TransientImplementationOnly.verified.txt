@@ -25,7 +25,7 @@ namespace Inject.NET.SourceGenerator.Sample.ServiceProviders;
 public partial class TransientImplementationOnly
 {
 	public static Task<ITenantedServiceProvider> BuildAsync() =>
-	new TransientImplementationOnlyServiceRegistrar().BuildAsync();
+		new TransientImplementationOnlyServiceRegistrar().BuildAsync();
 }
 
 ]

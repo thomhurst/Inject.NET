@@ -25,7 +25,7 @@ namespace Inject.NET.SourceGenerator.Sample.ServiceProviders;
 public partial class ScopedImplementationOnly
 {
 	public static Task<ITenantedServiceProvider> BuildAsync() =>
-	new ScopedImplementationOnlyServiceRegistrar().BuildAsync();
+		new ScopedImplementationOnlyServiceRegistrar().BuildAsync();
 }
 
 ]

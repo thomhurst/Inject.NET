@@ -29,7 +29,7 @@ public static class ServiceProviderWriter
         sourceCodeWriter.WriteLine("{");
 
         sourceCodeWriter.WriteLine("public static Task<ITenantedServiceProvider> BuildAsync() =>");
-        sourceCodeWriter.WriteLine($"new {serviceProviderType.Name}ServiceRegistrar().BuildAsync();");
+        sourceCodeWriter.WriteLine($"\tnew {serviceProviderType.Name}ServiceRegistrar().BuildAsync();");
 
         sourceCodeWriter.WriteLine("}");
 

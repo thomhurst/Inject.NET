@@ -25,7 +25,7 @@ namespace Inject.NET.SourceGenerator.Sample.ServiceProviders;
 public partial class SingletonGeneric
 {
 	public static Task<ITenantedServiceProvider> BuildAsync() =>
-	new SingletonGenericServiceRegistrar().BuildAsync();
+		new SingletonGenericServiceRegistrar().BuildAsync();
 }
 
 ]

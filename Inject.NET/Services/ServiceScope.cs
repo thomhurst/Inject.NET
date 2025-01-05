@@ -1,6 +1,7 @@
 using Inject.NET.Enums;
 using Inject.NET.Interfaces;
 using Inject.NET.Models;
+using Inject.NET.Pools;
 using IServiceProvider = Inject.NET.Interfaces.IServiceProvider;
 
 namespace Inject.NET.Services;
@@ -48,10 +49,10 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
             
             if(descriptor.Lifetime != Lifetime.Transient)
             {
-                (_cachedObjects ??= [])[cacheKey] = obj;
+                (_cachedObjects ??= DictionaryPool<CacheKey, object>.Shared.Get())[cacheKey] = obj;
             }
 
-            (_forDisposal ??= []).Add(obj);
+            (_forDisposal ??= ListPool<object>.Shared.Get()).Add(obj);
 
             return obj;
         }
@@ -66,7 +67,7 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
 
     private IEnumerable<object> GetServices(CacheKey cacheKey)
     {
-        var cachedEnumerables = _cachedEnumerables ??= [];
+        var cachedEnumerables = _cachedEnumerables ??= DictionaryPool<CacheKey, List<object>>.Shared.Get();
         
         if (cachedEnumerables.TryGetValue(cacheKey, out var cachedObjects))
         {
@@ -103,7 +104,7 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
             {
                 item = Constructor.Construct(this, cacheKey.Type, serviceDescriptor);
                 
-                (_forDisposal ??= []).Add(item);
+                (_forDisposal ??= ListPool<object>.Shared.Get()).Add(item);
             }
             
             if(lifetime != Lifetime.Transient)
@@ -146,6 +147,8 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
             }
         }
         
+        ListPool<object>.Shared.Return(forDisposal);
+        
         return default;
         
         static async ValueTask Await(int i, ValueTask vt, List<object> toDispose)
@@ -167,6 +170,8 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
                     ((IDisposable)disposable).Dispose();
                 }
             }
+            
+            ListPool<object>.Shared.Return(toDispose);
         }
     }
 }

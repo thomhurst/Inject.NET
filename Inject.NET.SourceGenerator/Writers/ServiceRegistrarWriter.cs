@@ -49,8 +49,18 @@ public static class ServiceRegistrarWriter
 
             INamedTypeSymbol? serviceType;
             INamedTypeSymbol? implementationType;
-            
-            if (attributeClass.TypeArguments.Length == 1)
+
+            if (attributeClass.TypeArguments.Length == 0 && attributeData.ConstructorArguments.Length == 1)
+            {
+                serviceType = attributeData.ConstructorArguments[0].Value as INamedTypeSymbol;
+                implementationType = serviceType;
+            }
+            else if (attributeClass.TypeArguments.Length == 0 && attributeData.ConstructorArguments.Length == 2)
+            {
+                serviceType = attributeData.ConstructorArguments[0].Value as INamedTypeSymbol;
+                implementationType = attributeData.ConstructorArguments[1].Value as INamedTypeSymbol;
+            }
+            else if (attributeClass.TypeArguments.Length == 1)
             {
                 serviceType = attributeClass.TypeArguments[0] as INamedTypeSymbol;
                 implementationType = serviceType;
@@ -137,6 +147,27 @@ public static class ServiceRegistrarWriter
 
         if (!Enum.TryParse(attributeData.AttributeClass?.Name.Replace("Attribute", string.Empty), false, out Lifetime lifetime))
         {
+            return;
+        }
+
+        if (serviceType.IsGenericType 
+            && SymbolEqualityComparer.Default.Equals(serviceType, serviceType.ConstructUnboundGenericType()))
+        {
+            if (key != null)
+            {
+                sourceCodeWriter.AppendLine(
+                    $"""
+                     RegisterOpenGeneric(typeof({serviceType.GloballyQualified()}), typeof({implementationType.GloballyQualified()}), Lifetime.{lifetime}, "{key}");
+                     """);
+            }
+            else
+            {
+                sourceCodeWriter.AppendLine(
+                    $"""
+                     RegisterOpenGeneric(typeof({serviceType.GloballyQualified()}), typeof({implementationType.GloballyQualified()}), Lifetime.{lifetime});
+                     """);
+            }
+            
             return;
         }
         

@@ -20,9 +20,24 @@ public class ServiceRegistrar : ITenantedServiceRegistrar
         return this;
     }
 
+    public ITenantedServiceRegistrar RegisterOpenGeneric(Type serviceType, Type implementationType, Lifetime lifetime)
+    {
+        ServiceFactoryBuilders.AddOpenGeneric(serviceType, implementationType, lifetime);
+
+        return this;
+    }
+
     public ITenantedServiceRegistrar RegisterKeyed<T>(Func<IServiceScope, Type, string, T> factory, Lifetime lifetime, string key)
     {
         ServiceFactoryBuilders.Add(typeof(T), lifetime, key, factory);
+
+        return this;
+    }
+
+    public ITenantedServiceRegistrar RegisterKeyedOpenGeneric(Type serviceType, Type implementationType, Lifetime lifetime,
+        string key)
+    {
+        ServiceFactoryBuilders.AddOpenGeneric(serviceType, implementationType, lifetime, key);
 
         return this;
     }

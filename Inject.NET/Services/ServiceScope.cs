@@ -39,7 +39,10 @@ internal class ServiceScope(ServiceProvider serviceProvider, ServiceFactories se
 
         if (!serviceFactories.Factories.TryGetValue(type, out var factories))
         {
-            yield break;
+            if(!type.IsGenericType || !serviceFactories.Factories.TryGetValue(type.GetGenericTypeDefinition(), out factories))
+            {
+                yield break;
+            }
         }
         
         if (!serviceProvider.TryGetSingletons(type, out var singletons))
@@ -50,16 +53,18 @@ internal class ServiceScope(ServiceProvider serviceProvider, ServiceFactories se
         var singletonIndex = 0;
         for (var i = 0; i < factories.Count; i++)
         {
-            var (lifetime, factory) = factories.Items[i];
-
-            object item;
+            var serviceDescriptor = factories.Items[i];
+            var lifetime = serviceDescriptor.Lifetime;
+            
+            object? item;
             if (lifetime == Lifetime.Singleton)
             {
                  item = singletons[singletonIndex++];
             }
             else
             {
-                item = factory(this, type);
+                item = Constructor.Construct(this, type, null, serviceDescriptor);
+                
                 _forDisposal.Add(item);
             }
             
@@ -101,16 +106,18 @@ internal class ServiceScope(ServiceProvider serviceProvider, ServiceFactories se
         var singletonIndex = 0;
         for (var i = 0; i < factories.Count; i++)
         {
-            var (lifetime, factory) = factories.Items[i];
-
-            object item;
+            var serviceDescriptor = factories.Items[i];
+            var lifetime = serviceDescriptor.Lifetime;
+            
+            object? item;
             if (lifetime == Lifetime.Singleton)
             {
                 item = singletons[singletonIndex++];
             }
             else
             {
-                item = factory(this, type, key);
+                item = Constructor.Construct(this, type, key, serviceDescriptor);
+                
                 _forDisposal.Add(item);
             }
             

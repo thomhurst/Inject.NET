@@ -10,6 +10,6 @@ public record ServiceFactories
     {
     }
     
-    public required FrozenDictionary<Type, FrozenSet<(Lifetime, Func<IServiceScope, Type, object>)>> Factories { get; init; }
-    public required FrozenDictionary<Type, FrozenDictionary<string, FrozenSet<(Lifetime, Func<IServiceScope, Type, string, object>)>>> KeyedFactories { get; init; }
+    public required FrozenDictionary<Type, FrozenSet<IServiceDescriptor>> Factories { get; init; }
+    public required FrozenDictionary<Type, FrozenDictionary<string, FrozenSet<IKeyedServiceDescriptor>>> KeyedFactories { get; init; }
 }

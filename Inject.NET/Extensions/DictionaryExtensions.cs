@@ -11,7 +11,7 @@ internal static class DictionaryExtensions
         this IEnumerable<ServiceDescriptor> serviceDescriptors)
     {
         return serviceDescriptors
-            .GroupBy(x => x.Type)
+            .GroupBy(x => x.ImplementationType)
             .ToFrozenDictionary(
                 x => x.Key,
                 x => x.Select(sd => (sd.Lifetime, sd.Factory)).ToFrozenSet()
@@ -22,7 +22,7 @@ internal static class DictionaryExtensions
         this IEnumerable<KeyedServiceDescriptor> keyedServiceDescriptors)
     {
         return keyedServiceDescriptors
-            .GroupBy(x => x.Type)
+            .GroupBy(x => x.ImplementationType)
             .ToFrozenDictionary(
             x => x.Key,
             x => x.GroupBy(y => y.Key).ToFrozenDictionary(

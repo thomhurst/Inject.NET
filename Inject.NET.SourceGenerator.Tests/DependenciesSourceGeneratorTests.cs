@@ -129,4 +129,25 @@ public class DependenciesSourceGeneratorTests : TestsBase<DependenciesSourceGene
             ]
         },
         async generatedFiles => { await Assert.That(generatedFiles.Length).IsEqualTo(2); });
+    
+    [Test]
+    public Task SingletonGeneric() => RunTest(Path.Combine(Sourcy.Git.RootDirectory.FullName,
+            "Inject.NET.SourceGenerator.Sample",
+            "ServiceProviders",
+            $"{TestContext.Current!.TestDetails.TestName}.cs"),
+        new RunTestOptions
+        {
+            AdditionalFiles =
+            [
+                Path.Combine(Sourcy.Git.RootDirectory.FullName,
+                    "Inject.NET.SourceGenerator.Sample",
+                    "Models",
+                    "Class1.cs"),
+                Path.Combine(Sourcy.Git.RootDirectory.FullName,
+                    "Inject.NET.SourceGenerator.Sample",
+                    "Models",
+                    "IClass.cs"),
+            ]
+        },
+        async generatedFiles => { await Assert.That(generatedFiles.Length).IsEqualTo(2); });
 }

@@ -10,24 +10,14 @@ public interface IServiceRegistrar
     
     IServiceRegistrar Register<T>(Func<IServiceScope, Type, T> factory, Lifetime lifetime);
     
+    IServiceRegistrar RegisterOpenGeneric(Type serviceType, Type implementationType, Lifetime lifetime);
+    
     IServiceRegistrar RegisterKeyed<T>(Func<IServiceScope, Type, string, T> factory, Lifetime lifetime, string key);
+    
+    IServiceRegistrar RegisterKeyedOpenGeneric(Type serviceType, Type implementationType, Lifetime lifetime, string key);
+
     
     OnBeforeBuild OnBeforeBuild { get; set; }
     
     Task<IServiceProvider> BuildAsync(IServiceProvider defaultServiceProvider);
-}
-
-public interface ITenantedServiceRegistrar
-{
-    ServiceFactoryBuilders ServiceFactoryBuilders { get; }
-    
-    ITenantedServiceRegistrar Register<T>(Func<IServiceScope, Type, T> factory, Lifetime lifetime);
-    
-    ITenantedServiceRegistrar RegisterKeyed<T>(Func<IServiceScope, Type, string, T> factory, Lifetime lifetime, string key);
-    
-    OnBeforeTenantBuild OnBeforeBuild { get; set; }
-    
-    Task<ITenantedServiceProvider> BuildAsync();
-    
-    IServiceRegistrar GetOrCreateTenant(string tenantId);
 }

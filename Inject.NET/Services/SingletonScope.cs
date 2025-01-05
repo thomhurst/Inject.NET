@@ -17,6 +17,10 @@ internal class SingletonScope(IServiceProvider serviceProvider, ServiceFactories
     private FrozenDictionary<Type, FrozenDictionary<string, FrozenSet<object>>> _keyedSingletons =
         FrozenDictionary<Type, FrozenDictionary<string, FrozenSet<object>>>.Empty;
 
+    private readonly ConcurrentDictionary<Type, object[]> _openGenericSingletons = [];
+    private readonly ConcurrentDictionary<Type, ConcurrentDictionary<string, object[]>> _openGenericKeyedSingletons = [];
+
+    
     private bool _isBuilt;
     
     public IServiceProvider ServiceProvider { get; } = serviceProvider;
@@ -74,6 +78,11 @@ internal class SingletonScope(IServiceProvider serviceProvider, ServiceFactories
         {
             return list;
         }
+        
+        if (_openGenericSingletons.TryGetValue(type, out var openGenericSingletons))
+        {
+            return openGenericSingletons;
+        }
 
         if (!_isBuilt)
         {
@@ -81,29 +90,40 @@ internal class SingletonScope(IServiceProvider serviceProvider, ServiceFactories
             {
                 return cache;
             }
-            
-            return _singletonsBuilder[type] = [..SingletonFactories(type).Select(func => func(this, type))];
+
+            return _singletonsBuilder[type] =
+            [
+                ..SingletonFactories(type)
+                    .Select(descriptor => Constructor.Construct(this, type, null, descriptor))
+            ];
+        }
+
+        if (type.IsGenericType && SingletonFactories(type.GetGenericTypeDefinition()) is {} genericTypeFactories)
+        {
+            return _openGenericSingletons[type] =
+            [
+                ..genericTypeFactories.OfType<OpenGenericServiceDescriptor>()
+                    .Select(descriptor => Constructor.Construct(this, type, null, descriptor))
+            ];
         }
 
         return [];
     }
 
-    private IEnumerable<Func<IServiceScope, Type, object>> SingletonFactories(Type type)
+    private IEnumerable<IServiceDescriptor> SingletonFactories(Type type)
     {
         return serviceFactories.Factories.Where(x => x.Key == type)
             .SelectMany(x => x.Value)
-            .Where(x => x.Item1 == Lifetime.Singleton)
-            .Select(x => x.Item2);
+            .Where(x => x.Lifetime == Lifetime.Singleton);
     }
     
-    private IEnumerable<Func<IServiceScope, Type, string, object>> KeyedSingletonFactories(Type type, string key)
+    private IEnumerable<IKeyedServiceDescriptor> KeyedSingletonFactories(Type type, string key)
     {
         return serviceFactories.KeyedFactories.Where(x => x.Key == type)
             .SelectMany(x => x.Value)
             .Where(x => x.Key == key)
             .SelectMany(x => x.Value)
-            .Where(x => x.Item1 == Lifetime.Singleton)
-            .Select(x => x.Item2);
+            .Where(x => x.Lifetime == Lifetime.Singleton);
     }
 
     public object? GetService(Type type, string key)
@@ -118,6 +138,12 @@ internal class SingletonScope(IServiceProvider serviceProvider, ServiceFactories
         {
             return list;
         }
+        
+        if (_keyedSingletons.TryGetValue(type, out var openGenericInnerDictionary)
+            && openGenericInnerDictionary.TryGetValue(key, out var openGenericSingletons))
+        {
+            return openGenericSingletons;
+        }
 
         if (!_isBuilt)
         {
@@ -128,7 +154,17 @@ internal class SingletonScope(IServiceProvider serviceProvider, ServiceFactories
             }
             
             return _keyedSingletonsBuilder.GetOrAdd(type, [])[key] =
-                [..KeyedSingletonFactories(type, key).Select(func => func(this, type, key))];
+                [..KeyedSingletonFactories(type, key).Select(descriptor => Constructor.Construct(this, type, key, descriptor))];
+        }
+        
+        
+        if (type.IsGenericType && KeyedSingletonFactories(type.GetGenericTypeDefinition(), key) is {} genericTypeFactories)
+        {
+            return _openGenericKeyedSingletons.GetOrAdd(type, [])[key] =
+            [
+                ..genericTypeFactories.OfType<OpenGenericKeyedServiceDescriptor>()
+                    .Select(descriptor => Constructor.Construct(this, type, null, descriptor))
+            ];
         }
 
         return [];
@@ -137,16 +173,19 @@ internal class SingletonScope(IServiceProvider serviceProvider, ServiceFactories
     private IEnumerable<Type> GetSingletonTypes()
     {
         return serviceFactories.Factories
-            .Where(x => x.Value.Items.Any(y => y.Item1 == Lifetime.Singleton))
+            .Where(x => x.Value.Items.Any(y => y.Lifetime == Lifetime.Singleton))
             .GroupBy(x => x.Key)
-            .Select(x => x.Key);
+            .Select(x => x.Key)
+            .Where(x => !x.IsGenericTypeDefinition);
     }
     
     private IEnumerable<(Type Type, string Key)> GetKeyedSingletonTypes()
     {
         foreach (var typeGroups in serviceFactories.KeyedFactories
-                     .Where(x => x.Value.Values.Any(y => y.Items.Any(z => z.Item1 == Lifetime.Singleton)))
-                     .GroupBy(x => x.Key))
+                     .Where(x => x.Value.Values.Any(y => y.Items.Any(z => z.Lifetime == Lifetime.Singleton)))
+                     .GroupBy(x => x.Key)
+                     .Where(x => !x.Key.IsGenericTypeDefinition)
+        )
         {
             foreach (var keyGroups in typeGroups.SelectMany(x => x.Value)
                          .GroupBy(x => x.Key))
@@ -164,36 +203,5 @@ internal class SingletonScope(IServiceProvider serviceProvider, ServiceFactories
         {
             await Disposer.DisposeAsync(item);
         }
-    }
-}
-
-internal class TenantedSingletonScope(ServiceProvider serviceProvider, ServiceFactories serviceFactories) : SingletonScope(serviceProvider, serviceFactories)
-{
-    public override IEnumerable<object> GetServices(Type type)
-    {
-        if (serviceProvider.TryGetSingletons(type, out var defaultSingletons))
-        {
-            return
-            [
-                ..defaultSingletons,
-                ..base.GetServices(type)
-            ];
-        }
-
-        return base.GetServices(type);
-    }
-
-    public override IEnumerable<object> GetServices(Type type, string key)
-    {
-        if (serviceProvider.TryGetSingletons(type, key, out var defaultSingletons))
-        {
-            return
-            [
-                ..defaultSingletons,
-                ..base.GetServices(type, key)
-            ];
-        }
-        
-        return base.GetServices(type, key);
     }
 }

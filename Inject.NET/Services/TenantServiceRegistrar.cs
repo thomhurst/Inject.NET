@@ -18,9 +18,24 @@ public class TenantServiceRegistrar : IServiceRegistrar
         return this;
     }
 
+    public IServiceRegistrar RegisterOpenGeneric(Type serviceType, Type implementationType, Lifetime lifetime)
+    {
+        ServiceFactoryBuilders.AddOpenGeneric(serviceType, implementationType, lifetime);
+
+        return this;
+    }
+
     public IServiceRegistrar RegisterKeyed<T>(Func<IServiceScope, Type, string, T> factory, Lifetime lifetime, string key)
     {
         ServiceFactoryBuilders.Add(typeof(T), lifetime, key, factory);
+
+        return this;
+    }
+
+    public IServiceRegistrar RegisterKeyedOpenGeneric(Type serviceType, Type implementationType, Lifetime lifetime,
+        string key)
+    {
+        ServiceFactoryBuilders.AddOpenGeneric(serviceType, implementationType, lifetime, key);
 
         return this;
     }

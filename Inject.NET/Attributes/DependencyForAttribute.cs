@@ -15,6 +15,8 @@ public abstract class DependencyForAttribute : Attribute
     }
 
     public abstract Lifetime Lifetime { get; }
+    
+    public string? Key { get; set; }
 
     public Type ServiceType { get; }
     public Type ImplementationType { get; }

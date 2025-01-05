@@ -3,7 +3,7 @@ using Inject.NET.Models;
 
 namespace Inject.NET.Services;
 
-internal class TenantedScope(IServiceScope defaultScope, ServiceFactories serviceFactories) : ServiceScope((ServiceProvider) defaultScope.ServiceProvider, serviceFactories)
+internal class TenantedScope(IServiceScope defaultScope, ServiceFactories serviceFactories) : ServiceScope((ServiceProvider) defaultScope.RootServiceProvider, serviceFactories)
 {
     public override IEnumerable<object> GetServices(Type type)
     {

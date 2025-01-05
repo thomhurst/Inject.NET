@@ -19,5 +19,5 @@ public interface IServiceRegistrar
     
     OnBeforeBuild OnBeforeBuild { get; set; }
     
-    Task<IServiceProvider> BuildAsync(IServiceProvider defaultServiceProvider);
+    Task<IServiceProvider> BuildAsync(IServiceProvider rootServiceProvider);
 }

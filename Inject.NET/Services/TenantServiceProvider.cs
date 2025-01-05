@@ -4,10 +4,10 @@ using IServiceProvider = Inject.NET.Interfaces.IServiceProvider;
 
 namespace Inject.NET.Services;
 
-internal class TenantServiceProvider(ServiceProvider defaultServiceProvider, ServiceFactories serviceFactories)
+internal class TenantServiceProvider(ServiceProvider rootServiceProvider, ServiceFactories serviceFactories)
     : IServiceProvider
 {
-    private readonly TenantedSingletonScope _singletonScope = new(defaultServiceProvider, serviceFactories);
+    private readonly TenantedSingletonScope _singletonScope = new(rootServiceProvider, serviceFactories);
 
     internal async ValueTask InitializeAsync()
     {
@@ -38,6 +38,6 @@ internal class TenantServiceProvider(ServiceProvider defaultServiceProvider, Ser
 
     public IServiceScope CreateScope()
     {
-        return new TenantedScope(defaultServiceProvider.CreateScope(), serviceFactories);
+        return new TenantedScope(rootServiceProvider.CreateScope(), serviceFactories);
     }
 }

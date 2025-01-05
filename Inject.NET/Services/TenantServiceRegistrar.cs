@@ -42,11 +42,11 @@ public class TenantServiceRegistrar : IServiceRegistrar
 
     public OnBeforeBuild OnBeforeBuild { get; set; } = _ => { };
     
-    public async Task<IServiceProvider> BuildAsync(IServiceProvider defaultServiceProvider)
+    public async Task<IServiceProvider> BuildAsync(IServiceProvider rootServiceProvider)
     {
         OnBeforeBuild(this);
 
-        var serviceProvider = new TenantServiceProvider((ServiceProvider)defaultServiceProvider, ServiceFactoryBuilders.AsReadOnly());
+        var serviceProvider = new TenantServiceProvider((ServiceProvider)rootServiceProvider, ServiceFactoryBuilders.AsReadOnly());
         
         await serviceProvider.InitializeAsync();
         

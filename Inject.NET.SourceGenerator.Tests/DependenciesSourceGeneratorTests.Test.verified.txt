@@ -4,9 +4,9 @@ using Inject.NET.Enums;
 using Inject.NET.Extensions;
 using Inject.NET.Services;
 namespace Inject.NET.SourceGenerator.Sample;
-public class MyServiceProvider1ServiceRegistrar : ServiceRegistrar
+public class MyServiceProviderServiceRegistrar : ServiceRegistrar
 {
-public MyServiceProvider1ServiceRegistrar()
+public MyServiceProviderServiceRegistrar()
 {
 Register<global::Inject.NET.SourceGenerator.Sample.Models.Class1>((scope, type) => new global::Inject.NET.SourceGenerator.Sample.Models.Class1(), Lifetime.Singleton);
 Register<global::Inject.NET.SourceGenerator.Sample.Models.Class2>((scope, type) => new global::Inject.NET.SourceGenerator.Sample.Models.Class2(), Lifetime.Singleton);
@@ -24,10 +24,10 @@ using System.Threading.Tasks;
 using Inject.NET.Enums;
 using Inject.NET.Interfaces;
 namespace Inject.NET.SourceGenerator.Sample;
-public partial class MyServiceProvider1
+public partial class MyServiceProvider
 {
 public static Task<ITenantedServiceProvider> BuildAsync() =>
-new MyServiceProvider1ServiceRegistrar().BuildAsync();
+new MyServiceProviderServiceRegistrar().BuildAsync();
 }
 
 ]

@@ -36,7 +36,11 @@ internal class ServiceScope(ServiceProviderRoot root, SingletonScope singletonSc
             
             var obj = Constructor.Construct(this, type, null, descriptor);
             
-            (_cachedObjects ??= [])[type] = obj;
+            if(descriptor.Lifetime != Lifetime.Transient)
+            {
+                (_cachedObjects ??= [])[type] = obj;
+            }
+
             (_forDisposal ??= []).Add(obj);
 
             return obj;
@@ -114,7 +118,11 @@ internal class ServiceScope(ServiceProviderRoot root, SingletonScope singletonSc
             
             var obj = Constructor.Construct(this, type, key, keyedDescriptor);
             
-            (_cachedKeyedObjects ??= []).GetOrAdd(type, [])[key] = obj;
+            if(keyedDescriptor.Lifetime != Lifetime.Transient)
+            {
+                (_cachedKeyedObjects ??= []).GetOrAdd(type, [])[key] = obj;
+            }
+
             (_forDisposal ??= []).Add(obj);
 
             return obj;

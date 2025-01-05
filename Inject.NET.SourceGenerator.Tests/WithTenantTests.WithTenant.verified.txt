@@ -3,7 +3,9 @@ using System;
 using Inject.NET.Enums;
 using Inject.NET.Extensions;
 using Inject.NET.Services;
+
 namespace Inject.NET.SourceGenerator.Sample.ServiceProviders;
+
 public class WithTenantServiceRegistrar : ServiceRegistrar
 {
 	public WithTenantServiceRegistrar()
@@ -21,7 +23,9 @@ using System;
 using System.Threading.Tasks;
 using Inject.NET.Enums;
 using Inject.NET.Interfaces;
+
 namespace Inject.NET.SourceGenerator.Sample.ServiceProviders;
+
 public partial class WithTenant
 {
 	public static Task<ITenantedServiceProvider> BuildAsync() =>

@@ -19,8 +19,10 @@ public static class ServiceRegistrarWriter
         sourceCodeWriter.WriteLine("using Inject.NET.Enums;");
         sourceCodeWriter.WriteLine("using Inject.NET.Extensions;");
         sourceCodeWriter.WriteLine("using Inject.NET.Services;");
+        sourceCodeWriter.WriteLine();
 
         sourceCodeWriter.WriteLine($"namespace {serviceProviderModel.Type.ContainingNamespace.ToDisplayString()};");
+        sourceCodeWriter.WriteLine();
 
         sourceCodeWriter.WriteLine(
             $"public class {serviceProviderModel.Type.Name}ServiceRegistrar : ServiceRegistrar");

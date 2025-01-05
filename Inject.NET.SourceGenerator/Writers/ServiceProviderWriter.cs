@@ -17,10 +17,12 @@ public static class ServiceProviderWriter
         sourceCodeWriter.WriteLine("using System.Threading.Tasks;");
         sourceCodeWriter.WriteLine("using Inject.NET.Enums;");
         sourceCodeWriter.WriteLine("using Inject.NET.Interfaces;");
-
+        sourceCodeWriter.WriteLine();
+        
         var serviceProviderType = tuple.ServiceProviderModel.Type;
         
         sourceCodeWriter.WriteLine($"namespace {serviceProviderType.ContainingNamespace.ToDisplayString()};");
+        sourceCodeWriter.WriteLine();
 
         sourceCodeWriter.WriteLine(
             $"{serviceProviderType.DeclaredAccessibility.ToString().ToLower(CultureInfo.InvariantCulture)} partial class {serviceProviderType.Name}");

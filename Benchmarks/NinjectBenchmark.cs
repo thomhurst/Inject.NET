@@ -25,10 +25,10 @@ public class NinjectBenchmark
     }
 
     [Benchmark]
-    public async Task GetDependency()
+    public void GetDependency()
     {
-        await using var scope = _serviceProvider.CreateAsyncScope();
+        using var scope = _serviceProvider.BeginBlock();
 
-        scope.ServiceProvider.GetRequiredService<Interface5>();
+        scope.Get<Interface5>();
     }
 }

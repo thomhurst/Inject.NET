@@ -1,3 +1,3 @@
 namespace Inject.NET.SourceGenerator.Sample.Models;
 
-public interface IClass;
+public interface Interface1;

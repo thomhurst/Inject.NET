@@ -20,9 +20,12 @@ public static class ServiceProviderWriter
         sourceCodeWriter.WriteLine();
         
         var serviceProviderType = tuple.ServiceProviderModel.Type;
-        
-        sourceCodeWriter.WriteLine($"namespace {serviceProviderType.ContainingNamespace.ToDisplayString()};");
-        sourceCodeWriter.WriteLine();
+
+        if (serviceProviderType.ContainingNamespace is { IsGlobalNamespace: false })
+        {
+            sourceCodeWriter.WriteLine($"namespace {serviceProviderType.ContainingNamespace.ToDisplayString()};");
+            sourceCodeWriter.WriteLine();
+        }
 
         sourceCodeWriter.WriteLine(
             $"{serviceProviderType.DeclaredAccessibility.ToString().ToLower(CultureInfo.InvariantCulture)} partial class {serviceProviderType.Name}");

@@ -1,4 +1,4 @@
-name: Speed Comparison
+name: Benchmarks
 
 on:
   schedule:
@@ -6,16 +6,15 @@ on:
   workflow_dispatch:
 
 jobs:
-  run-time-benchmarks:
+  benchmarks:
     environment: ${{ github.ref == 'refs/heads/main' && 'Production' || 'Pull Requests' }}
     strategy: 
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        class: [RepeatTests, BasicTest]
       fail-fast: false
     runs-on: ${{ matrix.os }}
     concurrency: 
-      group: "speed-comparison-run-time-${{matrix.os}}-${{matrix.class}}"
+      group: "benchmarks-${{matrix.os}}"
       cancel-in-progress: true
 
     steps:

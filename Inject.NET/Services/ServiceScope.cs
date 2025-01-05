@@ -12,7 +12,7 @@ internal class ServiceScope(ServiceProviderRoot root, ServiceFactories serviceFa
     private readonly ConcurrentDictionary<Type, List<object>> _cachedObjects = [];
     private readonly ConcurrentDictionary<Type, ConcurrentDictionary<string, List<object>>> _cachedKeyedObjects = [];
     
-    private HashSet<object>? _forDisposal;
+    private List<object>? _forDisposal;
     
     public IServiceProvider Root { get; } = root;
     
@@ -130,16 +130,22 @@ internal class ServiceScope(ServiceProviderRoot root, ServiceFactories serviceFa
             return;
         }
         
-        await Parallel.ForEachAsync(_forDisposal, async (obj, _) =>
+        for (var i = _forDisposal.Count - 1; i >= 0; i--)
         {
+            var obj = _forDisposal[i];
+       
             if (obj is IAsyncDisposable asyncDisposable)
             {
-                await asyncDisposable.DisposeAsync();
+                var vt = asyncDisposable.DisposeAsync();
+                if (!vt.IsCompleted)
+                {
+                    await vt;
+                }
             }
             else if (obj is IDisposable disposable)
             {
                 disposable.Dispose();
             }
-        });
+        }
     }
 }

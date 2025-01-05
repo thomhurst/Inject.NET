@@ -18,8 +18,8 @@ public class MicrosoftDependencyInjectionBenchmark
             .AddSingleton<Interface1, Class1>()
             .AddSingleton<Interface2, Class2>()
             .AddSingleton<Interface3, Class3>()
-            .AddScoped<Interface4, Class4>()
-            .AddTransient<Interface5, Class5>()
+            .AddTransient<Interface4, Class4>()
+            .AddScoped<Interface5, Class5>()
             .BuildServiceProvider();
     }
 

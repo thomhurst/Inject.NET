@@ -16,8 +16,8 @@ public class InjectDotNetBenchmark
     [Singleton<Interface1, Class1>]
     [Singleton<Interface2, Class2>]
     [Singleton<Interface3, Class3>]
-    [Singleton<Interface4, Class4>]
-    [Singleton<Interface5, Class5>]
+    [Transient<Interface4, Class4>]
+    [Scoped<Interface5, Class5>]
     public class MyServiceProvider;
     
     private IServiceProviderRoot _serviceProviderRoot;

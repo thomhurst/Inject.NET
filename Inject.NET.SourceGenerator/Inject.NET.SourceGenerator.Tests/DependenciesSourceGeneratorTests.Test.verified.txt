@@ -1,0 +1,33 @@
+﻿[  
+using System;
+using Inject.NET.Enums;
+using Inject.NET.Extensions;
+using Inject.NET.Services;
+namespace Inject.NET.SourceGenerator.Sample;
+public class MyServiceProvider1ServiceRegistrar : ServiceRegistrar
+{
+public MyServiceProvider1ServiceRegistrar()
+{
+Register<global::Inject.NET.SourceGenerator.Sample.Models.Class1>((scope, type) => new global::Inject.NET.SourceGenerator.Sample.Models.Class1(), Lifetime.Singleton);
+Register<global::Inject.NET.SourceGenerator.Sample.Models.Class2>((scope, type) => new global::Inject.NET.SourceGenerator.Sample.Models.Class2(), Lifetime.Singleton);
+Register<global::Inject.NET.SourceGenerator.Sample.Models.Class3>((scope, type) => new global::Inject.NET.SourceGenerator.Sample.Models.Class3(scope.GetRequiredService<global::Inject.NET.SourceGenerator.Sample.Models.Class2>()), Lifetime.Singleton);
+Register<global::Inject.NET.SourceGenerator.Sample.Models.Class4>((scope, type) => new global::Inject.NET.SourceGenerator.Sample.Models.Class4(scope.GetRequiredService<global::Inject.NET.SourceGenerator.Sample.Models.Class3>()), Lifetime.Singleton);
+Register<global::Inject.NET.SourceGenerator.Sample.Models.Class5>((scope, type) => new global::Inject.NET.SourceGenerator.Sample.Models.Class5(scope.GetRequiredService<global::Inject.NET.SourceGenerator.Sample.Models.Class3>(), scope.GetRequiredService<global::Inject.NET.SourceGenerator.Sample.Models.Class1>()), Lifetime.Scoped);
+Register<global::Inject.NET.SourceGenerator.Sample.Models.Class6>((scope, type) => new global::Inject.NET.SourceGenerator.Sample.Models.Class6(scope.GetOptionalService<global::Inject.NET.SourceGenerator.Sample.Models.Class5>()), Lifetime.Scoped);
+Register<global::Inject.NET.SourceGenerator.Sample.Models.IClass>((scope, type) => new global::Inject.NET.SourceGenerator.Sample.Models.Class1(), Lifetime.Singleton);
+}
+}
+
+  
+using System;
+using System.Threading.Tasks;
+using Inject.NET.Enums;
+using Inject.NET.Interfaces;
+namespace Inject.NET.SourceGenerator.Sample;
+public partial class MyServiceProvider1
+{
+public static Task<ITenantedServiceProvider> BuildAsync() =>
+new MyServiceProvider1ServiceRegistrar().BuildAsync();
+}
+
+]

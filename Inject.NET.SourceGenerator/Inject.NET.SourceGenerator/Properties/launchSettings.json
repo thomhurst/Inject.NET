@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json.schemastore.org/launchsettings.json",
+  "profiles": {
+    "DebugRoslynSourceGenerator": {
+      "commandName": "DebugRoslynComponent",
+      "targetProject": "../Inject.NET.SourceGenerator.Sample/Inject.NET.SourceGenerator.Sample.csproj"
+    }
+  }
+}

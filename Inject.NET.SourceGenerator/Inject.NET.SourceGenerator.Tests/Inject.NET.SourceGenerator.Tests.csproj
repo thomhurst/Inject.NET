@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+
+        <IsPackable>false</IsPackable>
+
+        <RootNamespace>Inject.NET.SourceGenerator.Tests</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="4.3.0" />
+        <PackageReference Include="Sourcy.Git" Version="0.0.66" />
+        <PackageReference Include="TUnit" Version="0.6.33" />
+        <PackageReference Include="Verify.TUnit" Version="28.7.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\Inject.NET\Inject.NET.csproj" />
+        <ProjectReference Include="..\Inject.NET.SourceGenerator\Inject.NET.SourceGenerator.csproj"/>
+    </ItemGroup>
+
+
+</Project>

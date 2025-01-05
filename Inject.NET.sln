@@ -2,11 +2,11 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Inject.NET", "Inject.NET\Inject.NET.csproj", "{63492429-BBFE-466F-BD59-1D919CA45FF6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Inject.NET.SourceGenerator", "Inject.NET.SourceGenerator\Inject.NET.SourceGenerator\Inject.NET.SourceGenerator.csproj", "{26168700-EEA0-4669-8316-019534A04F28}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Inject.NET.SourceGenerator", "Inject.NET.SourceGenerator\Inject.NET.SourceGenerator.csproj", "{26168700-EEA0-4669-8316-019534A04F28}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Inject.NET.SourceGenerator.Tests", "Inject.NET.SourceGenerator\Inject.NET.SourceGenerator.Tests\Inject.NET.SourceGenerator.Tests.csproj", "{4C23349F-E277-4752-BCC0-6E5B071EA10C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Inject.NET.SourceGenerator.Tests", "Inject.NET.SourceGenerator.Tests\Inject.NET.SourceGenerator.Tests.csproj", "{4C23349F-E277-4752-BCC0-6E5B071EA10C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Inject.NET.SourceGenerator.Sample", "Inject.NET.SourceGenerator1\Inject.NET.SourceGenerator.Sample\Inject.NET.SourceGenerator.Sample.csproj", "{4AA96114-DC3A-4E41-88B9-DDBF5435478A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Inject.NET.SourceGenerator.Sample", "Inject.NET.SourceGenerator.Sample\Inject.NET.SourceGenerator.Sample.csproj", "{4AA96114-DC3A-4E41-88B9-DDBF5435478A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

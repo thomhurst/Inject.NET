@@ -1,4 +1,3 @@
-using System.Collections.Concurrent;
 using Inject.NET.Enums;
 using Inject.NET.Interfaces;
 using Inject.NET.Models;

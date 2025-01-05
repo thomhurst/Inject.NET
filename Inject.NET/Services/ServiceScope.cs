@@ -96,7 +96,12 @@ internal class ServiceScope(ServiceProviderRoot root, SingletonScope singletonSc
             
             if(lifetime != Lifetime.Transient)
             {
-                cachedEnumerables.GetOrAdd(type, []).Add(item);
+                if (!cachedEnumerables.TryGetValue(type, out var items))
+                {
+                    items = [];
+                }
+                
+                items.Add(item);
             }
 
             yield return item;
@@ -123,7 +128,12 @@ internal class ServiceScope(ServiceProviderRoot root, SingletonScope singletonSc
             
             if(keyedDescriptor.Lifetime != Lifetime.Transient)
             {
-                (_cachedKeyedObjects ??= []).GetOrAdd(type, [])[key] = obj;
+                if (!(_cachedKeyedObjects ??= []).TryGetValue(type, out dictionary))
+                {
+                    dictionary = [];
+                }
+                
+                dictionary[key] = obj;
             }
 
             (_forDisposal ??= []).Add(obj);
@@ -179,7 +189,17 @@ internal class ServiceScope(ServiceProviderRoot root, SingletonScope singletonSc
             
             if(lifetime != Lifetime.Transient)
             {
-                cachedKeyedEnumerables.GetOrAdd(type, []).GetOrAdd(key, []).Add(item);
+                if (!cachedKeyedEnumerables.TryGetValue(type, out dictionary))
+                {
+                    dictionary = [];
+                }
+
+                if (!dictionary.TryGetValue(key, out var items))
+                {
+                    items = [];
+                }
+                
+                items.Add(item);
             }
 
             yield return item;

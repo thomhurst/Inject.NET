@@ -23,6 +23,11 @@ public class ServiceRegistrar : ITenantedServiceRegistrar
 
     public ITenantedServiceRegistrar RegisterOpenGeneric([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type serviceType, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type implementationType, Lifetime lifetime)
     {
+        if (implementationType.IsAssignableTo(serviceType))
+        {
+            throw new ArgumentException($"The implementation type {implementationType} is not assignable to {serviceType}");
+        }
+        
         ServiceFactoryBuilders.AddOpenGeneric(serviceType, implementationType, lifetime);
 
         return this;
@@ -38,6 +43,11 @@ public class ServiceRegistrar : ITenantedServiceRegistrar
     public ITenantedServiceRegistrar RegisterKeyedOpenGeneric([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type serviceType, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type implementationType, Lifetime lifetime,
         string key)
     {
+        if (implementationType.IsAssignableTo(serviceType))
+        {
+            throw new ArgumentException($"The implementation type {implementationType} is not assignable to {serviceType}");
+        }
+        
         ServiceFactoryBuilders.AddOpenGeneric(serviceType, implementationType, lifetime, key);
 
         return this;

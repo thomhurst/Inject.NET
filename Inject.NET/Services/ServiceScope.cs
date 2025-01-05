@@ -125,14 +125,14 @@ internal class ServiceScope(ServiceProviderRoot root, ServiceFactories serviceFa
     
     public virtual ValueTask DisposeAsync()
     {
-        if (Interlocked.Exchange(ref _forDisposal, null) is null or { Count: 0 })
+        if (Interlocked.Exchange(ref _forDisposal, null) is not {} forDisposal)
         {
             return default;
         }
         
-        for (var i = _forDisposal!.Count - 1; i >= 0; i--)
+        for (var i = forDisposal.Count - 1; i >= 0; i--)
         {
-            var obj = _forDisposal[i];
+            var obj = forDisposal[i];
        
             if (obj is IAsyncDisposable asyncDisposable)
             {
@@ -140,7 +140,7 @@ internal class ServiceScope(ServiceProviderRoot root, ServiceFactories serviceFa
                 
                 if (!vt.IsCompleted)
                 {
-                    return Await(i, vt, _forDisposal);
+                    return Await(i, vt, forDisposal);
                 }
             }
             else if (obj is IDisposable disposable)

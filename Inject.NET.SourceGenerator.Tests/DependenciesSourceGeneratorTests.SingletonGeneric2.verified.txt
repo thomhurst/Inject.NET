@@ -1,0 +1,27 @@
+﻿[  
+using System;
+using Inject.NET.Enums;
+using Inject.NET.Extensions;
+using Inject.NET.Services;
+namespace Inject.NET.SourceGenerator.Sample.ServiceProviders;
+public class SingletonGeneric2ServiceRegistrar : ServiceRegistrar
+{
+public SingletonGeneric2ServiceRegistrar()
+{
+RegisterOpenGeneric(typeof(IGeneric<>), typeof(Generic<>), Lifetime.Singleton);
+}
+}
+
+  
+using System;
+using System.Threading.Tasks;
+using Inject.NET.Enums;
+using Inject.NET.Interfaces;
+namespace Inject.NET.SourceGenerator.Sample.ServiceProviders;
+public partial class SingletonGeneric2
+{
+public static Task<ITenantedServiceProvider> BuildAsync() =>
+new SingletonGeneric2ServiceRegistrar().BuildAsync();
+}
+
+]

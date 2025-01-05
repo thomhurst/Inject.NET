@@ -1,4 +1,5 @@
-﻿using Inject.NET.Delegates;
+﻿using System.Diagnostics.CodeAnalysis;
+using Inject.NET.Delegates;
 using Inject.NET.Enums;
 using Inject.NET.Models;
 
@@ -8,13 +9,13 @@ public interface ITenantedServiceRegistrar
 {
     ServiceFactoryBuilders ServiceFactoryBuilders { get; }
     
-    ITenantedServiceRegistrar Register<T>(Func<IServiceScope, Type, T> factory, Lifetime lifetime);
+    ITenantedServiceRegistrar Register<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(Func<IServiceScope, Type, T> factory, Lifetime lifetime);
     
-    ITenantedServiceRegistrar RegisterOpenGeneric(Type serviceType, Type implementationType, Lifetime lifetime);
+    ITenantedServiceRegistrar RegisterOpenGeneric([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type serviceType, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type implementationType, Lifetime lifetime);
 
-    ITenantedServiceRegistrar RegisterKeyed<T>(Func<IServiceScope, Type, string, T> factory, Lifetime lifetime, string key);
+    ITenantedServiceRegistrar RegisterKeyed<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(Func<IServiceScope, Type, string, T> factory, Lifetime lifetime, string key);
     
-    ITenantedServiceRegistrar RegisterKeyedOpenGeneric(Type serviceType, Type implementationType, Lifetime lifetime, string key);
+    ITenantedServiceRegistrar RegisterKeyedOpenGeneric([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type serviceType, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type implementationType, Lifetime lifetime, string key);
 
     OnBeforeTenantBuild OnBeforeBuild { get; set; }
     

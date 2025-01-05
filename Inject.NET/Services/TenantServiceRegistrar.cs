@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Inject.NET.Delegates;
 using Inject.NET.Enums;
 using Inject.NET.Extensions;
@@ -11,28 +12,28 @@ public class TenantServiceRegistrar : IServiceRegistrar
 {
     public ServiceFactoryBuilders ServiceFactoryBuilders { get; } = new();
     
-    public IServiceRegistrar Register<T>(Func<IServiceScope, Type, T> factory, Lifetime lifetime)
+    public IServiceRegistrar Register<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(Func<IServiceScope, Type, T> factory, Lifetime lifetime)
     {
         ServiceFactoryBuilders.Add(typeof(T), lifetime, factory);
 
         return this;
     }
 
-    public IServiceRegistrar RegisterOpenGeneric(Type serviceType, Type implementationType, Lifetime lifetime)
+    public IServiceRegistrar RegisterOpenGeneric([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type serviceType, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type implementationType, Lifetime lifetime)
     {
         ServiceFactoryBuilders.AddOpenGeneric(serviceType, implementationType, lifetime);
 
         return this;
     }
 
-    public IServiceRegistrar RegisterKeyed<T>(Func<IServiceScope, Type, string, T> factory, Lifetime lifetime, string key)
+    public IServiceRegistrar RegisterKeyed<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(Func<IServiceScope, Type, string, T> factory, Lifetime lifetime, string key)
     {
         ServiceFactoryBuilders.Add(typeof(T), lifetime, key, factory);
 
         return this;
     }
 
-    public IServiceRegistrar RegisterKeyedOpenGeneric(Type serviceType, Type implementationType, Lifetime lifetime,
+    public IServiceRegistrar RegisterKeyedOpenGeneric([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type serviceType, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type implementationType, Lifetime lifetime,
         string key)
     {
         ServiceFactoryBuilders.AddOpenGeneric(serviceType, implementationType, lifetime, key);

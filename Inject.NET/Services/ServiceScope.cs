@@ -94,7 +94,10 @@ internal class ServiceScope(ServiceProviderRoot root, SingletonScope singletonSc
                 (_forDisposal ??= []).Add(item);
             }
             
-            cachedEnumerables.GetOrAdd(type, []).Add(item);
+            if(lifetime != Lifetime.Transient)
+            {
+                cachedEnumerables.GetOrAdd(type, []).Add(item);
+            }
 
             yield return item;
         }
@@ -174,7 +177,10 @@ internal class ServiceScope(ServiceProviderRoot root, SingletonScope singletonSc
                 (_forDisposal ??= []).Add(item);
             }
             
-            cachedKeyedEnumerables.GetOrAdd(type, []).GetOrAdd(key, []).Add(item);
+            if(lifetime != Lifetime.Transient)
+            {
+                cachedKeyedEnumerables.GetOrAdd(type, []).GetOrAdd(key, []).Add(item);
+            }
 
             yield return item;
         }

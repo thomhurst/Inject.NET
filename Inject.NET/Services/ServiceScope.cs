@@ -123,28 +123,52 @@ internal class ServiceScope(ServiceProviderRoot root, ServiceFactories serviceFa
         }
     }
     
-    public virtual async ValueTask DisposeAsync()
+    public virtual ValueTask DisposeAsync()
     {
-        if (_forDisposal is null or { Count: 0 })
+        if (Interlocked.Exchange(ref _forDisposal, null) is null or { Count: 0 })
         {
-            return;
+            return default;
         }
         
-        for (var i = _forDisposal.Count - 1; i >= 0; i--)
+        for (var i = _forDisposal!.Count - 1; i >= 0; i--)
         {
             var obj = _forDisposal[i];
        
             if (obj is IAsyncDisposable asyncDisposable)
             {
                 var vt = asyncDisposable.DisposeAsync();
+                
                 if (!vt.IsCompleted)
                 {
-                    await vt;
+                    return Await(i, vt, _forDisposal);
                 }
             }
             else if (obj is IDisposable disposable)
             {
                 disposable.Dispose();
+            }
+        }
+        
+        return default;
+        
+        static async ValueTask Await(int i, ValueTask vt, List<object> toDispose)
+        {
+            await vt.ConfigureAwait(false);
+            // vt is acting on the disposable at index i,
+            // decrement it and move to the next iteration
+            i--;
+
+            for (; i >= 0; i--)
+            {
+                var disposable = toDispose[i];
+                if (disposable is IAsyncDisposable asyncDisposable)
+                {
+                    await asyncDisposable.DisposeAsync().ConfigureAwait(false);
+                }
+                else
+                {
+                    ((IDisposable)disposable).Dispose();
+                }
             }
         }
     }

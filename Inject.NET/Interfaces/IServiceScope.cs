@@ -1,8 +1,7 @@
 namespace Inject.NET.Interfaces;
 
-public interface IServiceScope : IAsyncDisposable
+public interface IServiceScope : IAsyncDisposable, System.IServiceProvider
 {
-    object? GetService(Type type);
     IEnumerable<object> GetServices(Type type);
     
     object? GetService(Type type, string? key);

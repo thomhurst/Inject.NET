@@ -4,7 +4,6 @@ using Benchmarks.Models;
 using Inject.NET.Attributes;
 using Inject.NET.Extensions;
 using Inject.NET.Interfaces;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Benchmarks;
 

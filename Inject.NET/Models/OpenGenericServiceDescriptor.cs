@@ -1,5 +1,4 @@
 using Inject.NET.Enums;
-using Inject.NET.Interfaces;
 
 namespace Inject.NET.Models;
 

@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using System.Collections.Frozen;
 using Inject.NET.Enums;
 using Inject.NET.Interfaces;
 using Inject.NET.Models;

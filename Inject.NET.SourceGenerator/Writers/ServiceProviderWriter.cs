@@ -1,5 +1,4 @@
 using System.Globalization;
-using System.Text;
 using Inject.NET.SourceGenerator.Models;
 using Microsoft.CodeAnalysis;
 

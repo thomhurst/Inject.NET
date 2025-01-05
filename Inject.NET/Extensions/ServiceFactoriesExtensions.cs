@@ -1,5 +1,4 @@
 using System.Collections.Frozen;
-using Inject.NET.Enums;
 using Inject.NET.Models;
 
 namespace Inject.NET.Extensions;

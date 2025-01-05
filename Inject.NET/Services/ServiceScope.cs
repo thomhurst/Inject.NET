@@ -9,11 +9,8 @@ namespace Inject.NET.Services;
 internal class ServiceScope(ServiceProviderRoot root, SingletonScope singletonScope, ServiceFactories serviceFactories)
     : IServiceScope
 {
-    private Dictionary<Type, object>? _cachedObjects;
-    private Dictionary<Type, ConcurrentDictionary<string, object>>? _cachedKeyedObjects;
-    
-    private Dictionary<Type, List<object>>? _cachedEnumerables;
-    private Dictionary<Type, ConcurrentDictionary<string, List<object>>>? _cachedKeyedEnumerables;
+    private Dictionary<CacheKey, object>? _cachedObjects;
+    private Dictionary<CacheKey, List<object>>? _cachedEnumerables;
     
     private List<object>? _forDisposal;
     
@@ -21,7 +18,9 @@ internal class ServiceScope(ServiceProviderRoot root, SingletonScope singletonSc
     
     public object? GetService(Type type)
     {
-        if (_cachedObjects?.TryGetValue(type, out var cachedObject) == true)
+        var cacheKey = new CacheKey(type);
+        
+        if (_cachedObjects?.TryGetValue(cacheKey, out var cachedObject) == true)
         {
             return cachedObject;
         }
@@ -37,7 +36,7 @@ internal class ServiceScope(ServiceProviderRoot root, SingletonScope singletonSc
             
             if(descriptor.Lifetime != Lifetime.Transient)
             {
-                (_cachedObjects ??= [])[type] = obj;
+                (_cachedObjects ??= [])[cacheKey] = obj;
             }
 
             (_forDisposal ??= []).Add(obj);
@@ -50,9 +49,11 @@ internal class ServiceScope(ServiceProviderRoot root, SingletonScope singletonSc
 
     public virtual IEnumerable<object> GetServices(Type type)
     {
+        var cacheKey = new CacheKey(type);
+
         var cachedEnumerables = _cachedEnumerables ??= [];
         
-        if (cachedEnumerables.TryGetValue(type, out var cachedObjects))
+        if (cachedEnumerables.TryGetValue(cacheKey, out var cachedObjects))
         {
             foreach (var cachedObject in cachedObjects)
             {
@@ -95,7 +96,7 @@ internal class ServiceScope(ServiceProviderRoot root, SingletonScope singletonSc
             
             if(lifetime != Lifetime.Transient)
             {
-                if (!cachedEnumerables.TryGetValue(type, out var items))
+                if (!cachedEnumerables.TryGetValue(cacheKey, out var items))
                 {
                     items = [];
                 }
@@ -109,8 +110,9 @@ internal class ServiceScope(ServiceProviderRoot root, SingletonScope singletonSc
 
     public object? GetService(Type type, string key)
     {
-        if (_cachedKeyedObjects?.TryGetValue(type, out var dictionary) == true
-            && dictionary.TryGetValue(key, out var cachedObject))
+        var cacheKey = new CacheKey(type, key);
+
+        if (_cachedObjects?.TryGetValue(cacheKey, out var cachedObject) == true)
         {
             return cachedObject;
         }
@@ -127,12 +129,7 @@ internal class ServiceScope(ServiceProviderRoot root, SingletonScope singletonSc
             
             if(keyedDescriptor.Lifetime != Lifetime.Transient)
             {
-                if (!(_cachedKeyedObjects ??= []).TryGetValue(type, out dictionary))
-                {
-                    dictionary = [];
-                }
-                
-                dictionary[key] = obj;
+                (_cachedObjects ??= [])[cacheKey] = obj;
             }
 
             (_forDisposal ??= []).Add(obj);
@@ -145,9 +142,12 @@ internal class ServiceScope(ServiceProviderRoot root, SingletonScope singletonSc
 
     public virtual IEnumerable<object> GetServices(Type type, string key)
     {
-        var cachedKeyedEnumerables = _cachedKeyedEnumerables ??= [];
-        if (cachedKeyedEnumerables.TryGetValue(type, out var dictionary)
-            && dictionary.TryGetValue(key, out var cachedObjects))
+        var cacheKey = new CacheKey(type, key);
+        
+        var cachedKeyedEnumerables
+            = _cachedEnumerables ??= [];
+        
+        if (cachedKeyedEnumerables.TryGetValue(cacheKey, out var cachedObjects))
         {
             foreach (var cachedObject in cachedObjects)
             {
@@ -188,12 +188,7 @@ internal class ServiceScope(ServiceProviderRoot root, SingletonScope singletonSc
             
             if(lifetime != Lifetime.Transient)
             {
-                if (!cachedKeyedEnumerables.TryGetValue(type, out dictionary))
-                {
-                    dictionary = [];
-                }
-
-                if (!dictionary.TryGetValue(key, out var items))
+                if (!cachedKeyedEnumerables.TryGetValue(cacheKey, out var items))
                 {
                     items = [];
                 }

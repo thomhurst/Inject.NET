@@ -141,7 +141,7 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
                 
                 if (!vt.IsCompleted)
                 {
-                    return Await(i, vt, forDisposal);
+                    return Await(--i, vt, forDisposal);
                 }
             }
             else if (obj is IDisposable disposable)
@@ -157,9 +157,6 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
         static async ValueTask Await(int i, ValueTask vt, List<object> toDispose)
         {
             await vt.ConfigureAwait(false);
-            // vt is acting on the disposable at index i,
-            // decrement it and move to the next iteration
-            i--;
 
             for (; i >= 0; i--)
             {

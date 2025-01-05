@@ -123,6 +123,9 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
     
     public ValueTask DisposeAsync()
     {
+        DictionaryPool<CacheKey, object>.Shared.Return(_cachedObjects);
+        DictionaryPool<CacheKey, List<object>>.Shared.Return(_cachedEnumerables);
+        
         if (Interlocked.Exchange(ref _forDisposal, null) is not {} forDisposal)
         {
             return default;

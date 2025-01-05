@@ -15,11 +15,6 @@ internal class ServiceScope(ServiceProviderRoot root, ServiceFactories serviceFa
     private HashSet<object>? _forDisposal;
     
     public IServiceProvider Root { get; } = root;
-
-    ~ServiceScope()
-    {
-        _ = DisposeAsync();
-    }
     
     public object? GetService(Type type)
     {

@@ -48,7 +48,7 @@ public static class ServiceRegistrarWriter
         WriteRegistration(sourceCodeWriter, dependencyDictionary, string.Empty);
 
         var withTenantAttributes = attributes.Where(x =>
-            SymbolEqualityComparer.Default.Equals(x.AttributeClass, withTenantAttributeType));
+            SymbolEqualityComparer.Default.Equals(x.AttributeClass?.OriginalDefinition, withTenantAttributeType));
         
         foreach (var withTenantAttribute in withTenantAttributes)
         {

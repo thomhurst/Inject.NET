@@ -40,7 +40,7 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-    public object? GetService(ServiceKey serviceKey, IServiceScope scope)
+    public object? GetService(ServiceKey serviceKey, IServiceScope requestingScope)
     {
         if (_cachedObjects?.TryGetValue(serviceKey, out var cachedObject) == true)
         {
@@ -73,7 +73,7 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
             return SingletonScope.GetService(serviceKey);
         }
 
-        var obj = descriptor.Factory(scope, serviceKey.Type, descriptor.Key);
+        var obj = descriptor.Factory(requestingScope, serviceKey.Type, descriptor.Key);
             
         if(descriptor.Lifetime != Lifetime.Transient)
         {

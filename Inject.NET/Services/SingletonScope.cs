@@ -89,7 +89,7 @@ internal sealed class SingletonScope(IServiceProvider root, ServiceFactories ser
         
         return services[^1];
     }
-    
+
     public IReadOnlyList<object> GetServices(ServiceKey serviceKey)
     {
         if (_singletonEnumerables.TryGetValue(serviceKey, out var list))

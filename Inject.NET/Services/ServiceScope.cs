@@ -14,7 +14,11 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
     private static readonly Type ServiceScopeType = typeof(IServiceScope);
     private static readonly Type ServiceProviderType = typeof(IServiceProvider);
     
+#if NET9_0_OR_GREATER
     private bool _disposed;
+#else
+    private int _disposed;
+#endif
     
     private Dictionary<ServiceKey, object>? _cachedObjects;
     private Dictionary<ServiceKey, List<object>>? _cachedEnumerables;
@@ -151,10 +155,17 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
 
     public ValueTask DisposeAsync()
     {
+#if NET9_0_OR_GREATER
         if (Interlocked.Exchange(ref _disposed, true))
         {
             return default;
         }
+#else
+        if (Interlocked.Exchange(ref _disposed, 1) == 1)
+        {
+            return default;
+        }
+#endif
 
         DictionaryPool<ServiceKey, object>.Shared.Return(_cachedObjects);
         DictionaryPool<ServiceKey, List<object>>.Shared.Return(_cachedEnumerables);

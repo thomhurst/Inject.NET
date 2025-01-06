@@ -7,12 +7,7 @@ using InjectDotNetBenchmark = Benchmarks.Benchmarks.ScopedWithInterface.InjectDo
 var config = ManualConfig.Create(DefaultConfig.Instance)
     .WithOptions(ConfigOptions.JoinSummary);
 
-BenchmarkRunner.Run([
-    BenchmarkConverter.TypeToBenchmarks(typeof(MicrosoftDependencyInjectionBenchmark), config),
-    BenchmarkConverter.TypeToBenchmarks(typeof(InjectDotNetBenchmark), config),
-    BenchmarkConverter.TypeToBenchmarks(typeof(NinjectBenchmark), config),
-    BenchmarkConverter.TypeToBenchmarks(typeof(AutofacBenchmark), config),
-]);
+BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args, config);
 
 var output = new DirectoryInfo(Environment.CurrentDirectory)
     .GetFiles("*.md", SearchOption.AllDirectories)

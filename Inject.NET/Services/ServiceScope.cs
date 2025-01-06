@@ -52,7 +52,10 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
                 (_cachedObjects ??= DictionaryPool<CacheKey, object>.Shared.Get())[cacheKey] = obj;
             }
 
-            (_forDisposal ??= ListPool<object>.Shared.Get()).Add(obj);
+            if(obj is IAsyncDisposable or IDisposable)
+            {
+                (_forDisposal ??= ListPool<object>.Shared.Get()).Add(obj);
+            }
 
             return obj;
         }
@@ -104,7 +107,10 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
             {
                 item = Constructor.Construct(this, cacheKey.Type, serviceDescriptor);
                 
-                (_forDisposal ??= ListPool<object>.Shared.Get()).Add(item);
+                if(item is IAsyncDisposable or IDisposable)
+                {
+                    (_forDisposal ??= ListPool<object>.Shared.Get()).Add(item);
+                }
             }
             
             if(lifetime != Lifetime.Transient)

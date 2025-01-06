@@ -26,14 +26,30 @@ public static class ServiceProviderWriter
             sourceCodeWriter.WriteLine();
         }
 
+        var nestedClassCount = 0;
+        var parent = serviceProviderType.ContainingType;
+
+        while (parent is not null)
+        {
+            nestedClassCount++;
+            sourceCodeWriter.WriteLine($"public partial class {parent.Name}");
+            sourceCodeWriter.WriteLine("{");
+            parent = parent.ContainingType;
+        }
+
         sourceCodeWriter.WriteLine(
             $"{serviceProviderType.DeclaredAccessibility.ToString().ToLower(CultureInfo.InvariantCulture)} partial class {serviceProviderType.Name}");
         sourceCodeWriter.WriteLine("{");
 
-        sourceCodeWriter.WriteLine("public static Task<IServiceProviderRoot> BuildAsync() =>");
+        sourceCodeWriter.WriteLine("public static ValueTask<IServiceProviderRoot> BuildAsync() =>");
         sourceCodeWriter.WriteLine($"\tnew {serviceProviderType.Name}ServiceRegistrar().BuildAsync();");
 
         sourceCodeWriter.WriteLine("}");
+
+        for (var i = 0; i < nestedClassCount; i++)
+        {
+            sourceCodeWriter.WriteLine("}");
+        }
 
         sourceProductionContext.AddSource(
             $"{serviceProviderType.Name}ServiceProvider.g.cs",

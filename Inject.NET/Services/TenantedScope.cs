@@ -33,7 +33,7 @@ internal sealed class TenantedScope(
             return ServiceProvider;
         }
         
-        return _scope.GetService(serviceKey);
+        return _scope.GetService(serviceKey) ?? defaultScope.GetService(serviceKey, this);
     }
 
     public IEnumerable<object> GetServices(ServiceKey serviceKey)

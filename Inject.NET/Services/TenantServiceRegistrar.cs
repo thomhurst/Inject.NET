@@ -53,7 +53,7 @@ public class TenantServiceRegistrar : IServiceRegistrar
 
     public OnBeforeBuild OnBeforeBuild { get; set; } = _ => { };
     
-    public async Task<IServiceProvider> BuildAsync(IServiceProvider rootServiceProvider)
+    public async ValueTask<IServiceProvider> BuildAsync(IServiceProvider rootServiceProvider)
     {
         OnBeforeBuild(this);
 
@@ -61,7 +61,12 @@ public class TenantServiceRegistrar : IServiceRegistrar
         
         var serviceProvider = new TenantServiceProvider(serviceProviderRoot, ServiceFactoryBuilders.AsReadOnly());
         
-        await serviceProvider.InitializeAsync();
+        var vt = serviceProvider.InitializeAsync();
+
+        if (!vt.IsCompletedSuccessfully)
+        {
+            await vt.ConfigureAwait(false);
+        }
         
         return serviceProvider;
     }

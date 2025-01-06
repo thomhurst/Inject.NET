@@ -9,11 +9,12 @@ internal static class Constructor
 {
     private static readonly Dictionary<Type, (Type Type, string? Key)[]> ParameterTypesAndKeys = new();
     
-    public static object Construct(IServiceScope serviceScope, Type type, IServiceDescriptor descriptor)
+    public static object Construct(IServiceScope scope, Type type,
+        IServiceDescriptor descriptor)
     {
         if (descriptor is ServiceDescriptor serviceDescriptor)
         {
-            return serviceDescriptor.Factory(serviceScope, type);
+            return serviceDescriptor.Factory(scope, type);
         }
         
         if (descriptor is OpenGenericServiceDescriptor openGenericServiceDescriptor)
@@ -33,7 +34,7 @@ internal static class Constructor
             }
 
             var constructedParameters = parameterTypesAndKeys
-                        .Select(tuple => serviceScope.GetService(new ServiceKey(tuple.Type, tuple.Key)))
+                        .Select(tuple => scope.GetService(new ServiceKey(tuple.Type, tuple.Key)))
                         .ToArray();
             
             return Activator.CreateInstance(newType, constructedParameters) ?? throw new ArgumentNullException(nameof(newType));

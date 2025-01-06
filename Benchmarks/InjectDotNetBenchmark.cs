@@ -9,7 +9,7 @@ namespace Benchmarks;
 
 [MarkdownExporterAttribute.GitHub]
 [SimpleJob(RuntimeMoniker.Net90)]
-public class InjectDotNetBenchmark
+public partial class InjectDotNetBenchmark
 {
     [ServiceProvider]
     [Singleton<Interface1, Class1>]
@@ -24,7 +24,7 @@ public class InjectDotNetBenchmark
     [GlobalSetup]
     public async Task GlobalSetup()
     {
-        _serviceProviderRoot = await Benchmarks.MyServiceProvider.BuildAsync();
+        _serviceProviderRoot = await MyServiceProvider.BuildAsync();
     }
 
     [Benchmark]

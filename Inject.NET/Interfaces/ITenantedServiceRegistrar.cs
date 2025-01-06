@@ -19,7 +19,7 @@ public interface ITenantedServiceRegistrar
 
     OnBeforeTenantBuild OnBeforeBuild { get; set; }
     
-    Task<IServiceProviderRoot> BuildAsync();
+    ValueTask<IServiceProviderRoot> BuildAsync();
     
     IServiceRegistrar GetOrCreateTenant(string tenantId);
 }

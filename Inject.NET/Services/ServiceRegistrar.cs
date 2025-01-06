@@ -55,13 +55,18 @@ public class ServiceRegistrar : ITenantedServiceRegistrar
 
     public OnBeforeTenantBuild OnBeforeBuild { get; set; } = _ => { };
 
-    public async Task<IServiceProviderRoot> BuildAsync()
+    public async ValueTask<IServiceProviderRoot> BuildAsync()
     {
         OnBeforeBuild(this);
 
         var serviceProvider = new ServiceProviderRoot(ServiceFactoryBuilders.AsReadOnly(), _tenants);
         
-        await serviceProvider.InitializeAsync();
+        var vt = serviceProvider.InitializeAsync();
+
+        if (!vt.IsCompletedSuccessfully)
+        {
+            await vt.ConfigureAwait(false);
+        }
         
         return serviceProvider;
     }

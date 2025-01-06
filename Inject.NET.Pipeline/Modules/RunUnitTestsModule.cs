@@ -1,3 +1,4 @@
+using EnumerableAsyncProcessor.Extensions;
 using ModularPipelines.Context;
 using ModularPipelines.DotNet.Extensions;
 using ModularPipelines.DotNet.Options;
@@ -6,15 +7,17 @@ using ModularPipelines.Modules;
 
 namespace Inject.NET.Pipeline.Modules;
 
-public class RunUnitTestsModule : Module<List<CommandResult>>
+public class RunUnitTestsModule : Module<CommandResult[]>
 {
-    protected override async Task<List<CommandResult>?> ExecuteAsync(IPipelineContext context, CancellationToken cancellationToken)
+    protected override async Task<CommandResult[]?> ExecuteAsync(IPipelineContext context, CancellationToken cancellationToken)
     {
-        return
+        string[] projects =
         [
-            await context.DotNet()
-                .Test(new DotNetTestOptions(Sourcy.DotNet.Projects.Inject_NET_SourceGenerator_Tests.FullName),
-                    cancellationToken)
+            Sourcy.DotNet.Projects.Inject_NET_SourceGenerator_Tests.FullName,
+            Sourcy.DotNet.Projects.Inject_NET_Tests.FullName
         ];
+
+        return await projects.SelectAsync(x => context.DotNet().Test(new DotNetTestOptions(x), cancellationToken),
+            cancellationToken: cancellationToken).ProcessOneAtATime();
     }
 }

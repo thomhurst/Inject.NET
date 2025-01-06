@@ -11,7 +11,6 @@ namespace Benchmarks.Benchmarks.Assortment;
 public class NinjectBenchmark
 {
     private IKernel _serviceProvider = null!;
-    private object? _scope;
 
     [GlobalSetup]
     public void GlobalSetup()
@@ -21,15 +20,8 @@ public class NinjectBenchmark
             .Kernel!.Bind<Interface2>().To<Class2>().InSingletonScope()
             .Kernel!.Bind<Interface3>().To<Class3>().InSingletonScope()
             .Kernel!.Bind<Interface4>().To<Class4>().InTransientScope()
-            .Kernel!.Bind<Interface5>().To<Class5>().InScope(ctx => ctx.GetScope())
+            .Kernel!.Bind<Interface5>().To<Class5>().InThreadScope()
             .Kernel!;
-    }
-    
-    [IterationSetup]
-    public void Setup()
-    {
-        _scope = new object();
-        _serviceProvider.Bind<Interface5>().To<Class5>().InScope(_ => _scope);
     }
 
     [Benchmark]

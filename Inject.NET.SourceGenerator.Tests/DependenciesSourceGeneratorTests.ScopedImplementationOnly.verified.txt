@@ -10,7 +10,7 @@ public class ScopedImplementationOnlyServiceRegistrar : ServiceRegistrar
 {
 	public ScopedImplementationOnlyServiceRegistrar()
 	{
-		Register<Class1>((scope, type) => new Class1(), Lifetime.Scoped);
+		Register<Class1, Class1>((scope, type) => new Class1(), Lifetime.Scoped);
 	}
 }
 

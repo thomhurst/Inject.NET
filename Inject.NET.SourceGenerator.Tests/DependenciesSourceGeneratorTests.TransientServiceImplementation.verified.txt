@@ -10,7 +10,7 @@ public class TransientServiceImplementationServiceRegistrar : ServiceRegistrar
 {
 	public TransientServiceImplementationServiceRegistrar()
 	{
-		Register<Interface1>((scope, type) => new Class1(), Lifetime.Transient);
+		Register<Interface1, Class1>((scope, type) => new Class1(), Lifetime.Transient);
 	}
 }
 

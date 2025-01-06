@@ -10,7 +10,7 @@ public class SingletonImplementationOnlyServiceRegistrar : ServiceRegistrar
 {
 	public SingletonImplementationOnlyServiceRegistrar()
 	{
-		Register<Class1>((scope, type) => new Class1(), Lifetime.Singleton);
+		Register<Class1, Class1>((scope, type) => new Class1(), Lifetime.Singleton);
 	}
 }
 

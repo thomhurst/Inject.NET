@@ -1,4 +1,5 @@
 using System.Collections.Frozen;
+using System.Runtime.CompilerServices;
 using Inject.NET.Enums;
 using Inject.NET.Interfaces;
 using Inject.NET.Models;
@@ -30,6 +31,7 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
         return GetService(serviceKey, this);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
     public object? GetService(ServiceKey serviceKey, IServiceScope scope)
     {
         if (_cachedObjects?.TryGetValue(serviceKey, out var cachedObject) == true)
@@ -83,6 +85,7 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
         return GetServices(serviceKey, this);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
     public IReadOnlyList<object> GetServices(ServiceKey serviceKey, IServiceScope scope)
     {
         if (_cachedEnumerables?.TryGetValue(serviceKey, out var cachedObjects) == true)
@@ -175,7 +178,9 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
         
         ListPool<object>.Shared.Return(forDisposal);
 
-        return root.ServiceScopePool.Return(this);
+        root.ServiceScopePool.Return(this);
+
+        return default;
         
         static async ValueTask Await(int i, ValueTask vt, List<object> toDispose,
             ObjectPool<ServiceScope> serviceScopePool, ServiceScope serviceScope)
@@ -196,7 +201,7 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
             }
             
             ListPool<object>.Shared.Return(toDispose);
-            await serviceScopePool.Return(serviceScope);
+            serviceScopePool.Return(serviceScope);
         }
     }
 
@@ -220,7 +225,7 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
             }
             else if(toDispose is IAsyncDisposable asyncDisposable)
             {
-                asyncDisposable.DisposeAsync();
+                asyncDisposable.DisposeAsync().ConfigureAwait(false);
             }
         }
         

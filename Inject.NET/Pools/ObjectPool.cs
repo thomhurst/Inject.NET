@@ -14,29 +14,28 @@ internal class ObjectPool<T>(IPooledObjectPolicy<T> policy)
         return policy.Create();
     }
 
-    public ValueTask Return(T? t)
+    public void Return(T? t)
     {
         if (t == null)
         {
-            return default;
+            return;
         }
 
         var vt = policy.ReturnAsync(t);
         
         if (!vt.IsCompletedSuccessfully)
         {
-            return Await(vt, t);
+            _ = Await(vt, t);
+            return;
         }
         
         if(vt.Result)
         {
             _pool.Push(t);
         }
-
-        return default;
     }
 
-    private async ValueTask Await(ValueTask<bool> valueTask, T t)
+    private async Task Await(ValueTask<bool> valueTask, T t)
     {
         if (await valueTask)
         {

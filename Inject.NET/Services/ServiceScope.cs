@@ -68,9 +68,7 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
 
     public IEnumerable<object> GetServices(ServiceKey serviceKey)
     {
-        var cachedEnumerables = _cachedEnumerables ??= DictionaryPool<ServiceKey, List<object>>.Shared.Get();
-        
-        if (cachedEnumerables.TryGetValue(serviceKey, out var cachedObjects))
+        if (_cachedEnumerables?.TryGetValue(serviceKey, out var cachedObjects) == true)
         {
             foreach (var cachedObject in cachedObjects)
             {
@@ -113,9 +111,11 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
             
             if(lifetime != Lifetime.Transient)
             {
+                var cachedEnumerables = _cachedEnumerables ??= DictionaryPool<ServiceKey, List<object>>.Shared.Get();
+
                 if (!cachedEnumerables.TryGetValue(serviceKey, out var items))
                 {
-                    items = [];
+                    cachedEnumerables[serviceKey] = items = [];
                 }
                 
                 items.Add(item);

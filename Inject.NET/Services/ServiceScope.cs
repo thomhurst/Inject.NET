@@ -46,37 +46,30 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
         {
             return cachedObject;
         }
-        
-        if (serviceFactories.Descriptor.TryGetValue(serviceKey, out var descriptor))
-        {
-            if (descriptor.Lifetime == Lifetime.Singleton)
-            {
-                return singletonScope.GetService(serviceKey);
-            }
-            
-            var obj = Constructor.Construct(scope, serviceKey.Type, descriptor);
-            
-            if(descriptor.Lifetime != Lifetime.Transient)
-            {
-                (_cachedObjects ??= DictionaryPool<ServiceKey, object>.Shared.Get())[serviceKey] = obj;
-            }
 
-            if(obj is IAsyncDisposable or IDisposable)
-            {
-                (_forDisposal ??= ListPool<object>.Shared.Get()).Add(obj);
-            }
-
-            return obj;
-        }
-
-        var services = GetServices(serviceKey);
-
-        if (services.Count == 0)
+        if (!serviceFactories.Descriptor.TryGetValue(serviceKey, out var descriptor))
         {
             return null;
         }
-        
-        return services[^1];
+
+        if (descriptor.Lifetime == Lifetime.Singleton)
+        {
+            return singletonScope.GetService(serviceKey);
+        }
+            
+        var obj = Constructor.Construct(scope, serviceKey.Type, descriptor);
+            
+        if(descriptor.Lifetime != Lifetime.Transient)
+        {
+            (_cachedObjects ??= DictionaryPool<ServiceKey, object>.Shared.Get())[serviceKey] = obj;
+        }
+
+        if(obj is IAsyncDisposable or IDisposable)
+        {
+            (_forDisposal ??= ListPool<object>.Shared.Get()).Add(obj);
+        }
+
+        return obj;
     }
 
     public IReadOnlyList<object> GetServices(ServiceKey serviceKey)
@@ -93,7 +86,7 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
 
         if (!serviceFactories.Descriptors.TryGetValue(serviceKey, out var factories))
         {
-            return [];
+            return Array.Empty<object>();
         }
         
         if (!root.TryGetSingletons(serviceKey, out var singletons))

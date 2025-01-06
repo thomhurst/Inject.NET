@@ -1,11 +1,10 @@
 ﻿namespace Inject.NET.Pools;
 
-public class DictionaryPool<TKey, TValue>(int capacity = 1000)
-    where TKey : notnull
+public class DictionaryPool<TKey, TValue> where TKey : notnull
 {
     public static DictionaryPool<TKey, TValue> Shared { get; } = new();
 
-    private readonly Stack<Dictionary<TKey, TValue>> _pool = new(capacity);
+    private readonly Stack<Dictionary<TKey, TValue>> _pool = new(1024);
 
     public Dictionary<TKey, TValue> Get()
     {
@@ -24,10 +23,7 @@ public class DictionaryPool<TKey, TValue>(int capacity = 1000)
             return;
         }
 
-        if (_pool.Count < capacity)
-        {
-            dictionary.Clear();
-            _pool.Push(dictionary);
-        }
+        dictionary.Clear();
+        _pool.Push(dictionary);
     }
 }

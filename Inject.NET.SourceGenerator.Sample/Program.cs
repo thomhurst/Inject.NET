@@ -3,7 +3,7 @@ using Inject.NET.Extensions;
 
 var serviceProvider = await MyServiceProvider.BuildAsync();
 
-for (var i = 0; i < 1_100_000; i++)
+for (var i = 0; i < 10_000_000; i++)
 {
     await using var scope = serviceProvider.CreateScope();
     

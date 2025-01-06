@@ -1,10 +1,10 @@
 ﻿namespace Inject.NET.Pools;
 
-public class ListPool<T>(int capacity = 1000)
+public class ListPool<T>
 {
     public static ListPool<T> Shared { get; } = new();
 
-    private readonly Stack<List<T>> _pool = new(capacity);
+    private readonly Stack<List<T>> _pool = new(1024);
 
     public List<T> Get()
     {
@@ -23,10 +23,7 @@ public class ListPool<T>(int capacity = 1000)
             return;
         }
         
-        if (_pool.Count < capacity)
-        {
-            list.Clear();
-            _pool.Push(list);
-        }
+        list.Clear();
+        _pool.Push(list);
     }
 }

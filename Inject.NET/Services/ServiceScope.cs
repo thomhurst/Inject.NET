@@ -66,11 +66,6 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
         return GetServices(serviceKey).LastOrDefault();
     }
 
-    public IEnumerable<object> GetServices(Type type, string? key)
-    {
-        return GetServices(new ServiceKey(type, key));
-    }
-
     public IEnumerable<object> GetServices(ServiceKey serviceKey)
     {
         var cachedEnumerables = _cachedEnumerables ??= DictionaryPool<ServiceKey, List<object>>.Shared.Get();

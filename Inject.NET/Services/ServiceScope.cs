@@ -154,6 +154,7 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
         
         if (Interlocked.Exchange(ref _forDisposal, null) is not {} forDisposal)
         {
+            root.ServiceScopePool.Return(this);
             return default;
         }
         

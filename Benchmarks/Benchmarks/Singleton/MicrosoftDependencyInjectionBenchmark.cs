@@ -3,10 +3,11 @@ using BenchmarkDotNet.Jobs;
 using Benchmarks.Models;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Benchmarks;
+namespace Benchmarks.Benchmarks.Singleton;
 
 [MarkdownExporterAttribute.GitHub]
 [SimpleJob(RuntimeMoniker.Net90)]
+[BenchmarkCategory("Singleton")]
 public class MicrosoftDependencyInjectionBenchmark
 {
     private ServiceProvider _serviceProvider = null!;
@@ -15,11 +16,7 @@ public class MicrosoftDependencyInjectionBenchmark
     public void GlobalSetup()
     {
         _serviceProvider = new ServiceCollection()
-            .AddSingleton<Interface1, Class1>()
-            .AddSingleton<Interface2, Class2>()
-            .AddSingleton<Interface3, Class3>()
-            .AddTransient<Interface4, Class4>()
-            .AddScoped<Interface5, Class5>()
+            .AddSingleton<Class1>()
             .BuildServiceProvider();
     }
 
@@ -28,6 +25,6 @@ public class MicrosoftDependencyInjectionBenchmark
     {
         await using var scope = _serviceProvider.CreateAsyncScope();
 
-        scope.ServiceProvider.GetRequiredService<Interface5>();
+        scope.ServiceProvider.GetRequiredService<Class1>();
     }
 }

@@ -71,7 +71,7 @@ public static class ServiceRegistrarWriter
 
         sourceCodeWriter.WriteLine("}");
         
-        sourceProductionContext.AddSource($"{serviceProviderModel.Type.Name}ServiceRegistrar.g.cs", sourceCodeWriter.ToString());
+        sourceProductionContext.AddSource($"{serviceProviderModel.Type.Name}ServiceRegistrar_{Guid.NewGuid():N}.g.cs", sourceCodeWriter.ToString());
     }
 
     private static void WriteWithTenant(SourceCodeWriter sourceCodeWriter, Compilation compilation, string tenantId,

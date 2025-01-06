@@ -3,10 +3,11 @@ using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Jobs;
 using Benchmarks.Models;
 
-namespace Benchmarks;
+namespace Benchmarks.Benchmarks.Transient;
 
 [MarkdownExporterAttribute.GitHub]
 [SimpleJob(RuntimeMoniker.Net90)]
+[BenchmarkCategory("Transient")]
 public class AutofacBenchmark
 {
     private IContainer _serviceProvider = null!;
@@ -16,12 +17,7 @@ public class AutofacBenchmark
     {
         var containerBuilder = new ContainerBuilder();
 
-        containerBuilder.RegisterType<Class1>().As<Interface1>().SingleInstance();
-        containerBuilder.RegisterType<Class2>().As<Interface2>().SingleInstance();
-        containerBuilder.RegisterType<Class3>().As<Interface3>().SingleInstance();
-        containerBuilder.RegisterType<Class4>().As<Interface4>().InstancePerDependency();
-        containerBuilder.RegisterType<Class5>().As<Interface5>().InstancePerLifetimeScope();
-
+        containerBuilder.RegisterType<Class1>().InstancePerDependency();
 
         _serviceProvider = containerBuilder.Build();
     }
@@ -31,6 +27,6 @@ public class AutofacBenchmark
     {
         await using var scope = _serviceProvider.BeginLifetimeScope();
 
-        scope.Resolve<Interface5>();
+        scope.Resolve<Class1>();
     }
 }

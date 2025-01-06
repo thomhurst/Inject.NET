@@ -1,3 +1,4 @@
+using System;
 using System.Globalization;
 using Inject.NET.SourceGenerator.Models;
 using Microsoft.CodeAnalysis;
@@ -52,7 +53,7 @@ public static class ServiceProviderWriter
         }
 
         sourceProductionContext.AddSource(
-            $"{serviceProviderType.Name}ServiceProvider.g.cs",
+            $"{serviceProviderType.Name}ServiceProvider_{Guid.NewGuid():N}.g.cs",
             sourceCodeWriter.ToString()
         );
     }

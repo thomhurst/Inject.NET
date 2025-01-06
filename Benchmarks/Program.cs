@@ -1,6 +1,8 @@
 ﻿using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Running;
 using Benchmarks;
+using Benchmarks.Benchmarks.Singleton;
+using InjectDotNetBenchmark = Benchmarks.Benchmarks.ScopedWithInterface.InjectDotNetBenchmark;
 
 var config = ManualConfig.Create(DefaultConfig.Instance)
     .WithOptions(ConfigOptions.JoinSummary);

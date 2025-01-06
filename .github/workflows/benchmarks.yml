@@ -2,41 +2,48 @@ name: Benchmarks
 
 on:
   schedule:
-    - cron: '0 0 * * *'
+    - cron: "0 0 * * *"
   workflow_dispatch:
 
 jobs:
   benchmarks:
     environment: ${{ github.ref == 'refs/heads/main' && 'Production' || 'Pull Requests' }}
-    strategy: 
+    strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
+        category:
+          [
+            Singleton,
+            Scoped,
+            Transient,
+            SingletonWithInterface,
+            ScopedWithInterface,
+            TransientWithInterface,
+          ]
       fail-fast: false
     runs-on: ${{ matrix.os }}
-    concurrency: 
-      group: "benchmarks-${{matrix.os}}"
+    concurrency:
+      group: "benchmarks-${{matrix.os}}-${{matrix.category}}"
       cancel-in-progress: true
 
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 9.0.x
 
       - name: Run Benchmark
-        run: ${{ matrix.os != 'windows-latest' && 'sudo -E ' || '' }}dotnet run -c Release
+        run: ${{ matrix.os != 'windows-latest' && 'sudo -E ' || '' }}dotnet run -c Release --allCategories=${{ matrix.category }}
         working-directory: "Benchmarks"
-        env:
-          CLASS_NAME: ${{ matrix.class }}
 
       - name: Upload Markdown
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: ${{ matrix.os }}_markdown_run_time_${{ matrix.class }}
+          name: ${{ matrix.os }}_${{ matrix.category }}__markdown
           path: |
             **/BenchmarkDotNet.Artifacts/**

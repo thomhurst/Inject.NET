@@ -9,11 +9,11 @@ namespace Inject.NET.Services;
 internal class ServiceProviderRoot : IServiceProviderRoot
 {
     internal static readonly AsyncLocal<IServiceScope> Scopes = new();
-    
+    internal readonly ObjectPool<ServiceScope> ServiceScopePool;
+
     internal readonly SingletonScope SingletonScope;
     private readonly ServiceFactories _serviceFactories;
     private readonly IDictionary<string, IServiceRegistrar> _tenantRegistrars;
-    private readonly ObjectPool<ServiceScope> _serviceScopePool;
 
     private FrozenDictionary<string, IServiceProvider> _tenants = null!;
 
@@ -22,7 +22,7 @@ internal class ServiceProviderRoot : IServiceProviderRoot
         _serviceFactories = serviceFactories;
         _tenantRegistrars = tenantRegistrars;
         SingletonScope = new SingletonScope(this, serviceFactories);
-        _serviceScopePool =
+        ServiceScopePool =
             new ObjectPool<ServiceScope>(new ServiceScopePoolPolicy(this, SingletonScope, serviceFactories));
     }
 
@@ -71,7 +71,7 @@ internal class ServiceProviderRoot : IServiceProviderRoot
 
     public IServiceScope CreateScope()
     {
-        return Scopes.Value ??= _serviceScopePool.Get();
+        return Scopes.Value ??= ServiceScopePool.Get();
     }
 
     public IServiceProvider GetTenant(string tenantId)

@@ -155,7 +155,7 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
                 
                 if (!vt.IsCompleted)
                 {
-                    return Await(--i, vt, forDisposal);
+                    return Await(--i, vt, forDisposal, root.ServiceScopePool, this);
                 }
             }
             else if (obj is IDisposable disposable)
@@ -165,10 +165,11 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
         }
         
         ListPool<object>.Shared.Return(forDisposal);
+
+        return root.ServiceScopePool.Return(this);
         
-        return default;
-        
-        static async ValueTask Await(int i, ValueTask vt, List<object> toDispose)
+        static async ValueTask Await(int i, ValueTask vt, List<object> toDispose,
+            ObjectPool<ServiceScope> serviceScopePool, ServiceScope serviceScope)
         {
             await vt.ConfigureAwait(false);
 
@@ -186,6 +187,7 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
             }
             
             ListPool<object>.Shared.Return(toDispose);
+            await serviceScopePool.Return(serviceScope);
         }
     }
 

@@ -55,19 +55,6 @@ internal class ServiceProviderRoot : IServiceProviderRoot
         _tenants = tenants.ToFrozenDictionary(x => x.Id, x => x.ServiceProvider);
     }
     
-    internal bool TryGetSingletons(Type type, out IReadOnlyList<object> singletons)
-    {
-        var foundSingletons = SingletonScope.GetServices(type).ToArray();
-        if (foundSingletons.Length > 0)
-        {
-            singletons = foundSingletons;
-            return true;
-        }
-        
-        singletons = [];
-        return false;
-    }
-    
     internal bool TryGetSingletons(ServiceKey serviceKey, out IReadOnlyList<object> singletons)
     {
         var foundSingletons = SingletonScope.GetServices(serviceKey).ToArray();

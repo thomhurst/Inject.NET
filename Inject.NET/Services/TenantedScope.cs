@@ -42,15 +42,13 @@ internal sealed class TenantedScope(
         return _scope.GetService(serviceKey) ?? defaultScope.GetService(serviceKey, this) ?? defaultScope.GetService(serviceKey);
     }
 
-    public IEnumerable<object> GetServices(ServiceKey serviceKey)
+    public IReadOnlyList<object> GetServices(ServiceKey serviceKey)
     {
-        IEnumerable<object> services = [
-            ..defaultScope.GetServices(serviceKey),
+        return
+        [
             ..defaultScope.GetServices(serviceKey, this),
             .._scope.GetServices(serviceKey)
         ];
-        
-        return services.Distinct();
     }
 
     public IServiceProvider ServiceProvider => tenantServiceProvider;

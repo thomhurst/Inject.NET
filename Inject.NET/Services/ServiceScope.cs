@@ -1,3 +1,4 @@
+using System.Collections.Frozen;
 using Inject.NET.Enums;
 using Inject.NET.Interfaces;
 using Inject.NET.Models;
@@ -67,37 +68,48 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
 
             return obj;
         }
+
+        var services = GetServices(serviceKey);
+
+        if (services.Count == 0)
+        {
+            return null;
+        }
         
-        return GetServices(serviceKey).LastOrDefault();
+        return services[^1];
     }
 
-    public IEnumerable<object> GetServices(ServiceKey serviceKey)
+    public IReadOnlyList<object> GetServices(ServiceKey serviceKey)
     {
         return GetServices(serviceKey, this);
     }
 
-    public IEnumerable<object> GetServices(ServiceKey serviceKey, IServiceScope scope)
+    public IReadOnlyList<object> GetServices(ServiceKey serviceKey, IServiceScope scope)
     {
         if (_cachedEnumerables?.TryGetValue(serviceKey, out var cachedObjects) == true)
         {
-            foreach (var cachedObject in cachedObjects)
-            {
-                yield return cachedObject;
-            }
-            
-            yield break;
+            return cachedObjects;
         }
 
         if (!serviceFactories.Descriptors.TryGetValue(serviceKey, out var factories))
         {
-            yield break;
+            return [];
         }
         
         if (!root.TryGetSingletons(serviceKey, out var singletons))
         {
-            singletons = [];
+            singletons = Array.Empty<object>();
         }
 
+        var cachedEnumerables = _cachedEnumerables ??= DictionaryPool<ServiceKey, List<object>>.Shared.Get();
+
+        return cachedEnumerables[serviceKey] = [..ConstructItems(factories, singletons, scope, serviceKey, cachedEnumerables)];
+    }
+
+    private IEnumerable<object> ConstructItems(FrozenSet<IServiceDescriptor> factories,
+        IReadOnlyList<object> singletons,
+        IServiceScope scope, ServiceKey serviceKey, Dictionary<ServiceKey, List<object>> cachedEnumerables)
+    {
         var singletonIndex = 0;
         for (var i = 0; i < factories.Count; i++)
         {
@@ -121,8 +133,6 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
             
             if(lifetime != Lifetime.Transient)
             {
-                var cachedEnumerables = _cachedEnumerables ??= DictionaryPool<ServiceKey, List<object>>.Shared.Get();
-
                 if (!cachedEnumerables.TryGetValue(serviceKey, out var items))
                 {
                     cachedEnumerables[serviceKey] = items = [];
@@ -134,7 +144,7 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
             yield return item;
         }
     }
-    
+
     public ValueTask DisposeAsync()
     {
         DictionaryPool<ServiceKey, object>.Shared.Return(_cachedObjects);

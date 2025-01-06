@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Frozen;
+using System.Collections.Immutable;
 using Inject.NET.Enums;
 using Inject.NET.Extensions;
 using Inject.NET.Helpers;
@@ -15,7 +16,7 @@ internal sealed class SingletonScope(IServiceProvider root, ServiceFactories ser
     private static readonly Type ServiceProviderType = typeof(IServiceProvider);
 
     private readonly ConcurrentDictionary<ServiceKey, List<object>> _singletonsBuilder = [];
-    private FrozenDictionary<ServiceKey, FrozenSet<object>> _singletonEnumerables = FrozenDictionary<ServiceKey, FrozenSet<object>>.Empty;
+    private FrozenDictionary<ServiceKey, ImmutableArray<object>> _singletonEnumerables = FrozenDictionary<ServiceKey, ImmutableArray<object>>.Empty;
     private FrozenDictionary<ServiceKey, object> _singletons = FrozenDictionary<ServiceKey, object>.Empty;
 
     private readonly ConcurrentDictionary<ServiceKey, object[]> _openGenericSingletons = [];
@@ -37,7 +38,7 @@ internal sealed class SingletonScope(IServiceProvider root, ServiceFactories ser
     {
         _singletonEnumerables = _singletonsBuilder.ToFrozenDictionary(
             d => d.Key,
-            d => d.Value.ToFrozenSet()
+            d => d.Value.ToImmutableArray()
         );
 
         foreach (var singletonAsyncInitialization in _singletonEnumerables.SelectMany(s => s.Value)
@@ -77,15 +78,22 @@ internal sealed class SingletonScope(IServiceProvider root, ServiceFactories ser
             return singleton;
         }
 
+        var services = GetServices(serviceKey);
+        
         if (serviceKey.Type.IsIEnumerable())
         {
-            return GetServices(serviceKey);
+            return services;
+        }
+
+        if (services.Count == 0)
+        {
+            return null;
         }
         
-        return GetServices(serviceKey).LastOrDefault();
+        return services[^1];
     }
     
-    public IEnumerable<object> GetServices(ServiceKey serviceKey)
+    public IReadOnlyList<object> GetServices(ServiceKey serviceKey)
     {
         if (_singletonEnumerables.TryGetValue(serviceKey, out var list))
         {
@@ -131,7 +139,7 @@ internal sealed class SingletonScope(IServiceProvider root, ServiceFactories ser
             .Where(x => x.Lifetime == Lifetime.Singleton);
     }
 
-    internal IEnumerable<ServiceKey> GetSingletonKeys()
+    private IEnumerable<ServiceKey> GetSingletonKeys()
     {
         return serviceFactories.Descriptors
             .Where(x => x.Value.Items.Any(y => y.Lifetime == Lifetime.Singleton))

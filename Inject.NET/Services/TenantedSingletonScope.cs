@@ -41,7 +41,7 @@ internal class TenantedSingletonScope(
         return _scope.GetService(serviceKey) ?? root.SingletonScope.GetService(serviceKey);
     }
 
-    public IEnumerable<object> GetServices(ServiceKey serviceKey)
+    public IReadOnlyList<object> GetServices(ServiceKey serviceKey)
     {
         if (root.TryGetSingletons(serviceKey, out var defaultSingletons))
         {

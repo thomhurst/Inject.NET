@@ -1,3 +1,4 @@
+using Inject.NET.Extensions;
 using Inject.NET.Interfaces;
 using Inject.NET.Models;
 using IServiceProvider = Inject.NET.Interfaces.IServiceProvider;
@@ -17,6 +18,11 @@ internal sealed class TenantedScope(
 
     public object? GetService(Type type)
     {
+        if (type.IsIEnumerable())
+        {
+            return GetServices(type);
+        }
+        
         return GetService(new ServiceKey(type));
     }
     
@@ -33,16 +39,18 @@ internal sealed class TenantedScope(
             return ServiceProvider;
         }
         
-        return _scope.GetService(serviceKey) ?? defaultScope.GetService(serviceKey, this);
+        return _scope.GetService(serviceKey) ?? defaultScope.GetService(serviceKey, this) ?? defaultScope.GetService(serviceKey);
     }
 
     public IEnumerable<object> GetServices(ServiceKey serviceKey)
     {
-        return
-        [
+        IEnumerable<object> services = [
             ..defaultScope.GetServices(serviceKey),
+            ..defaultScope.GetServices(serviceKey, this),
             .._scope.GetServices(serviceKey)
         ];
+        
+        return services.Distinct();
     }
 
     public IServiceProvider ServiceProvider => tenantServiceProvider;

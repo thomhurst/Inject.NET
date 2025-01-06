@@ -25,6 +25,6 @@ public class NinjectBenchmark
     {
         using var scope = _serviceProvider.BeginBlock();
 
-        scope.Get<Class1>();
+        scope.Get<Interface1>();
     }
 }

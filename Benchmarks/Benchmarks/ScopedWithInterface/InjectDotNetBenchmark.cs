@@ -29,6 +29,6 @@ public partial class InjectDotNetBenchmark
     {
         await using var scope = _serviceProviderRoot.CreateScope();
 
-        scope.GetRequiredService<Class1>();
+        scope.GetRequiredService<Interface1>();
     }
 }

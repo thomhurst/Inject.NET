@@ -27,6 +27,6 @@ public class AutofacBenchmark
     {
         await using var scope = _serviceProvider.BeginLifetimeScope();
 
-        scope.Resolve<Class1>();
+        scope.Resolve<Interface1>();
     }
 }

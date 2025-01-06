@@ -25,6 +25,6 @@ public class MicrosoftDependencyInjectionBenchmark
     {
         await using var scope = _serviceProvider.CreateAsyncScope();
 
-        scope.ServiceProvider.GetRequiredService<Class1>();
+        scope.ServiceProvider.GetRequiredService<Interface1>();
     }
 }

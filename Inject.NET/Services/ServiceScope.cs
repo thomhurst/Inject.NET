@@ -72,8 +72,8 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
         {
             return SingletonScope.GetService(serviceKey);
         }
-            
-        var obj = Constructor.Construct(scope, serviceKey.Type, descriptor);
+
+        var obj = descriptor.Factory(scope, serviceKey.Type, descriptor.Key);
             
         if(descriptor.Lifetime != Lifetime.Transient)
         {
@@ -116,7 +116,7 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
         return cachedEnumerables[serviceKey] = [..ConstructItems(factories, singletons, scope, serviceKey, cachedEnumerables)];
     }
 
-    private IEnumerable<object> ConstructItems(FrozenSet<IServiceDescriptor> factories,
+    private IEnumerable<object> ConstructItems(FrozenSet<ServiceDescriptor> factories,
         IReadOnlyList<object> singletons,
         IServiceScope scope, ServiceKey serviceKey, Dictionary<ServiceKey, List<object>> cachedEnumerables)
     {
@@ -133,7 +133,7 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
             }
             else
             {
-                item = Constructor.Construct(scope, serviceKey.Type, serviceDescriptor);
+                item = serviceDescriptor.Factory(scope, serviceKey.Type, serviceDescriptor.Key);
                 
                 if(item is IAsyncDisposable or IDisposable)
                 {

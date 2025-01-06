@@ -2,7 +2,7 @@ namespace Inject.NET.Models;
 
 public record ServiceFactoryBuilders
 {
-    public List<IServiceDescriptor> Descriptors { get; } = [];
+    public List<ServiceDescriptor> Descriptors { get; } = [];
 
     public void Add(ServiceDescriptor descriptor)
     {

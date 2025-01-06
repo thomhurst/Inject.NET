@@ -16,23 +16,18 @@ public class ServiceModel
     
     public required string? Key { get; init; }
     
-    public required ServiceModelParameter[] Parameters { get; init; }
+    public required Parameter[] Parameters { get; init; }
 
-    public IEnumerable<ServiceModel> GetAllNestedParameters()
+    public IEnumerable<ServiceModel> GetAllNestedParameters(Dictionary<ISymbol?, ServiceModel[]> dependencyDictionary)
     {
-        foreach (var serviceModel in Parameters.SelectMany(x => x.ServiceModels))
+        foreach (var serviceModel in Parameters.SelectMany(x => dependencyDictionary[x.Type]))
         {
             yield return serviceModel;
 
-            foreach (var nestedParameter in serviceModel.GetAllNestedParameters())
+            foreach (var nestedParameter in serviceModel.GetAllNestedParameters(dependencyDictionary))
             {
                 yield return nestedParameter;
             }
         }
     }
-}
-
-public record ServiceModelParameter : Parameter
-{
-    public List<ServiceModel> ServiceModels { get; } = [];
 }

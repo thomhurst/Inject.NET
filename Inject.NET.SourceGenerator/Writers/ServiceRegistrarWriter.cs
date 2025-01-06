@@ -100,7 +100,7 @@ public static class ServiceRegistrarWriter
         {
             foreach (var serviceModel in serviceModels)
             {
-                var parameters = serviceModel.GetAllNestedParameters();
+                var parameters = serviceModel.GetAllNestedParameters(dependencyDictionary);
 
                 foreach (var parameter in parameters)
                 {
@@ -118,21 +118,13 @@ public static class ServiceRegistrarWriter
                 x => x.Select(y => y.Item2).ToArray(),
                 SymbolEqualityComparer.Default);
 
-        var mergedDictionaries =
-            rootDependencyDictionary.ToDictionary(x => x.Key, x => x.Value, SymbolEqualityComparer.Default);
-
-        foreach (var (key, _) in dictionaryToOverride)
-        {
-            mergedDictionaries.Remove(key!);
-        }
-
-        mergedDictionaries = mergedDictionaries.Concat(dictionaryToOverride)
-            .GroupBy(kvp => kvp.Key, SymbolEqualityComparer.Default)
-            .ToDictionary(
-                x => x.Key,
-                x => x.SelectMany(y => y.Value).ToArray(),
-                SymbolEqualityComparer.Default);
-
+        var mergedDictionaries = rootDependencyDictionary
+            .Concat(dictionaryToOverride)
+            .Concat(dependencyDictionary)
+                .GroupBy(x => x.Key, SymbolEqualityComparer.Default)
+                .ToDictionary(x => x.Key,
+                    x => x.SelectMany(y => y.Value).ToArray(), SymbolEqualityComparer.Default);
+        
         foreach (var (_, serviceModel) in list)
         {
             WriteRegistration(sourceCodeWriter, mergedDictionaries, "tenant.", serviceModel);
@@ -184,7 +176,7 @@ public static class ServiceRegistrarWriter
         }
     }
 
-    private static string? WriteParameter(Dictionary<ISymbol?, ServiceModel[]> dependencyDictionary, ServiceModelParameter parameter)
+    private static string? WriteParameter(Dictionary<ISymbol?, ServiceModel[]> dependencyDictionary, Parameter parameter)
     {
         if (!dependencyDictionary.TryGetValue(parameter.Type, out var models))
         {
@@ -212,7 +204,7 @@ public static class ServiceRegistrarWriter
     }
 
     private static string WriteType(Dictionary<ISymbol?, ServiceModel[]> dependencyDictionary,
-        ServiceModel serviceModel, ServiceModelParameter parameter)
+        ServiceModel serviceModel, Parameter parameter)
     {
         if (serviceModel.Lifetime == Lifetime.Transient)
         {

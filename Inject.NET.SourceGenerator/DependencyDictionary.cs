@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Inject.NET.SourceGenerator.Models;
 using Microsoft.CodeAnalysis;
@@ -57,36 +56,8 @@ public static class DependencyDictionary
                     Key = smb.Key,
                     Lifetime = smb.Lifetime,
                     IsOpenGeneric = smb.IsOpenGeneric,
-                    Parameters = smb.Parameters.Select(p => new ServiceModelParameter
-                    {
-                        Type = p.Type,
-                        Key = p.Key,
-                        IsEnumerable = p.IsEnumerable,
-                        IsNullable = p.IsNullable,
-                        IsOptional = p.IsOptional
-                    }).ToArray()
+                    Parameters = smb.Parameters.ToArray()
                 }).ToArray(), SymbolEqualityComparer.Default);
-        
-        foreach (var serviceModels in enumerableDictionary.Values)
-        {
-            foreach (var serviceModel in serviceModels)
-            {
-                foreach (var parameter in serviceModel.Parameters)
-                {
-                    if (!enumerableDictionary.TryGetValue(parameter.Type, out var serviceModelsForParameterType))
-                    {
-                        if (parameter.IsOptional)
-                        {
-                            continue;
-                        }
-                        
-                        // TODO: Error
-                    }
-
-                    parameter.ServiceModels.AddRange(serviceModelsForParameterType ?? []);
-                }
-            }
-        }
         
         return enumerableDictionary;
     }
@@ -129,53 +100,6 @@ public static class DependencyDictionary
         return false;
     }
 
-    private static void WriteRegistration(SourceCodeWriter sourceCodeWriter, AttributeData attributeData,
-        INamedTypeSymbol serviceType, INamedTypeSymbol implementationType, Parameter[] parameters, string? prefix)
-    {
-        var key = attributeData.NamedArguments.FirstOrDefault(x => x.Key == "Key").Value.Value as string;
-
-        if (!Enum.TryParse(attributeData.AttributeClass?.Name.Replace("Attribute", string.Empty), false, out Lifetime lifetime))
-        {
-            return;
-        }
-
-        if (serviceType.IsGenericType 
-            && SymbolEqualityComparer.Default.Equals(serviceType, serviceType.ConstructUnboundGenericType()))
-        {
-            if (key != null)
-            {
-                sourceCodeWriter.WriteLine(
-                    $"""
-                     {prefix}RegisterOpenGeneric(typeof({serviceType.GloballyQualified()}), typeof({implementationType.GloballyQualified()}), Lifetime.{lifetime}, "{key}");
-                     """);
-            }
-            else
-            {
-                sourceCodeWriter.WriteLine(
-                    $"""
-                     {prefix}RegisterOpenGeneric(typeof({serviceType.GloballyQualified()}), typeof({implementationType.GloballyQualified()}), Lifetime.{lifetime});
-                     """);
-            }
-            
-            return;
-        }
-        
-        if (key != null)
-        {
-            sourceCodeWriter.WriteLine(
-                $"""
-                 {prefix}Register<{serviceType.GloballyQualified()}, {implementationType.GloballyQualified()}>((scope, type, key) => new {implementationType.GloballyQualified()}({string.Join(", ", parameters.Select(x => x.WriteSource()))}), Lifetime.{lifetime}, "{key}");
-                 """);
-        }
-        else
-        {
-            sourceCodeWriter.WriteLine(
-                $"""
-                 {prefix}Register<{serviceType.GloballyQualified()}, {implementationType.GloballyQualified()}>((scope, type) => new {implementationType.GloballyQualified()}({string.Join(", ", parameters.Select(x => x.WriteSource()))}), Lifetime.{lifetime});
-                 """);
-        }
-    }
-    
     private static Parameter[] GetParameters(ITypeSymbol type, Compilation compilation)
     {
         var namedTypeSymbol = type as INamedTypeSymbol;

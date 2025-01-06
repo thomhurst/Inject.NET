@@ -58,11 +58,21 @@ internal sealed class SingletonScope(IServiceProvider root, ServiceFactories ser
 
     public object? GetService(Type type)
     {
+        if (type.IsIEnumerable())
+        {
+            return GetServices(new ServiceKey(type));
+        }
+        
         return GetService(new ServiceKey(type));
     }
 
     public object? GetService(ServiceKey serviceKey)
     {
+        if (_singletons.TryGetValue(serviceKey, out var singleton))
+        {
+            return singleton;
+        }
+        
         if (serviceKey.Type == ServiceScopeType)
         {
             return this;
@@ -73,17 +83,7 @@ internal sealed class SingletonScope(IServiceProvider root, ServiceFactories ser
             return ServiceProvider;
         }
 
-        if (_singletons.TryGetValue(serviceKey, out var singleton))
-        {
-            return singleton;
-        }
-
         var services = GetServices(serviceKey);
-        
-        if (serviceKey.Type.IsIEnumerable())
-        {
-            return services;
-        }
 
         if (services.Count == 0)
         {

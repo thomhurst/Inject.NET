@@ -32,6 +32,11 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
 
     public object? GetService(ServiceKey serviceKey, IServiceScope scope)
     {
+        if (_cachedObjects?.TryGetValue(serviceKey, out var cachedObject) == true)
+        {
+            return cachedObject;
+        }
+        
         if (serviceKey.Type == ServiceScopeType)
         {
             return this;
@@ -41,10 +46,11 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
         {
             return ServiceProvider;
         }
-        
-        if (_cachedObjects?.TryGetValue(serviceKey, out var cachedObject) == true)
+
+        if (_cachedEnumerables?.TryGetValue(serviceKey, out var cachedEnumerable) == true
+            && cachedEnumerable.Count > 0)
         {
-            return cachedObject;
+            return cachedEnumerable[^1];
         }
 
         if (!serviceFactories.Descriptor.TryGetValue(serviceKey, out var descriptor))

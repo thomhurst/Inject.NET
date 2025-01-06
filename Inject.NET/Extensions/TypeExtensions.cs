@@ -2,9 +2,11 @@
 
 public static class TypeExtensions
 {
+    private static readonly Type EnumerableGeneric = typeof(IEnumerable<>);
+
     public static bool IsIEnumerable(this Type type)
     {
         return type.IsGenericType
-               && typeof(IEnumerable<>).IsAssignableFrom(type.MakeGenericType());
+               && EnumerableGeneric.IsAssignableFrom(type.MakeGenericType());
     }
 }

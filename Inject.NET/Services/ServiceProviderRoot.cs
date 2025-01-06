@@ -64,7 +64,7 @@ internal class ServiceProviderRoot : IServiceProviderRoot
             return true;
         }
         
-        singletons = [];
+        singletons = Array.Empty<object>();
         return false;
     }
 

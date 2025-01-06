@@ -7,7 +7,8 @@ namespace Inject.NET;
 
 internal static class Constructor
 {
-    private static Dictionary<Type, (Type Type, string? Key)[]> _parameterTypesAndKeys = new();
+    private static readonly Dictionary<Type, (Type Type, string? Key)[]> ParameterTypesAndKeys = new();
+    
     public static object Construct(IServiceScope serviceScope, Type type, IServiceDescriptor descriptor)
     {
         if (descriptor is ServiceDescriptor serviceDescriptor)
@@ -21,9 +22,9 @@ internal static class Constructor
 
             var newType = openGenericServiceDescriptor.ImplementationType.MakeGenericType(requestedTypeTypeArguments);
 
-            if (!_parameterTypesAndKeys.TryGetValue(newType, out var parameterTypesAndKeys))
+            if (!ParameterTypesAndKeys.TryGetValue(newType, out var parameterTypesAndKeys))
             {
-                _parameterTypesAndKeys[newType] = parameterTypesAndKeys = newType
+                ParameterTypesAndKeys[newType] = parameterTypesAndKeys = newType
                     .GetConstructors()
                     .FirstOrDefault(x => !x.IsStatic)
                     ?.GetParameters()

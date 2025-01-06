@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Frozen;
 using Inject.NET.Enums;
+using Inject.NET.Extensions;
 using Inject.NET.Helpers;
 using Inject.NET.Interfaces;
 using Inject.NET.Models;
@@ -56,32 +57,32 @@ internal sealed class SingletonScope(IServiceProvider root, ServiceFactories ser
 
     public object? GetService(Type type)
     {
-        if (type == ServiceScopeType)
+        return GetService(new ServiceKey(type));
+    }
+
+    public object? GetService(ServiceKey serviceKey)
+    {
+        if (serviceKey.Type == ServiceScopeType)
         {
             return this;
         }
         
-        if (type == ServiceProviderType)
+        if (serviceKey.Type == ServiceProviderType)
         {
             return ServiceProvider;
         }
-        
-        return GetService(new ServiceKey(type));
-    }
 
-    private object? GetService(ServiceKey serviceKey)
-    {
         if (_singletons.TryGetValue(serviceKey, out var singleton))
         {
             return singleton;
         }
+
+        if (serviceKey.Type.IsIEnumerable())
+        {
+            return GetServices(serviceKey);
+        }
         
         return GetServices(serviceKey).LastOrDefault();
-    }
-    
-    public IEnumerable<object> GetServices(Type type)
-    {
-        return GetServices(new ServiceKey(type));
     }
     
     public IEnumerable<object> GetServices(ServiceKey serviceKey)
@@ -128,16 +129,6 @@ internal sealed class SingletonScope(IServiceProvider root, ServiceFactories ser
         return serviceFactories.Descriptors.Where(x => x.Key == serviceKey)
             .SelectMany(x => x.Value)
             .Where(x => x.Lifetime == Lifetime.Singleton);
-    }
-
-    public object? GetService(Type type, string? key)
-    {
-        return GetService(new ServiceKey(type, key));
-    }
-
-    public IEnumerable<object> GetServices(Type type, string? key)
-    {
-        return GetServices(new ServiceKey(type));
     }
 
     internal IEnumerable<ServiceKey> GetSingletonKeys()

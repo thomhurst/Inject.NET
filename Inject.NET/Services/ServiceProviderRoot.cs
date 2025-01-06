@@ -8,7 +8,7 @@ namespace Inject.NET.Services;
 
 internal class ServiceProviderRoot : IServiceProviderRoot
 {
-    internal static readonly AsyncLocal<IServiceScope> _scopes = new();
+    internal static readonly AsyncLocal<IServiceScope> Scopes = new();
     
     internal readonly SingletonScope SingletonScope;
     private readonly ServiceFactories _serviceFactories;
@@ -34,9 +34,9 @@ internal class ServiceProviderRoot : IServiceProviderRoot
         
         await using var scope = CreateScope();
         
-        foreach (var type in _serviceFactories.Descriptors.Keys.Select(x => x.Type).Distinct())
+        foreach (var type in _serviceFactories.Descriptors.Keys)
         {
-            scope.GetServices(type);
+            scope.GetService(type);
         }
         
         await SingletonScope.FinalizeAsync();
@@ -68,14 +68,9 @@ internal class ServiceProviderRoot : IServiceProviderRoot
         return false;
     }
     
-    internal bool TryGetSingletons(Type type, string? key, out IReadOnlyList<object> singletons)
+    internal bool TryGetSingletons(ServiceKey serviceKey, out IReadOnlyList<object> singletons)
     {
-        if (key is null)
-        {
-            return TryGetSingletons(type, out singletons);
-        }
-        
-        var foundSingletons = SingletonScope.GetServices(type, key).ToArray();
+        var foundSingletons = SingletonScope.GetServices(serviceKey).ToArray();
         
         if (foundSingletons.Length > 0)
         {
@@ -89,7 +84,7 @@ internal class ServiceProviderRoot : IServiceProviderRoot
 
     public IServiceScope CreateScope()
     {
-        return _scopes.Value ??= _serviceScopePool.Get();
+        return Scopes.Value ??= _serviceScopePool.Get();
     }
 
     public IServiceProvider GetTenant(string tenantId)

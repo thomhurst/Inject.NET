@@ -1,4 +1,5 @@
 using Inject.NET.Interfaces;
+using Inject.NET.Models;
 using Inject.NET.Services;
 
 namespace Inject.NET.Extensions;
@@ -13,13 +14,30 @@ public static class ServiceScopeExtensions
     
     public static T GetRequiredService<T>(this IServiceScope scope, string key) where T : class
     {
-        return scope.GetService(typeof(T), key) as T ??
+        return scope.GetService(new ServiceKey(typeof(T), key)) as T ??
                ThrowMissingDependencyError<T>(key, scope);
     }
     
     public static IEnumerable<T> GetServices<T>(this IServiceScope scope, string key) where T : class
     {
-        return scope.GetServices(typeof(T), key).Cast<T>();
+        var enumerable = scope.GetService(new ServiceKey(typeof(T), key));
+
+        if (enumerable is null)
+        {
+            return [];
+        }
+
+        if (enumerable.GetType().IsIEnumerable())
+        {
+            return (enumerable as IEnumerable<object>)?.Cast<T>() ?? [];
+        }
+
+        if (enumerable is T t)
+        {
+            return [t];
+        }
+        
+        return [];
     }
     
     public static T? GetOptionalService<T>(this IServiceScope scope) where T : class
@@ -29,7 +47,7 @@ public static class ServiceScopeExtensions
     
     public static T? GetOptionalService<T>(this IServiceScope scope, string key) where T : class
     {
-        return scope.GetService(typeof(T), key) as T;
+        return scope.GetService(new ServiceKey(typeof(T), key)) as T;
     }
     
     private static T ThrowMissingDependencyError<T>(IServiceScope scope) where T : class

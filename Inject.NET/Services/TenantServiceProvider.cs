@@ -25,7 +25,7 @@ internal class TenantServiceProvider : IServiceProvider
         
         foreach (var type in _serviceFactories.Descriptors.Keys)
         {
-            scope.GetServices(type.Type, type.Key);
+            scope.GetService(type);
         }
         
         await _singletonScope.FinalizeAsync();
@@ -38,6 +38,6 @@ internal class TenantServiceProvider : IServiceProvider
 
     public IServiceScope CreateScope()
     {
-        return new TenantedScope(this, _rootServiceProviderRoot.CreateScope(), _singletonScope, _serviceFactories);
+        return new TenantedScope(this, (ServiceScope)_rootServiceProviderRoot.CreateScope(), _singletonScope, _serviceFactories);
     }
 }

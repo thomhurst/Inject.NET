@@ -21,31 +21,21 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
     
     public object? GetService(Type type)
     {
-        if (type == ServiceScopeType)
+        return GetService(new ServiceKey(type));
+    }
+
+    public object? GetService(ServiceKey serviceKey)
+    {
+        if (serviceKey.Type == ServiceScopeType)
         {
             return this;
         }
         
-        if (type == ServiceProviderType)
+        if (serviceKey.Type == ServiceProviderType)
         {
             return ServiceProvider;
         }
         
-        return GetService(new ServiceKey(type));
-    }
-
-    public IEnumerable<object> GetServices(Type type)
-    {
-        return GetServices(new ServiceKey(type));
-    }
-
-    public object? GetService(Type type, string? key)
-    {
-        return GetService(new ServiceKey(type, key));
-    }
-
-    private object? GetService(ServiceKey serviceKey)
-    {
         if (_cachedObjects?.TryGetValue(serviceKey, out var cachedObject) == true)
         {
             return cachedObject;
@@ -55,7 +45,7 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
         {
             if (descriptor.Lifetime == Lifetime.Singleton)
             {
-                return singletonScope.GetService(serviceKey.Type, serviceKey.Key);
+                return singletonScope.GetService(serviceKey);
             }
             
             var obj = Constructor.Construct(this, serviceKey.Type, descriptor);
@@ -81,7 +71,7 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
         return GetServices(new ServiceKey(type, key));
     }
 
-    private IEnumerable<object> GetServices(ServiceKey serviceKey)
+    public IEnumerable<object> GetServices(ServiceKey serviceKey)
     {
         var cachedEnumerables = _cachedEnumerables ??= DictionaryPool<ServiceKey, List<object>>.Shared.Get();
         
@@ -100,7 +90,7 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
             yield break;
         }
         
-        if (!root.TryGetSingletons(serviceKey.Type, serviceKey.Key, out var singletons))
+        if (!root.TryGetSingletons(serviceKey, out var singletons))
         {
             singletons = [];
         }

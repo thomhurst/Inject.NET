@@ -1,4 +1,5 @@
 ﻿using Inject.NET.Enums;
+using Inject.NET.Extensions;
 using Inject.NET.Interfaces;
 using Inject.NET.Models;
 using IServiceProvider = Inject.NET.Interfaces.IServiceProvider;
@@ -15,52 +16,43 @@ internal class TenantedSingletonScope(
     
     private readonly SingletonScope _scope = new(root, serviceFactories);
 
-    public object? GetService(Type type)
+    public object? GetService(Type serviceType)
     {
-        if (type == ServiceScopeType)
+        return GetService(new ServiceKey(serviceType));
+    }
+    
+    public object? GetService(ServiceKey serviceKey)
+    {
+        if (serviceKey.Type == ServiceScopeType)
         {
             return this;
         }
         
-        if (type == ServiceProviderType)
+        if (serviceKey.Type == ServiceProviderType)
         {
             return ServiceProvider;
         }
+
+        if (serviceKey.Type.IsIEnumerable())
+        {
+            return GetServices(serviceKey);
+        }
         
-        return _scope.GetService(type) ?? root.SingletonScope.GetService(type);
+        return _scope.GetService(serviceKey) ?? root.SingletonScope.GetService(serviceKey);
     }
 
-    public IEnumerable<object> GetServices(Type type)
+    public IEnumerable<object> GetServices(ServiceKey serviceKey)
     {
-        if (root.TryGetSingletons(type, out var defaultSingletons))
+        if (root.TryGetSingletons(serviceKey, out var defaultSingletons))
         {
             return
             [
                 ..defaultSingletons,
-                .._scope.GetServices(type)
-            ];
-        }
-
-        return _scope.GetServices(type);
-    }
-
-    public object? GetService(Type type, string? key)
-    {
-        return _scope.GetService(type, key) ?? root.SingletonScope.GetService(type, key);
-    }
-
-    public IEnumerable<object> GetServices(Type type, string? key)
-    {
-        if (root.TryGetSingletons(type, key, out var defaultSingletons))
-        {
-            return
-            [
-                ..defaultSingletons,
-                .._scope.GetServices(type, key)
+                .._scope.GetServices(serviceKey)
             ];
         }
         
-        return _scope.GetServices(type, key);
+        return _scope.GetServices(serviceKey);
     }
 
     public IServiceProvider ServiceProvider => tenantServiceProvider;

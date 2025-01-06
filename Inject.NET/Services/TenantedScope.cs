@@ -6,8 +6,8 @@ namespace Inject.NET.Services;
 
 internal sealed class TenantedScope(
     TenantServiceProvider tenantServiceProvider,
-    IServiceScope defaultScope,
-    IServiceScope singletonScope,
+    ServiceScope defaultScope,
+    TenantedSingletonScope singletonScope,
     ServiceFactories serviceFactories) : IServiceScope
 {
     private static readonly Type ServiceScopeType = typeof(IServiceScope);
@@ -17,39 +17,31 @@ internal sealed class TenantedScope(
 
     public object? GetService(Type type)
     {
-        if (type == ServiceScopeType)
+        return GetService(new ServiceKey(type));
+    }
+    
+    
+    public object? GetService(ServiceKey serviceKey)
+    {
+        if (serviceKey.Type == ServiceScopeType)
         {
             return this;
         }
         
-        if (type == ServiceProviderType)
+        if (serviceKey.Type == ServiceProviderType)
         {
             return ServiceProvider;
         }
         
-        return _scope.GetService(type);
+        return _scope.GetService(serviceKey);
     }
 
-    public IEnumerable<object> GetServices(Type type)
+    public IEnumerable<object> GetServices(ServiceKey serviceKey)
     {
         return
         [
-            defaultScope.GetServices(type),
-            .._scope.GetServices(type)
-        ];
-    }
-
-    public object? GetService(Type type, string? key)
-    {
-        return _scope.GetService(type, key);
-    }
-
-    public IEnumerable<object> GetServices(Type type, string? key)
-    {
-        return
-        [
-            defaultScope.GetServices(type, key),
-            .._scope.GetServices(type, key)
+            ..defaultScope.GetServices(serviceKey),
+            .._scope.GetServices(serviceKey)
         ];
     }
 

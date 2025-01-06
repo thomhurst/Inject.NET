@@ -33,15 +33,7 @@ internal static class Constructor
             }
 
             var constructedParameters = parameterTypesAndKeys
-                        .Select(tuple =>
-                        {
-                            if (tuple.Key is null)
-                            {
-                                return serviceScope.GetService(type);
-                            }
-
-                            return serviceScope.GetService(type, tuple.Key);
-                        })
+                        .Select(tuple => serviceScope.GetService(new ServiceKey(tuple.Type, tuple.Key)))
                         .ToArray();
             
             return Activator.CreateInstance(newType, constructedParameters) ?? throw new ArgumentNullException(nameof(newType));

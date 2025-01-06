@@ -9,8 +9,9 @@ public static class TypeExtensions
     public static bool IsGenericDefinition(this ITypeSymbol typeSymbol)
     {
         return typeSymbol is INamedTypeSymbol { IsGenericType: true } namedTypeSymbol
-               && (namedTypeSymbol.IsUnboundGenericType ||
-                   namedTypeSymbol.TypeArguments.Any(ta => ta.IsGenericDefinition()));
+               && (namedTypeSymbol.IsUnboundGenericType
+                   || namedTypeSymbol.TypeArguments.SequenceEqual<ISymbol>(namedTypeSymbol.TypeParameters, SymbolEqualityComparer.Default)
+                   || namedTypeSymbol.TypeArguments.Any(ta => ta.IsGenericDefinition()));
     } 
     
     public static string GloballyQualified(this ITypeSymbol typeSymbol) =>

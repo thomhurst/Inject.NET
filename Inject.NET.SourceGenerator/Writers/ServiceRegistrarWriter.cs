@@ -105,9 +105,8 @@ public static class ServiceRegistrarWriter
                 }
                 
                 sourceCodeWriter.WriteLine("Factory = (scope, type, key) =>");
-                sourceCodeWriter.WriteLine($"   new {serviceModel.ImplementationType.GloballyQualified()}(");
-                sourceCodeWriter.WriteLine(string.Join(", ", BuildParameters(dependencyDictionary, serviceModel)));
-                sourceCodeWriter.WriteLine("),");
+                
+                sourceCodeWriter.WriteLine(ConstructNewObject(dependencyDictionary, serviceModel));
                 
                 sourceCodeWriter.WriteLine("});");
                 sourceCodeWriter.WriteLine();
@@ -181,8 +180,6 @@ public static class ServiceRegistrarWriter
                 $"new {serviceModel.ImplementationType.GloballyQualified()}({string.Join(", ", BuildParameters(dependencyDictionary, serviceModel))})";
         }
 
-        return $"""
-               return Activator.CreateInstance(typeof({serviceModel.ImplementationType.GloballyQualified()}).MakeGenericType(type.GenericTypeArguments), [{string.Join(", ", BuildParameters(dependencyDictionary, serviceModel))}]);
-               """;
+        return $"Activator.CreateInstance(typeof({serviceModel.ImplementationType.GloballyQualified()}).MakeGenericType(type.GenericTypeArguments), [{string.Join(", ", BuildParameters(dependencyDictionary, serviceModel))}])";
     }
 }

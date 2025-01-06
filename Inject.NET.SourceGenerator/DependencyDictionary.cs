@@ -178,9 +178,11 @@ public static class DependencyDictionary
     
     private static Parameter[] GetParameters(ITypeSymbol type, Compilation compilation)
     {
-        var parameters = (type as INamedTypeSymbol)?
-            .InstanceConstructors
-            .FirstOrDefault(x => !x.IsImplicitlyDeclared)
+        var namedTypeSymbol = type as INamedTypeSymbol;
+        
+        var parameters = namedTypeSymbol
+            ?.InstanceConstructors
+            .FirstOrDefault()
             ?.Parameters ?? default;
 
         if (parameters.IsDefaultOrEmpty)

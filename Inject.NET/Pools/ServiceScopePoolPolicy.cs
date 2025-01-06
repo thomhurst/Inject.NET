@@ -13,21 +13,27 @@ internal class ServiceScopePoolPolicy(
         return new ServiceScope(serviceProviderRoot, singletonScope, serviceFactories);   
     }
 
-    public Task<bool> ReturnAsync(ServiceScope obj)
+    public ValueTask<bool> ReturnAsync(ServiceScope obj)
     {
         var vt = obj.DisposeAsync();
 
         if (vt.IsCompletedSuccessfully)
         {
-            return Task.FromResult(true);
+            return ValueTask.FromResult(true);
         }
         
-        return vt.AsTask().ContinueWith(_ => true);
+        return Await(vt);
+    }
+
+    private static async ValueTask<bool> Await(ValueTask vt)
+    {
+        await vt;
+        return true;
     }
 }
 
 internal interface IPooledObjectPolicy<T>
 {
     T Create();
-    Task<bool> ReturnAsync(T obj);
+    ValueTask<bool> ReturnAsync(T obj);
 }

@@ -53,7 +53,7 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
                 return singletonScope.GetService(serviceKey);
             }
             
-            var obj = Constructor.Construct(this, serviceKey.Type, descriptor);
+            var obj = Constructor.Construct(scope, serviceKey.Type, descriptor);
             
             if(descriptor.Lifetime != Lifetime.Transient)
             {
@@ -76,7 +76,7 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
         return GetServices(serviceKey, this);
     }
 
-    public IEnumerable<object> GetServices(ServiceKey serviceKey, IServiceScope serviceScope)
+    public IEnumerable<object> GetServices(ServiceKey serviceKey, IServiceScope scope)
     {
         if (_cachedEnumerables?.TryGetValue(serviceKey, out var cachedObjects) == true)
         {
@@ -111,7 +111,7 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
             }
             else
             {
-                item = Constructor.Construct(this, serviceKey.Type, serviceDescriptor);
+                item = Constructor.Construct(scope, serviceKey.Type, serviceDescriptor);
                 
                 if(item is IAsyncDisposable or IDisposable)
                 {

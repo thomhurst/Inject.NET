@@ -150,4 +150,22 @@ internal sealed class SingletonScope(IServiceProvider root, ServiceFactories ser
             }
         }
     }
+
+    public void Dispose()
+    {
+        foreach (var item in _singletonEnumerables)
+        {
+            foreach (var obj in item.Value)
+            {
+                if (obj is IDisposable disposable)
+                {
+                    disposable.Dispose();
+                }
+                else if (obj is IAsyncDisposable asyncDisposable)
+                {
+                    _ = asyncDisposable.DisposeAsync();
+                }
+            }
+        }
+    }
 }

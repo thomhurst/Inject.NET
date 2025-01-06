@@ -2,7 +2,7 @@ using Inject.NET.Models;
 
 namespace Inject.NET.Interfaces;
 
-public interface IServiceScope : IAsyncDisposable, System.IServiceProvider
+public interface IServiceScope : IAsyncDisposable, IDisposable, System.IServiceProvider
 {
     object? GetService(ServiceKey serviceKey);
     IEnumerable<object> GetServices(ServiceKey serviceKey);

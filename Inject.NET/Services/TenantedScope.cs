@@ -60,4 +60,10 @@ internal sealed class TenantedScope(
         await defaultScope.DisposeAsync();
         await _scope.DisposeAsync();
     }
+
+    public void Dispose()
+    {
+        defaultScope.Dispose();
+        _scope.Dispose();
+    }
 }

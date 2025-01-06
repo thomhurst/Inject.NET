@@ -62,6 +62,11 @@ internal class TenantedSingletonScope(
         return _scope.DisposeAsync();
     }
     
+    public void Dispose()
+    {
+        _scope.Dispose();
+    }
+    
     public void PreBuild() => _scope.PreBuild();
     public Task FinalizeAsync() => _scope.FinalizeAsync();
 }

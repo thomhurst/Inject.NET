@@ -53,7 +53,7 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
                 return singletonScope.GetService(serviceKey);
             }
             
-            var obj = Constructor.Construct(scope, serviceKey.Type, descriptor);
+            var obj = Constructor.Construct(this, serviceKey.Type, descriptor);
             
             if(descriptor.Lifetime != Lifetime.Transient)
             {
@@ -111,7 +111,7 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
             }
             else
             {
-                item = Constructor.Construct(serviceScope, serviceKey.Type, serviceDescriptor);
+                item = Constructor.Construct(this, serviceKey.Type, serviceDescriptor);
                 
                 if(item is IAsyncDisposable or IDisposable)
                 {
@@ -187,5 +187,32 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
             
             ListPool<object>.Shared.Return(toDispose);
         }
+    }
+
+    public void Dispose()
+    {
+        DictionaryPool<ServiceKey, object>.Shared.Return(_cachedObjects);
+        DictionaryPool<ServiceKey, List<object>>.Shared.Return(_cachedEnumerables);
+        
+        if (Interlocked.Exchange(ref _forDisposal, null) is not {} forDisposal)
+        {
+            return;
+        }
+        
+        for (var i = forDisposal.Count - 1; i >= 0; i--)
+        {
+            var toDispose = forDisposal[i];
+
+            if (toDispose is IDisposable disposable)
+            {
+                disposable.Dispose();
+            }
+            else if(toDispose is IAsyncDisposable asyncDisposable)
+            {
+                _ = asyncDisposable.DisposeAsync();
+            }
+        }
+        
+        ListPool<object>.Shared.Return(forDisposal);
     }
 }

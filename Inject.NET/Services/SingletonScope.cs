@@ -13,11 +13,11 @@ internal sealed class SingletonScope(IServiceProvider root, ServiceFactories ser
     private static readonly Type ServiceScopeType = typeof(IServiceScope);
     private static readonly Type ServiceProviderType = typeof(IServiceProvider);
 
-    private readonly ConcurrentDictionary<CacheKey, List<object>> _singletonsBuilder = [];
-    private FrozenDictionary<CacheKey, FrozenSet<object>> _singletonEnumerables = FrozenDictionary<CacheKey, FrozenSet<object>>.Empty;
-    private FrozenDictionary<CacheKey, object> _singletons = FrozenDictionary<CacheKey, object>.Empty;
+    private readonly ConcurrentDictionary<ServiceKey, List<object>> _singletonsBuilder = [];
+    private FrozenDictionary<ServiceKey, FrozenSet<object>> _singletonEnumerables = FrozenDictionary<ServiceKey, FrozenSet<object>>.Empty;
+    private FrozenDictionary<ServiceKey, object> _singletons = FrozenDictionary<ServiceKey, object>.Empty;
 
-    private readonly ConcurrentDictionary<CacheKey, object[]> _openGenericSingletons = [];
+    private readonly ConcurrentDictionary<ServiceKey, object[]> _openGenericSingletons = [];
 
     
     private bool _isBuilt;
@@ -66,54 +66,54 @@ internal sealed class SingletonScope(IServiceProvider root, ServiceFactories ser
             return ServiceProvider;
         }
         
-        return GetService(new CacheKey(type));
+        return GetService(new ServiceKey(type));
     }
 
-    private object? GetService(CacheKey cacheKey)
+    private object? GetService(ServiceKey serviceKey)
     {
-        if (_singletons.TryGetValue(cacheKey, out var singleton))
+        if (_singletons.TryGetValue(serviceKey, out var singleton))
         {
             return singleton;
         }
         
-        return GetServices(cacheKey).LastOrDefault();
+        return GetServices(serviceKey).LastOrDefault();
     }
     
     public IEnumerable<object> GetServices(Type type)
     {
-        return GetServices(new CacheKey(type));
+        return GetServices(new ServiceKey(type));
     }
     
-    public IEnumerable<object> GetServices(CacheKey cacheKey)
+    public IEnumerable<object> GetServices(ServiceKey serviceKey)
     {
-        if (_singletonEnumerables.TryGetValue(cacheKey, out var list))
+        if (_singletonEnumerables.TryGetValue(serviceKey, out var list))
         {
             return list;
         }
         
-        if (_openGenericSingletons.TryGetValue(cacheKey, out var openGenericSingletons))
+        if (_openGenericSingletons.TryGetValue(serviceKey, out var openGenericSingletons))
         {
             return openGenericSingletons;
         }
 
         if (!_isBuilt)
         {
-            if (_singletonsBuilder.TryGetValue(cacheKey, out var cache))
+            if (_singletonsBuilder.TryGetValue(serviceKey, out var cache))
             {
                 return cache;
             }
 
-            return _singletonsBuilder[cacheKey] =
+            return _singletonsBuilder[serviceKey] =
             [
-                ..SingletonFactories(cacheKey)
-                    .Select(descriptor => Constructor.Construct(this, cacheKey.Type, descriptor))
+                ..SingletonFactories(serviceKey)
+                    .Select(descriptor => Constructor.Construct(this, serviceKey.Type, descriptor))
             ];
         }
 
-        var type = cacheKey.Type;
-        if (type.IsGenericType && SingletonFactories(new CacheKey(type.GetGenericTypeDefinition())) is {} genericTypeFactories)
+        var type = serviceKey.Type;
+        if (type.IsGenericType && SingletonFactories(new ServiceKey(type.GetGenericTypeDefinition())) is {} genericTypeFactories)
         {
-            return _openGenericSingletons[cacheKey] =
+            return _openGenericSingletons[serviceKey] =
             [
                 ..genericTypeFactories.OfType<OpenGenericServiceDescriptor>()
                     .Select(descriptor => Constructor.Construct(this, type, descriptor))
@@ -123,24 +123,24 @@ internal sealed class SingletonScope(IServiceProvider root, ServiceFactories ser
         return [];
     }
 
-    private IEnumerable<IServiceDescriptor> SingletonFactories(CacheKey cacheKey)
+    private IEnumerable<IServiceDescriptor> SingletonFactories(ServiceKey serviceKey)
     {
-        return serviceFactories.Descriptors.Where(x => x.Key == cacheKey)
+        return serviceFactories.Descriptors.Where(x => x.Key == serviceKey)
             .SelectMany(x => x.Value)
             .Where(x => x.Lifetime == Lifetime.Singleton);
     }
 
     public object? GetService(Type type, string? key)
     {
-        return GetService(new CacheKey(type, key));
+        return GetService(new ServiceKey(type, key));
     }
 
     public IEnumerable<object> GetServices(Type type, string? key)
     {
-        return GetServices(new CacheKey(type));
+        return GetServices(new ServiceKey(type));
     }
 
-    internal IEnumerable<CacheKey> GetSingletonKeys()
+    internal IEnumerable<ServiceKey> GetSingletonKeys()
     {
         return serviceFactories.Descriptors
             .Where(x => x.Value.Items.Any(y => y.Lifetime == Lifetime.Singleton))

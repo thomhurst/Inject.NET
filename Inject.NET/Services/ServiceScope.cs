@@ -12,8 +12,8 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
     private static readonly Type ServiceScopeType = typeof(IServiceScope);
     private static readonly Type ServiceProviderType = typeof(IServiceProvider);
     
-    private Dictionary<CacheKey, object>? _cachedObjects;
-    private Dictionary<CacheKey, List<object>>? _cachedEnumerables;
+    private Dictionary<ServiceKey, object>? _cachedObjects;
+    private Dictionary<ServiceKey, List<object>>? _cachedEnumerables;
     
     private List<object>? _forDisposal;
     
@@ -31,38 +31,38 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
             return ServiceProvider;
         }
         
-        return GetService(new CacheKey(type));
+        return GetService(new ServiceKey(type));
     }
 
     public IEnumerable<object> GetServices(Type type)
     {
-        return GetServices(new CacheKey(type));
+        return GetServices(new ServiceKey(type));
     }
 
     public object? GetService(Type type, string? key)
     {
-        return GetService(new CacheKey(type, key));
+        return GetService(new ServiceKey(type, key));
     }
 
-    private object? GetService(CacheKey cacheKey)
+    private object? GetService(ServiceKey serviceKey)
     {
-        if (_cachedObjects?.TryGetValue(cacheKey, out var cachedObject) == true)
+        if (_cachedObjects?.TryGetValue(serviceKey, out var cachedObject) == true)
         {
             return cachedObject;
         }
         
-        if (serviceFactories.Descriptor.TryGetValue(cacheKey, out var descriptor))
+        if (serviceFactories.Descriptor.TryGetValue(serviceKey, out var descriptor))
         {
             if (descriptor.Lifetime == Lifetime.Singleton)
             {
-                return singletonScope.GetService(cacheKey.Type, cacheKey.Key);
+                return singletonScope.GetService(serviceKey.Type, serviceKey.Key);
             }
             
-            var obj = Constructor.Construct(this, cacheKey.Type, descriptor);
+            var obj = Constructor.Construct(this, serviceKey.Type, descriptor);
             
             if(descriptor.Lifetime != Lifetime.Transient)
             {
-                (_cachedObjects ??= DictionaryPool<CacheKey, object>.Shared.Get())[cacheKey] = obj;
+                (_cachedObjects ??= DictionaryPool<ServiceKey, object>.Shared.Get())[serviceKey] = obj;
             }
 
             if(obj is IAsyncDisposable or IDisposable)
@@ -73,19 +73,19 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
             return obj;
         }
         
-        return GetServices(cacheKey).LastOrDefault();
+        return GetServices(serviceKey).LastOrDefault();
     }
 
     public IEnumerable<object> GetServices(Type type, string? key)
     {
-        return GetServices(new CacheKey(type, key));
+        return GetServices(new ServiceKey(type, key));
     }
 
-    private IEnumerable<object> GetServices(CacheKey cacheKey)
+    private IEnumerable<object> GetServices(ServiceKey serviceKey)
     {
-        var cachedEnumerables = _cachedEnumerables ??= DictionaryPool<CacheKey, List<object>>.Shared.Get();
+        var cachedEnumerables = _cachedEnumerables ??= DictionaryPool<ServiceKey, List<object>>.Shared.Get();
         
-        if (cachedEnumerables.TryGetValue(cacheKey, out var cachedObjects))
+        if (cachedEnumerables.TryGetValue(serviceKey, out var cachedObjects))
         {
             foreach (var cachedObject in cachedObjects)
             {
@@ -95,12 +95,12 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
             yield break;
         }
 
-        if (!serviceFactories.Descriptors.TryGetValue(cacheKey, out var factories))
+        if (!serviceFactories.Descriptors.TryGetValue(serviceKey, out var factories))
         {
             yield break;
         }
         
-        if (!root.TryGetSingletons(cacheKey.Type, cacheKey.Key, out var singletons))
+        if (!root.TryGetSingletons(serviceKey.Type, serviceKey.Key, out var singletons))
         {
             singletons = [];
         }
@@ -118,7 +118,7 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
             }
             else
             {
-                item = Constructor.Construct(this, cacheKey.Type, serviceDescriptor);
+                item = Constructor.Construct(this, serviceKey.Type, serviceDescriptor);
                 
                 if(item is IAsyncDisposable or IDisposable)
                 {
@@ -128,7 +128,7 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
             
             if(lifetime != Lifetime.Transient)
             {
-                if (!cachedEnumerables.TryGetValue(cacheKey, out var items))
+                if (!cachedEnumerables.TryGetValue(serviceKey, out var items))
                 {
                     items = [];
                 }
@@ -142,8 +142,8 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
     
     public ValueTask DisposeAsync()
     {
-        DictionaryPool<CacheKey, object>.Shared.Return(_cachedObjects);
-        DictionaryPool<CacheKey, List<object>>.Shared.Return(_cachedEnumerables);
+        DictionaryPool<ServiceKey, object>.Shared.Return(_cachedObjects);
+        DictionaryPool<ServiceKey, List<object>>.Shared.Return(_cachedEnumerables);
         
         if (Interlocked.Exchange(ref _forDisposal, null) is not {} forDisposal)
         {

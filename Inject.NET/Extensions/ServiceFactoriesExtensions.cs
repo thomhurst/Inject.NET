@@ -9,7 +9,7 @@ public static class ServiceFactoriesExtensions
     {
         return new ServiceFactories
         (
-            Descriptors: factoryBuilders.Descriptors.GroupBy(x => new CacheKey(x.ServiceType, x.Key))
+            Descriptors: factoryBuilders.Descriptors.GroupBy(x => new ServiceKey(x.ServiceType, x.Key))
                 .ToFrozenDictionary(
                     x => x.Key,
                     x => x.ToFrozenSet()

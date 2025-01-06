@@ -8,14 +8,14 @@ public record ServiceFactoryBuilders
 {
     public List<IServiceDescriptor> Descriptors { get; } = [];
 
-    public void Add<T>(Type type, Lifetime lifetime, Func<IServiceScope, Type, T> factory)
+    public void Add<TService, TImplementation>(Lifetime lifetime, Func<IServiceScope, Type, object> factory)
     {
         Descriptors.Add(new ServiceDescriptor
         {
-            ServiceType = type,
-            ImplementationType = typeof(T),
+            ServiceType = typeof(TService),
+            ImplementationType = typeof(TImplementation),
             Lifetime = lifetime,
-            Factory = (ss, t) => factory(ss, t)!
+            Factory = factory
         });
     }
     
@@ -29,15 +29,15 @@ public record ServiceFactoryBuilders
         });
     }
 
-    public void Add<T>(Type type, Lifetime lifetime, string key, Func<IServiceScope, Type, T> factory)
+    public void Add<TService, TImplementation>(Lifetime lifetime, string key, Func<IServiceScope, Type, object> factory)
     {
         Descriptors.Add(new ServiceDescriptor
         {
-            ServiceType = type,
-            ImplementationType = typeof(T),
+            ServiceType = typeof(TService),
+            ImplementationType = typeof(TImplementation),
             Key = key,
             Lifetime = lifetime,
-            Factory = (ss, t) => factory(ss, t)!
+            Factory = factory
         });
     }
     

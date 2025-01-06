@@ -12,9 +12,9 @@ public class TenantServiceRegistrar : IServiceRegistrar
 {
     public ServiceFactoryBuilders ServiceFactoryBuilders { get; } = new();
     
-    public IServiceRegistrar Register<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(Func<IServiceScope, Type, T> factory, Lifetime lifetime)
+    public IServiceRegistrar Register<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TService, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TImplementation>(Func<IServiceScope, Type, object> factory, Lifetime lifetime)
     {
-        ServiceFactoryBuilders.Add(typeof(T), lifetime, factory);
+        ServiceFactoryBuilders.Add<TService, TImplementation>(lifetime, factory);
 
         return this;
     }
@@ -31,9 +31,9 @@ public class TenantServiceRegistrar : IServiceRegistrar
         return this;
     }
 
-    public IServiceRegistrar RegisterKeyed<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(Func<IServiceScope, Type, T> factory, Lifetime lifetime, string key)
+    public IServiceRegistrar RegisterKeyed<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TService, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TImplementation>(Func<IServiceScope, Type, object> factory, Lifetime lifetime, string key)
     {
-        ServiceFactoryBuilders.Add(typeof(T), lifetime, key, factory);
+        ServiceFactoryBuilders.Add<TService, TImplementation>(lifetime, key, factory);
 
         return this;
     }

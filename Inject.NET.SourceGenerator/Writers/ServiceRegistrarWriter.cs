@@ -183,14 +183,14 @@ public static class ServiceRegistrarWriter
         {
             sourceCodeWriter.WriteLine(
                 $"""
-                 {prefix}Register<{serviceType.GloballyQualified()}>((scope, type, key) => new {implementationType.GloballyQualified()}({string.Join(", ", parameters.Select(x => x.WriteSource()))}), Lifetime.{lifetime}, "{key}");
+                 {prefix}Register<{serviceType.GloballyQualified()}, {implementationType.GloballyQualified()}>((scope, type, key) => new {implementationType.GloballyQualified()}({string.Join(", ", parameters.Select(x => x.WriteSource()))}), Lifetime.{lifetime}, "{key}");
                  """);
         }
         else
         {
             sourceCodeWriter.WriteLine(
                 $"""
-                 {prefix}Register<{serviceType.GloballyQualified()}>((scope, type) => new {implementationType.GloballyQualified()}({string.Join(", ", parameters.Select(x => x.WriteSource()))}), Lifetime.{lifetime});
+                 {prefix}Register<{serviceType.GloballyQualified()}, {implementationType.GloballyQualified()}>((scope, type) => new {implementationType.GloballyQualified()}({string.Join(", ", parameters.Select(x => x.WriteSource()))}), Lifetime.{lifetime});
                  """);
         }
     }

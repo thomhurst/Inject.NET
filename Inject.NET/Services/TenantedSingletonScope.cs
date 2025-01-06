@@ -11,7 +11,7 @@ internal class TenantedSingletonScope(ServiceProviderRoot root, ServiceFactories
 
     public object? GetService(Type type)
     {
-        return _scope.GetService(type) ?? root._singletonScope.GetService(type);
+        return _scope.GetService(type) ?? root.SingletonScope.GetService(type);
     }
 
     public IEnumerable<object> GetServices(Type type)
@@ -30,7 +30,7 @@ internal class TenantedSingletonScope(ServiceProviderRoot root, ServiceFactories
 
     public object? GetService(Type type, string? key)
     {
-        return _scope.GetService(type, key) ?? root._singletonScope.GetService(type, key);
+        return _scope.GetService(type, key) ?? root.SingletonScope.GetService(type, key);
     }
 
     public IEnumerable<object> GetServices(Type type, string? key)

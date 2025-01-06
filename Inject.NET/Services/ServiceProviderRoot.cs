@@ -1,15 +1,17 @@
 using System.Collections.Frozen;
 using Inject.NET.Interfaces;
 using Inject.NET.Models;
+using Inject.NET.Pools;
 using IServiceProvider = Inject.NET.Interfaces.IServiceProvider;
 
 namespace Inject.NET.Services;
 
 internal class ServiceProviderRoot : IServiceProviderRoot
 {
-    internal readonly SingletonScope _singletonScope;
+    internal readonly SingletonScope SingletonScope;
     private readonly ServiceFactories _serviceFactories;
     private readonly IDictionary<string, IServiceRegistrar> _tenantRegistrars;
+    private readonly ObjectPool<ServiceScope> _serviceScopePool;
 
     private FrozenDictionary<string, IServiceProvider> _tenants = null!;
 
@@ -17,14 +19,16 @@ internal class ServiceProviderRoot : IServiceProviderRoot
     {
         _serviceFactories = serviceFactories;
         _tenantRegistrars = tenantRegistrars;
-        _singletonScope = new SingletonScope(this, serviceFactories);
+        SingletonScope = new SingletonScope(this, serviceFactories);
+        _serviceScopePool =
+            new ObjectPool<ServiceScope>(new ServiceScopePoolPolicy(this, SingletonScope, serviceFactories));
     }
 
     internal async ValueTask InitializeAsync()
     {
         await BuildTenants();
         
-        _singletonScope.PreBuild();
+        SingletonScope.PreBuild();
         
         await using var scope = CreateScope();
         
@@ -33,7 +37,7 @@ internal class ServiceProviderRoot : IServiceProviderRoot
             scope.GetServices(type);
         }
         
-        await _singletonScope.FinalizeAsync();
+        await SingletonScope.FinalizeAsync();
     }
 
     private async Task BuildTenants()
@@ -49,19 +53,9 @@ internal class ServiceProviderRoot : IServiceProviderRoot
         _tenants = tenants.ToFrozenDictionary(x => x.Id, x => x.ServiceProvider);
     }
     
-    internal object? GetSingleton(Type type)
-    {
-        return _singletonScope.GetService(type);
-    }
-    
-    internal object? GetSingleton(Type type, string? key)
-    {
-        return _singletonScope.GetService(type, key);
-    }
-
     internal bool TryGetSingletons(Type type, out IReadOnlyList<object> singletons)
     {
-        var foundSingletons = _singletonScope.GetServices(type).ToArray();
+        var foundSingletons = SingletonScope.GetServices(type).ToArray();
         if (foundSingletons.Length > 0)
         {
             singletons = foundSingletons;
@@ -79,7 +73,7 @@ internal class ServiceProviderRoot : IServiceProviderRoot
             return TryGetSingletons(type, out singletons);
         }
         
-        var foundSingletons = _singletonScope.GetServices(type, key).ToArray();
+        var foundSingletons = SingletonScope.GetServices(type, key).ToArray();
         
         if (foundSingletons.Length > 0)
         {
@@ -93,7 +87,7 @@ internal class ServiceProviderRoot : IServiceProviderRoot
 
     public IServiceScope CreateScope()
     {
-        return new ServiceScope(this, _singletonScope, _serviceFactories);
+        return _serviceScopePool.Get();
     }
 
     public IServiceProvider GetTenant(string tenantId)
@@ -108,6 +102,6 @@ internal class ServiceProviderRoot : IServiceProviderRoot
             await value.DisposeAsync();
         }
 
-        await _singletonScope.DisposeAsync();
+        await SingletonScope.DisposeAsync();
     }
 }

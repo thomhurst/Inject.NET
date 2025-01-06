@@ -9,15 +9,28 @@ namespace Inject.NET.Services;
 internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singletonScope, ServiceFactories serviceFactories)
     : IServiceScope
 {
+    private static readonly Type ServiceScopeType = typeof(IServiceScope);
+    private static readonly Type ServiceProviderType = typeof(IServiceProvider);
+    
     private Dictionary<CacheKey, object>? _cachedObjects;
     private Dictionary<CacheKey, List<object>>? _cachedEnumerables;
     
     private List<object>? _forDisposal;
     
-    public IServiceProvider Root { get; } = root;
+    public IServiceProvider ServiceProvider { get; } = root;
     
     public object? GetService(Type type)
     {
+        if (type == ServiceScopeType)
+        {
+            return this;
+        }
+        
+        if (type == ServiceProviderType)
+        {
+            return ServiceProvider;
+        }
+        
         return GetService(new CacheKey(type));
     }
 

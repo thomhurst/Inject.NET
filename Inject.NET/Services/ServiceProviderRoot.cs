@@ -8,6 +8,8 @@ namespace Inject.NET.Services;
 
 internal class ServiceProviderRoot : IServiceProviderRoot
 {
+    internal static readonly AsyncLocal<IServiceScope> _scopes = new();
+    
     internal readonly SingletonScope SingletonScope;
     private readonly ServiceFactories _serviceFactories;
     private readonly IDictionary<string, IServiceRegistrar> _tenantRegistrars;
@@ -87,7 +89,7 @@ internal class ServiceProviderRoot : IServiceProviderRoot
 
     public IServiceScope CreateScope()
     {
-        return _serviceScopePool.Get();
+        return _scopes.Value ??= _serviceScopePool.Get();
     }
 
     public IServiceProvider GetTenant(string tenantId)

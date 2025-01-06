@@ -4,12 +4,29 @@ using IServiceProvider = Inject.NET.Interfaces.IServiceProvider;
 
 namespace Inject.NET.Services;
 
-internal sealed class TenantedScope(IServiceScope defaultScope, IServiceScope singletonScope, ServiceFactories serviceFactories) : IServiceScope
+internal sealed class TenantedScope(
+    TenantServiceProvider tenantServiceProvider,
+    IServiceScope defaultScope,
+    IServiceScope singletonScope,
+    ServiceFactories serviceFactories) : IServiceScope
 {
-    private readonly ServiceScope _scope = new((ServiceProviderRoot)defaultScope.Root, singletonScope, serviceFactories);
+    private static readonly Type ServiceScopeType = typeof(IServiceScope);
+    private static readonly Type ServiceProviderType = typeof(IServiceProvider);
+    
+    private readonly ServiceScope _scope = new((ServiceProviderRoot)defaultScope.ServiceProvider, singletonScope, serviceFactories);
 
     public object? GetService(Type type)
     {
+        if (type == ServiceScopeType)
+        {
+            return this;
+        }
+        
+        if (type == ServiceProviderType)
+        {
+            return ServiceProvider;
+        }
+        
         return _scope.GetService(type);
     }
 
@@ -36,7 +53,7 @@ internal sealed class TenantedScope(IServiceScope defaultScope, IServiceScope si
         ];
     }
 
-    public IServiceProvider Root => _scope.Root;
+    public IServiceProvider ServiceProvider => tenantServiceProvider;
 
     public async ValueTask DisposeAsync()
     {

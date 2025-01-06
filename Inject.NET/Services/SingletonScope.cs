@@ -10,6 +10,9 @@ namespace Inject.NET.Services;
 
 internal sealed class SingletonScope(IServiceProvider root, ServiceFactories serviceFactories) : IServiceScope
 {
+    private static readonly Type ServiceScopeType = typeof(IServiceScope);
+    private static readonly Type ServiceProviderType = typeof(IServiceProvider);
+
     private readonly ConcurrentDictionary<CacheKey, List<object>> _singletonsBuilder = [];
     private FrozenDictionary<CacheKey, FrozenSet<object>> _singletonEnumerables = FrozenDictionary<CacheKey, FrozenSet<object>>.Empty;
     private FrozenDictionary<CacheKey, object> _singletons = FrozenDictionary<CacheKey, object>.Empty;
@@ -19,7 +22,7 @@ internal sealed class SingletonScope(IServiceProvider root, ServiceFactories ser
     
     private bool _isBuilt;
     
-    public IServiceProvider Root { get; } = root;
+    public IServiceProvider ServiceProvider { get; } = root;
 
     public void PreBuild()
     {
@@ -53,6 +56,16 @@ internal sealed class SingletonScope(IServiceProvider root, ServiceFactories ser
 
     public object? GetService(Type type)
     {
+        if (type == ServiceScopeType)
+        {
+            return this;
+        }
+        
+        if (type == ServiceProviderType)
+        {
+            return ServiceProvider;
+        }
+        
         return GetService(new CacheKey(type));
     }
 

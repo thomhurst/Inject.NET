@@ -5,7 +5,7 @@ public class DictionaryPool<TKey, TValue> where TKey : notnull
     public static DictionaryPool<TKey, TValue> Shared { get; } = new();
 
     private readonly Stack<Dictionary<TKey, TValue>> _pool =
-        new(Enumerable.Range(0, 1024).Select(_ => new Dictionary<TKey, TValue>()));
+        new(Enumerable.Range(0, 64).Select(_ => new Dictionary<TKey, TValue>()));
 
     public Dictionary<TKey, TValue> Get()
     {

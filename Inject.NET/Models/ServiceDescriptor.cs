@@ -9,5 +9,5 @@ public class ServiceDescriptor : IServiceDescriptor
     public required Type ImplementationType { get; init; }
     public required Lifetime Lifetime { get; init; }
     public string? Key { get; init; }
-    public required Func<IServiceScope, Type, object> Factory { get; init; }
+    public required Func<IServiceScope, Type, string?, object> Factory { get; init; }
 }

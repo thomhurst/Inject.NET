@@ -25,6 +25,8 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
     
     private List<object>? _forDisposal;
     
+    public IServiceScope SingletonScope { get; } = singletonScope;
+
     public IServiceProvider ServiceProvider { get; } = root;
     
     public object? GetService(Type type)
@@ -68,7 +70,7 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
 
         if (descriptor.Lifetime == Lifetime.Singleton)
         {
-            return singletonScope.GetService(serviceKey);
+            return SingletonScope.GetService(serviceKey);
         }
             
         var obj = Constructor.Construct(scope, serviceKey.Type, descriptor);
@@ -90,7 +92,7 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
     {
         return GetServices(serviceKey, this);
     }
-
+    
     [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
     public IReadOnlyList<object> GetServices(ServiceKey serviceKey, IServiceScope scope)
     {

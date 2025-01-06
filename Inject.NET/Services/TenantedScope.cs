@@ -51,6 +51,8 @@ internal sealed class TenantedScope(
         ];
     }
 
+    public IServiceScope SingletonScope { get; } = singletonScope;
+
     public IServiceProvider ServiceProvider => tenantServiceProvider;
 
     public async ValueTask DisposeAsync()

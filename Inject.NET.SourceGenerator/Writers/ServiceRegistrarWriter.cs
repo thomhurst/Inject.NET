@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Inject.NET.SourceGenerator.Models;
 using Microsoft.CodeAnalysis;
@@ -10,7 +11,18 @@ public static class ServiceRegistrarWriter
     public static void GenerateServiceRegistrarCode(SourceProductionContext sourceProductionContext,
         Compilation compilation, TypedServiceProviderModel serviceProviderModel)
     {
-        var attributes = serviceProviderModel.Type.GetAttributes();
+        var dependencyInjectionAttributeType = compilation.GetTypeByMetadataName("Inject.NET.Attributes.IDependencyInjectionAttribute");
+        var withTenantAttributeType = compilation.GetTypeByMetadataName("Inject.NET.Attributes.WithTenantAttribute`1");
+
+        var attributes = serviceProviderModel.Type
+            .GetAttributes();
+        
+        var dependencyAttributes = attributes
+            .Where(x => x.AttributeClass?.AllInterfaces.Contains(dependencyInjectionAttributeType,
+                SymbolEqualityComparer.Default) == true)
+            .ToArray();
+
+        var dependencyDictionary = DependencyDictionary.Create(compilation, dependencyAttributes);
         
         var sourceCodeWriter = new SourceCodeWriter();
         
@@ -32,39 +44,18 @@ public static class ServiceRegistrarWriter
         
         sourceCodeWriter.WriteLine($"public {serviceProviderModel.Type.Name}ServiceRegistrar()");
         sourceCodeWriter.WriteLine("{");
+
+        WriteRegistration(sourceCodeWriter, dependencyDictionary, string.Empty);
+
+        var withTenantAttributes = attributes.Where(x =>
+            SymbolEqualityComparer.Default.Equals(x.AttributeClass, withTenantAttributeType));
         
-        foreach (var attributeData in attributes)
+        foreach (var withTenantAttribute in withTenantAttributes)
         {
-            var attributeClass = attributeData.AttributeClass;
-
-            if (attributeClass is null)
-            {
-                continue;
-            }
-
-            if (attributeClass.IsGenericType 
-                && SymbolEqualityComparer.Default.Equals(attributeClass.OriginalDefinition,
-                    compilation.GetTypeByMetadataName("Inject.NET.Attributes.WithTenantAttribute`1")))
-            {
-                WriteWithTenant(sourceCodeWriter, compilation, (string)attributeData.ConstructorArguments.First().Value!,
-                    (INamedTypeSymbol)attributeClass.TypeArguments[0]);
-                
-                continue;
-            }
-
-            if(!TryGetServiceAndImplementation(attributeData, out var serviceType, out var implementationType))
-            {
-                continue;
-            }
-
-            if (serviceType is null || implementationType is null)
-            {
-                continue;
-            }
+            var tenantId = withTenantAttribute.ConstructorArguments[0].Value!.ToString();
+            var tenantDefinitionClass = (INamedTypeSymbol) withTenantAttribute.AttributeClass!.TypeArguments[0];
             
-            var parameters = GetParameters(implementationType, compilation);
-
-            WriteRegistration(sourceCodeWriter, attributeData, serviceType, implementationType, parameters, null);
+            WriteWithTenant(sourceCodeWriter, compilation, tenantId, tenantDefinitionClass);
         }
         
         sourceCodeWriter.WriteLine("}");
@@ -77,147 +68,109 @@ public static class ServiceRegistrarWriter
     private static void WriteWithTenant(SourceCodeWriter sourceCodeWriter, Compilation compilation, string tenantId,
         INamedTypeSymbol tenantDefinitionClass)
     {
+        var dependencyInjectionAttributeType = compilation.GetTypeByMetadataName("Inject.NET.Attributes.IDependencyInjectionAttribute");
+
+        var dependencyAttributes = tenantDefinitionClass.GetAttributes()
+            .Where(x => x.AttributeClass?.AllInterfaces.Contains(dependencyInjectionAttributeType,
+                SymbolEqualityComparer.Default) == true)
+            .ToArray();
+
+        var dependencyDictionary = DependencyDictionary.Create(compilation, dependencyAttributes);
+        
         sourceCodeWriter.WriteLine("{");
         
         sourceCodeWriter.WriteLine($"var tenant = GetOrCreateTenant(\"{tenantId}\");");
 
-        var attributes = tenantDefinitionClass.GetAttributes();
-        
-        foreach (var attributeData in attributes)
-        {
-            var attributeClass = attributeData.AttributeClass;
-
-            if (attributeClass is null)
-            {
-                continue;
-            }
-
-            if(!TryGetServiceAndImplementation(attributeData, out var serviceType, out var implementationType))
-            {
-                continue;
-            }
-
-            if (serviceType is null || implementationType is null)
-            {
-                continue;
-            }
-            
-            var parameters = GetParameters(implementationType, compilation);
-
-            WriteRegistration(sourceCodeWriter, attributeData, serviceType, implementationType, parameters, "tenant.");
-        }
+        WriteRegistration(sourceCodeWriter, dependencyDictionary, "tenant.");
         
         sourceCodeWriter.WriteLine("}");
     }
 
-    private static bool TryGetServiceAndImplementation(AttributeData attributeData,
-        out INamedTypeSymbol? serviceType, out INamedTypeSymbol? implementationType)
+    private static void WriteRegistration(SourceCodeWriter sourceCodeWriter,
+        Dictionary<ISymbol?, ServiceModel[]> dependencyDictionary, string prefix)
     {
-        var attributeClass = attributeData.AttributeClass!;
-        
-        if (attributeClass.TypeArguments.Length == 0 && attributeData.ConstructorArguments.Length == 1)
+        foreach (var (_, serviceModels) in dependencyDictionary)
         {
-            serviceType = attributeData.ConstructorArguments[0].Value as INamedTypeSymbol;
-            implementationType = serviceType;
-            return true;
-        }
-
-        if (attributeClass.TypeArguments.Length == 0 && attributeData.ConstructorArguments.Length == 2)
-        {
-            serviceType = attributeData.ConstructorArguments[0].Value as INamedTypeSymbol;
-            implementationType = attributeData.ConstructorArguments[1].Value as INamedTypeSymbol;
-            return true;
-        }
-
-        if (attributeClass.TypeArguments.Length == 1)
-        {
-            serviceType = attributeClass.TypeArguments[0] as INamedTypeSymbol;
-            implementationType = serviceType;
-            return true;
-        }
-
-        if (attributeClass.TypeArguments.Length == 2)
-        {
-            serviceType = attributeClass.TypeArguments[0] as INamedTypeSymbol;
-            implementationType = attributeClass.TypeArguments[1] as INamedTypeSymbol;
-            return true;
-        }
-
-        serviceType = null;
-        implementationType = null;
-        return false;
-    }
-
-    private static void WriteRegistration(SourceCodeWriter sourceCodeWriter, AttributeData attributeData,
-        INamedTypeSymbol serviceType, INamedTypeSymbol implementationType, Parameter[] parameters, string? prefix)
-    {
-        var key = attributeData.NamedArguments.FirstOrDefault(x => x.Key == "Key").Value.Value as string;
-
-        if (!Enum.TryParse(attributeData.AttributeClass?.Name.Replace("Attribute", string.Empty), false, out Lifetime lifetime))
-        {
-            return;
-        }
-
-        if (serviceType.IsGenericType 
-            && SymbolEqualityComparer.Default.Equals(serviceType, serviceType.ConstructUnboundGenericType()))
-        {
-            if (key != null)
+            foreach (var serviceModel in serviceModels)
             {
-                sourceCodeWriter.WriteLine(
-                    $"""
-                     {prefix}RegisterOpenGeneric(typeof({serviceType.GloballyQualified()}), typeof({implementationType.GloballyQualified()}), Lifetime.{lifetime}, "{key}");
-                     """);
+                sourceCodeWriter.WriteLine($"{prefix}Register(new global::Inject.NET.Models.ServiceDescriptor");
+                sourceCodeWriter.WriteLine("{");
+                sourceCodeWriter.WriteLine($"ServiceType = typeof({serviceModel.ServiceType.GloballyQualified()}),");
+                sourceCodeWriter.WriteLine($"ImplementationType = typeof({serviceModel.ImplementationType.GloballyQualified()}),");
+                sourceCodeWriter.WriteLine($"Lifetime = Inject.NET.Enums.Lifetime.{serviceModel.Lifetime.ToString()},");
+                
+                if(serviceModel.Key is not null)
+                {
+                    sourceCodeWriter.WriteLine($"Key = \"{serviceModel.Key}\",");
+                }
+                
+                sourceCodeWriter.WriteLine("Factory = (scope, type, key) =>");
+                sourceCodeWriter.WriteLine($"   new {serviceModel.ImplementationType.GloballyQualified()}(");
+                sourceCodeWriter.WriteLine(string.Join(", ", BuildParameters(dependencyDictionary, serviceModel)));
+                sourceCodeWriter.WriteLine("),");
+                
+                sourceCodeWriter.WriteLine("});");
+                sourceCodeWriter.WriteLine();
             }
-            else
+        }
+    }
+
+    private static IEnumerable<string> BuildParameters(Dictionary<ISymbol?,ServiceModel[]> dependencyDictionary, ServiceModel serviceModel)
+    {
+        foreach (var parameter in serviceModel.Parameters)
+        {
+            if (WriteParameter(dependencyDictionary, parameter) is { } written)
             {
-                sourceCodeWriter.WriteLine(
-                    $"""
-                     {prefix}RegisterOpenGeneric(typeof({serviceType.GloballyQualified()}), typeof({implementationType.GloballyQualified()}), Lifetime.{lifetime});
-                     """);
+                yield return written;
             }
-            
-            return;
-        }
-        
-        if (key != null)
-        {
-            sourceCodeWriter.WriteLine(
-                $"""
-                 {prefix}Register<{serviceType.GloballyQualified()}, {implementationType.GloballyQualified()}>((scope, type, key) => new {implementationType.GloballyQualified()}({string.Join(", ", parameters.Select(x => x.WriteSource()))}), Lifetime.{lifetime}, "{key}");
-                 """);
-        }
-        else
-        {
-            sourceCodeWriter.WriteLine(
-                $"""
-                 {prefix}Register<{serviceType.GloballyQualified()}, {implementationType.GloballyQualified()}>((scope, type) => new {implementationType.GloballyQualified()}({string.Join(", ", parameters.Select(x => x.WriteSource()))}), Lifetime.{lifetime});
-                 """);
         }
     }
-    
-    private static Parameter[] GetParameters(ITypeSymbol type, Compilation compilation)
-    {
-        var parameters = (type as INamedTypeSymbol)?
-            .InstanceConstructors
-            .FirstOrDefault(x => !x.IsImplicitlyDeclared)
-            ?.Parameters ?? default;
 
-        if (parameters.IsDefaultOrEmpty)
+    private static string? WriteParameter(Dictionary<ISymbol?, ServiceModel[]> dependencyDictionary, ServiceModelParameter parameter)
+    {
+        if (!dependencyDictionary.TryGetValue(parameter.Type, out var models))
         {
-            return [];
+            if (parameter.IsOptional)
+            {
+                return null;
+            }
+
+            if (parameter.IsNullable)
+            {
+                return "null";
+            }
+
+            throw new Exception($"No model found for {parameter.Type.GloballyQualified()}");
         }
+
+        if (parameter.IsEnumerable)
+        {
+            return $"scope.GetServices<{parameter.Type.GloballyQualified()}>({parameter.Key})";
+        }
+
+        var lastModel = models.Last();
         
-        return parameters.Select(p => Map(p, compilation)).ToArray();
+        return WriteType(dependencyDictionary, lastModel, parameter);
     }
 
-    private static Parameter Map(IParameterSymbol parameterSymbol, Compilation compilation)
+    private static string WriteType(Dictionary<ISymbol?, ServiceModel[]> dependencyDictionary,
+        ServiceModel serviceModel, ServiceModelParameter parameter)
     {
-        return new Parameter
+        if (serviceModel.Lifetime == Lifetime.Transient)
         {
-            Type = parameterSymbol.Type.GloballyQualified(),
-            IsEnumerable = parameterSymbol.Type.AllInterfaces.Any(x => SymbolEqualityComparer.Default.Equals(x.OriginalDefinition, compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T))),
-            IsOptional = parameterSymbol.IsOptional || parameterSymbol.NullableAnnotation == NullableAnnotation.Annotated,
-            Key = parameterSymbol.GetAttributes().FirstOrDefault(x => SymbolEqualityComparer.Default.Equals(x.AttributeClass, compilation.GetTypeByMetadataName("Inject.NET.Attributes.ServiceKeyAttribute")))?.ConstructorArguments[0].Value as string
-        };
+            return
+                $"new {serviceModel.ImplementationType.GloballyQualified()}({string.Join(", ", BuildParameters(dependencyDictionary, serviceModel))})";
+        }
+
+        if (serviceModel.Lifetime == Lifetime.Singleton)
+        {
+            return parameter.IsOptional 
+                ? $"scope.SingletonScope.GetOptionalService<{serviceModel.ServiceType}>({serviceModel.Key})" 
+                : $"scope.SingletonScope.GetRequiredService<{serviceModel.ServiceType}>({serviceModel.Key})";
+        }
+        
+        return parameter.IsOptional 
+            ? $"scope.GetOptionalService<{serviceModel.ServiceType}>({serviceModel.Key})" 
+            : $"scope.GetRequiredService<{serviceModel.ServiceType}>({serviceModel.Key})";
     }
 }

@@ -132,6 +132,8 @@ internal sealed class SingletonScope(IServiceProvider root, ServiceFactories ser
         return [];
     }
 
+    IServiceScope IServiceScope.SingletonScope => this;
+
     private IEnumerable<IServiceDescriptor> SingletonFactories(ServiceKey serviceKey)
     {
         return serviceFactories.Descriptors.Where(x => x.Key == serviceKey)

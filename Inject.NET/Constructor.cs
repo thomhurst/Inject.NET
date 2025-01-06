@@ -14,7 +14,7 @@ internal static class Constructor
     {
         if (descriptor is ServiceDescriptor serviceDescriptor)
         {
-            return serviceDescriptor.Factory(scope, type);
+            return serviceDescriptor.Factory(scope, type, descriptor.Key);
         }
         
         if (descriptor is OpenGenericServiceDescriptor openGenericServiceDescriptor)

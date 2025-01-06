@@ -14,41 +14,9 @@ public class ServiceRegistrar : ITenantedServiceRegistrar
 
     public ServiceFactoryBuilders ServiceFactoryBuilders { get; } = new();
 
-    public ITenantedServiceRegistrar Register<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TService, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TImplementation>(Func<IServiceScope, Type, object> factory, Lifetime lifetime)
+    public ITenantedServiceRegistrar Register(ServiceDescriptor serviceDescriptor)
     {
-        ServiceFactoryBuilders.Add<TService, TImplementation>(lifetime, factory);
-
-        return this;
-    }
-
-    public ITenantedServiceRegistrar RegisterOpenGeneric([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type serviceType, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type implementationType, Lifetime lifetime)
-    {
-        if (implementationType.IsAssignableTo(serviceType))
-        {
-            throw new ArgumentException($"The implementation type {implementationType} is not assignable to {serviceType}");
-        }
-        
-        ServiceFactoryBuilders.AddOpenGeneric(serviceType, implementationType, lifetime);
-
-        return this;
-    }
-
-    public ITenantedServiceRegistrar RegisterKeyed<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TService, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TImplementation>(Func<IServiceScope, Type, object> factory, Lifetime lifetime, string key)
-    {
-        ServiceFactoryBuilders.Add<TService, TImplementation>(lifetime, key, factory);
-
-        return this;
-    }
-
-    public ITenantedServiceRegistrar RegisterKeyedOpenGeneric([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type serviceType, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type implementationType, Lifetime lifetime,
-        string key)
-    {
-        if (implementationType.IsAssignableTo(serviceType))
-        {
-            throw new ArgumentException($"The implementation type {implementationType} is not assignable to {serviceType}");
-        }
-        
-        ServiceFactoryBuilders.AddOpenGeneric(serviceType, implementationType, lifetime, key);
+        ServiceFactoryBuilders.Add(serviceDescriptor);
 
         return this;
     }

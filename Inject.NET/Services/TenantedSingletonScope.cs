@@ -55,6 +55,8 @@ internal class TenantedSingletonScope(
         return _scope.GetServices(serviceKey);
     }
 
+    public IServiceScope SingletonScope => _scope;
+
     public IServiceProvider ServiceProvider => tenantServiceProvider;
 
     public ValueTask DisposeAsync()

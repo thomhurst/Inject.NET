@@ -163,13 +163,13 @@ public static class ServiceRegistrarWriter
         if (serviceModel.Lifetime == Lifetime.Singleton)
         {
             return parameter.IsOptional 
-                ? $"scope.SingletonScope.GetOptionalService<{serviceModel.ServiceType}>({serviceModel.Key})" 
-                : $"scope.SingletonScope.GetRequiredService<{serviceModel.ServiceType}>({serviceModel.Key})";
+                ? $"scope.SingletonScope.GetOptionalService<{serviceModel.ServiceType.GloballyQualified()}>({serviceModel.Key})" 
+                : $"scope.SingletonScope.GetRequiredService<{serviceModel.ServiceType.GloballyQualified()}>({serviceModel.Key})";
         }
         
         return parameter.IsOptional 
-            ? $"scope.GetOptionalService<{serviceModel.ServiceType}>({serviceModel.Key})" 
-            : $"scope.GetRequiredService<{serviceModel.ServiceType}>({serviceModel.Key})";
+            ? $"scope.GetOptionalService<{serviceModel.ServiceType.GloballyQualified()}>({serviceModel.Key})" 
+            : $"scope.GetRequiredService<{serviceModel.ServiceType.GloballyQualified()}>({serviceModel.Key})";
     }
 
     private static string ConstructNewObject(Dictionary<ISymbol?, ServiceModel[]> dependencyDictionary, ServiceModel serviceModel)

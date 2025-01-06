@@ -13,11 +13,16 @@ internal class ServiceScopePoolPolicy(
         return new ServiceScope(serviceProviderRoot, singletonScope, serviceFactories);   
     }
 
-    public async Task<bool> ReturnAsync(ServiceScope obj)
+    public Task<bool> ReturnAsync(ServiceScope obj)
     {
-        await obj.DisposeAsync();
+        var vt = obj.DisposeAsync();
+
+        if (vt.IsCompletedSuccessfully)
+        {
+            return Task.FromResult(true);
+        }
         
-        return true;
+        return vt.AsTask().ContinueWith(_ => true);
     }
 }
 

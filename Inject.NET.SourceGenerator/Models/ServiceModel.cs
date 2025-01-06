@@ -11,6 +11,8 @@ public class ServiceModel
     
     public required Lifetime Lifetime { get; init; }
     
+    public required bool IsOpenGeneric { get; init; }
+    
     public required string? Key { get; init; }
     
 

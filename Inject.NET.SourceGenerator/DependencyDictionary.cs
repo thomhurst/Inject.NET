@@ -56,6 +56,7 @@ public static class DependencyDictionary
                     ImplementationType = smb.ImplementationType,
                     Key = smb.Key,
                     Lifetime = smb.Lifetime,
+                    IsOpenGeneric = smb.IsOpenGeneric,
                     Parameters = smb.Parameters.Select(p => new ServiceModelParameter
                     {
                         Type = p.Type,

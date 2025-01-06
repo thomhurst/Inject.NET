@@ -14,8 +14,8 @@
     </ItemGroup>
 
     <PropertyGroup>
-        <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
-        <CompilerGeneratedFilesOutputPath>GeneratedViewer</CompilerGeneratedFilesOutputPath>
+<!--        <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>-->
+<!--        <CompilerGeneratedFilesOutputPath>GeneratedViewer</CompilerGeneratedFilesOutputPath>-->
     </PropertyGroup>
     
     <ItemGroup>

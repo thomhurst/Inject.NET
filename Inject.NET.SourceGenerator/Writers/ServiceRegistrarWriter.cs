@@ -158,8 +158,7 @@ public static class ServiceRegistrarWriter
     {
         if (serviceModel.Lifetime == Lifetime.Transient)
         {
-            return
-                $"new {serviceModel.ImplementationType.GloballyQualified()}({string.Join(", ", BuildParameters(dependencyDictionary, serviceModel))})";
+            return ConstructNewObject(dependencyDictionary, serviceModel);
         }
 
         if (serviceModel.Lifetime == Lifetime.Singleton)
@@ -172,5 +171,18 @@ public static class ServiceRegistrarWriter
         return parameter.IsOptional 
             ? $"scope.GetOptionalService<{serviceModel.ServiceType}>({serviceModel.Key})" 
             : $"scope.GetRequiredService<{serviceModel.ServiceType}>({serviceModel.Key})";
+    }
+
+    private static string ConstructNewObject(Dictionary<ISymbol?, ServiceModel[]> dependencyDictionary, ServiceModel serviceModel)
+    {
+        if (!serviceModel.IsOpenGeneric)
+        {
+            return
+                $"new {serviceModel.ImplementationType.GloballyQualified()}({string.Join(", ", BuildParameters(dependencyDictionary, serviceModel))})";
+        }
+
+        return $"""
+               return Activator.CreateInstance(typeof({serviceModel.ImplementationType.GloballyQualified()}).MakeGenericType(type.GenericTypeArguments), [{string.Join(", ", BuildParameters(dependencyDictionary, serviceModel))}]);
+               """;
     }
 }

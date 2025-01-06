@@ -9,9 +9,9 @@ public class ListPool<T>
 
     public List<T> Get()
     {
-        if (_pool.Count > 0)
+        if (_pool.TryPop(out var item))
         {
-            return _pool.Pop();
+            return item;
         }
 
         return [];

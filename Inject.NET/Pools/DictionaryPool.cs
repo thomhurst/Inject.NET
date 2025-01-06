@@ -9,9 +9,9 @@ public class DictionaryPool<TKey, TValue> where TKey : notnull
 
     public Dictionary<TKey, TValue> Get()
     {
-        if (_pool.Count > 0)
+        if (_pool.TryPop(out var item))
         {
-            return _pool.Pop();
+            return item;
         }
 
         return [];

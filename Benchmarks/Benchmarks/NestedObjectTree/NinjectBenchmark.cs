@@ -24,13 +24,6 @@ public class NinjectBenchmark
             .Kernel!.Bind<Interface5>().To<Class5>().InTransientScope()
             .Kernel!;
     }
-    
-    [IterationSetup]
-    public void Setup()
-    {
-        _scope = new object();
-        _serviceProvider.Bind<Interface5>().To<Class5>().InScope(_ => _scope);
-    }
 
     [Benchmark]
     public void GetDependency()

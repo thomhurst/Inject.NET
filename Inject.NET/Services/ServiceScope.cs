@@ -211,10 +211,11 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
             }
             else if(toDispose is IAsyncDisposable asyncDisposable)
             {
-                _ = asyncDisposable.DisposeAsync();
+                asyncDisposable.DisposeAsync();
             }
         }
         
         ListPool<object>.Shared.Return(forDisposal);
+        root.ServiceScopePool.Return(this);
     }
 }

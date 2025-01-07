@@ -3,11 +3,11 @@ using BenchmarkDotNet.Jobs;
 using Benchmarks.Models;
 using Ninject;
 
-namespace Benchmarks.Benchmarks.OpenGeneric;
+namespace Benchmarks.Benchmarks.UncachedOpenGeneric;
 
 [MarkdownExporterAttribute.GitHub]
 [SimpleJob(RuntimeMoniker.Net90)]
-[BenchmarkCategory("OpenGeneric")]
+[BenchmarkCategory("UncachedOpenGeneric")]
 public class NinjectBenchmark
 {
     private IKernel _serviceProvider = null!;
@@ -18,7 +18,6 @@ public class NinjectBenchmark
         _serviceProvider = new StandardKernel();
 
         _serviceProvider.Bind<Class1>().ToSelf().InTransientScope();
-        _serviceProvider.Bind<GenericWrapper>().ToSelf().InTransientScope();
         _serviceProvider.Bind(typeof(IGenericInterface<>)).To(typeof(GenericClass<>)).InTransientScope();
     }
 
@@ -27,6 +26,6 @@ public class NinjectBenchmark
     {
         using var scope = _serviceProvider.BeginBlock();
 
-        scope.Get<GenericWrapper>();
+        scope.Get<IGenericInterface<Class1>>();
     }
 }

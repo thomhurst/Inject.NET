@@ -3,7 +3,7 @@ using Microsoft.CodeAnalysis;
 
 namespace Inject.NET.SourceGenerator.Models;
 
-public class ServiceModelBuilder
+public record ServiceModelBuilder
 {
     public required INamedTypeSymbol ServiceType { get; init; }
     

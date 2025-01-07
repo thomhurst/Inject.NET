@@ -39,6 +39,30 @@ public static class DependencyDictionary
                 Lifetime = EnumPolyfill.Parse<Lifetime>(attributeData.AttributeClass!.Name.Replace("Attribute", string.Empty))
             });
         }
+        
+        // TODO Merge with tenant ones too
+        foreach (var parameter in list.SelectMany(x => x.Parameters).ToList())
+        {
+            if (list.Any(x =>
+                    SymbolEqualityComparer.Default.Equals(x.ServiceType, parameter.Type)))
+            {
+                continue;
+            }
+
+            if (parameter.Type is not INamedTypeSymbol { IsGenericType: true } namedParameterType)
+            {
+                continue;
+            }
+                
+            if (list.Find(x => SymbolEqualityComparer.Default.Equals(x.ServiceType, namedParameterType.ConstructUnboundGenericType())) is {} found)
+            {
+                list.Add(found with
+                {
+                    ServiceType = namedParameterType,
+                    ImplementationType = found.ImplementationType.OriginalDefinition.Construct([..namedParameterType.TypeArguments]),
+                });
+            }
+        }
 
         var enumerableDictionaryBuilder = list
             .GroupBy(x => x.ServiceType, SymbolEqualityComparer.Default)

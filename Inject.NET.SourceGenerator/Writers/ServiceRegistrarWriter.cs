@@ -187,20 +187,29 @@ public static class ServiceRegistrarWriter
     private static string? WriteParameter(Dictionary<ISymbol?, ServiceModel[]> dependencyDictionary,
         Parameter parameter, ServiceModel serviceModel)
     {
+        ServiceModel[]? models = null;
+        
         if (parameter.Type is ITypeParameterSymbol typeParameterSymbol)
         {
-            var substitutedTypeIndex = serviceModel.ServiceType.TypeParameters.ToList().FindIndex(x => x.Name == typeParameterSymbol.Name);
-            
-            var subtitutedType = serviceModel.ServiceType.TypeArguments[substitutedTypeIndex];
-            
-            var key = parameter.Key is null ? "null" : $"\"{parameter.Key}\"";
-            
-            return parameter.IsOptional 
-                ? $"scope.GetOptionalService<{subtitutedType.GloballyQualified()}>({key})" 
-                : $"scope.GetRequiredService<{subtitutedType.GloballyQualified()}>({key})";
+            var substitutedTypeIndex = serviceModel.ServiceType.TypeParameters.ToList()
+                .FindIndex(x => x.Name == typeParameterSymbol.Name);
+
+            if (substitutedTypeIndex != -1)
+            {
+                var subtitutedType = serviceModel.ServiceType.TypeArguments[substitutedTypeIndex];
+
+                if (!dependencyDictionary.TryGetValue(subtitutedType, out models))
+                {
+                    var key = parameter.Key is null ? "null" : $"\"{parameter.Key}\"";
+
+                    return parameter.IsOptional
+                        ? $"scope.GetOptionalService<{subtitutedType.GloballyQualified()}>({key})"
+                        : $"scope.GetRequiredService<{subtitutedType.GloballyQualified()}>({key})";
+                }
+            }
         }
-        
-        if (!dependencyDictionary.TryGetValue(parameter.Type, out var models))
+
+        if (models is null && !dependencyDictionary.TryGetValue(parameter.Type, out models))
         {
             if (parameter.Type is not INamedTypeSymbol { IsGenericType: true } genericType
                 || !dependencyDictionary.TryGetValue(genericType.ConstructUnboundGenericType(), out models))

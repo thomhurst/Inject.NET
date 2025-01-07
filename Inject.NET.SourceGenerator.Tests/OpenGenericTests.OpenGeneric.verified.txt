@@ -35,7 +35,7 @@ public class OpenGeneric5ServiceRegistrar : ServiceRegistrar
 			ImplementationType = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric5.Wrapper),
 			Lifetime = Inject.NET.Enums.Lifetime.Transient,
 			Factory = (scope, type, key) =>
-			new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric5.Wrapper((global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric5.IGeneric<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric5.Class1>)new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric5.Generic<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric5.Class1>(scope.GetRequiredService<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric5.Class1>(null)))
+			new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric5.Wrapper((global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric5.IGeneric<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric5.Class1>)new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric5.Generic<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric5.Class1>(new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric5.Class1()))
 		});
 
 		Register(new global::Inject.NET.Models.ServiceDescriptor
@@ -44,7 +44,7 @@ public class OpenGeneric5ServiceRegistrar : ServiceRegistrar
 			ImplementationType = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric5.Generic<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric5.Class1>),
 			Lifetime = Inject.NET.Enums.Lifetime.Transient,
 			Factory = (scope, type, key) =>
-			new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric5.Generic<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric5.Class1>(scope.GetRequiredService<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric5.Class1>(null))
+			new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric5.Generic<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric5.Class1>(new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric5.Class1())
 		});
 
 	}

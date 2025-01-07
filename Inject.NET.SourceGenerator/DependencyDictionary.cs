@@ -56,12 +56,18 @@ public static class DependencyDictionary
                 
             if (list.Find(x => SymbolEqualityComparer.Default.Equals(x.ServiceType, namedParameterType.ConstructUnboundGenericType())) is {} found)
             {
-                list.Add(found with
+                var implementationType = found.ImplementationType.OriginalDefinition.Construct([..namedParameterType.TypeArguments]);
+
+                if (!namedParameterType.IsGenericDefinition()
+                    && !implementationType.IsGenericDefinition())
                 {
-                    ServiceType = namedParameterType,
-                    ImplementationType = found.ImplementationType.OriginalDefinition.Construct([..namedParameterType.TypeArguments]),
-                    IsOpenGeneric = false,
-                });
+                    list.Add(found with
+                    {
+                        ServiceType = namedParameterType,
+                        ImplementationType = implementationType,
+                        IsOpenGeneric = false,
+                    });
+                }
             }
         }
 

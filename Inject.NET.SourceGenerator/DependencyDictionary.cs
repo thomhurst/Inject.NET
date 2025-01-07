@@ -103,6 +103,11 @@ public static class DependencyDictionary
     private static Parameter[] GetParameters(ITypeSymbol type, Compilation compilation)
     {
         var namedTypeSymbol = type as INamedTypeSymbol;
+
+        if (namedTypeSymbol?.IsUnboundGenericType is true)
+        {
+            namedTypeSymbol = namedTypeSymbol.OriginalDefinition;
+        }
         
         var parameters = namedTypeSymbol
             ?.InstanceConstructors

@@ -1,0 +1,57 @@
+﻿[  
+using System;
+using Inject.NET.Enums;
+using Inject.NET.Extensions;
+using Inject.NET.Services;
+
+namespace Inject.NET.SourceGenerator.Sample.ServiceProviders;
+
+public class OpenGeneric5ServiceRegistrar : ServiceRegistrar
+{
+	public OpenGeneric5ServiceRegistrar()
+	{
+		Register(new global::Inject.NET.Models.ServiceDescriptor
+		{
+			ServiceType = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric5.Class1),
+			ImplementationType = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric5.Class1),
+			Lifetime = Inject.NET.Enums.Lifetime.Transient,
+			Factory = (scope, type, key) =>
+			new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric5.Class1()
+		});
+
+		Register(new global::Inject.NET.Models.ServiceDescriptor
+		{
+			ServiceType = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric5.IGeneric<>),
+			ImplementationType = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric5.Generic<>),
+			Lifetime = Inject.NET.Enums.Lifetime.Transient,
+			Factory = (scope, type, key) =>
+			Activator.CreateInstance(typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric5.Generic<>).MakeGenericType(type.GenericTypeArguments), [scope.GetService(new global::Inject.NET.Models.ServiceKey(type, null))])
+		});
+
+		Register(new global::Inject.NET.Models.ServiceDescriptor
+		{
+			ServiceType = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric5.Wrapper),
+			ImplementationType = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric5.Wrapper),
+			Lifetime = Inject.NET.Enums.Lifetime.Transient,
+			Factory = (scope, type, key) =>
+			new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric5.Wrapper((global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric5.IGeneric<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric5.Class1>)Activator.CreateInstance(typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric5.Generic<>).MakeGenericType(type.GenericTypeArguments), [scope.GetService(new global::Inject.NET.Models.ServiceKey(type, null))]))
+		});
+
+	}
+}
+
+  
+using System;
+using System.Threading.Tasks;
+using Inject.NET.Enums;
+using Inject.NET.Interfaces;
+
+namespace Inject.NET.SourceGenerator.Sample.ServiceProviders;
+
+public partial class OpenGeneric5
+{
+	public static ValueTask<IServiceProviderRoot> BuildAsync() =>
+		new OpenGeneric5ServiceRegistrar().BuildAsync();
+}
+
+]

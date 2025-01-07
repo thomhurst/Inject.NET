@@ -20,7 +20,8 @@ jobs:
             ScopedWithInterface,
             TransientWithInterface,
             NestedObjectTree,
-            Assortment
+            Assortment,
+            OpenGeneric
           ]
       fail-fast: false
     runs-on: ${{ matrix.os }}

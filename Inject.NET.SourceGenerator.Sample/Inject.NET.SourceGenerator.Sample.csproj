@@ -17,9 +17,5 @@
 <!--        <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>-->
 <!--        <CompilerGeneratedFilesOutputPath>GeneratedViewer</CompilerGeneratedFilesOutputPath>-->
     </PropertyGroup>
-    
-    <ItemGroup>
-        <Compile Remove="GeneratedViewer\**" />
-    </ItemGroup>
 
 </Project>

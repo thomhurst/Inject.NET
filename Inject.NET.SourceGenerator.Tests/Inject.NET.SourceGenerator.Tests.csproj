@@ -23,5 +23,12 @@
         <ProjectReference Include="..\Inject.NET.SourceGenerator\Inject.NET.SourceGenerator.csproj"/>
     </ItemGroup>
 
+    <ItemGroup>
+      <None Update="OpenGeneric.WithTenant.verified.txt">
+        <ParentFile>WithTenantTests</ParentFile>
+        <DependentUpon>OpenGeneric.cs</DependentUpon>
+      </None>
+    </ItemGroup>
+
 
 </Project>

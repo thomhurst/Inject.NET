@@ -171,26 +171,44 @@ public static class ServiceRegistrarWriter
         {
             if (WriteParameter(dependencyDictionary, parameter) is { } written)
             {
-                yield return written;
+                if(!parameter.Type.IsGenericDefinition())
+                {
+                    yield return $"({parameter.Type.GloballyQualified()}){written}";
+                }
+                else
+                {
+                    yield return written;
+                }
             }
         }
     }
 
     private static string? WriteParameter(Dictionary<ISymbol?, ServiceModel[]> dependencyDictionary, Parameter parameter)
     {
+        if (parameter.Type is ITypeParameterSymbol)
+        {
+            var key = parameter.Key is null ? "null" : $"\"{parameter.Key}\"";
+            
+            return $"scope.GetService(new global::Inject.NET.Models.ServiceKey(type, {key}))";
+        }
+        
         if (!dependencyDictionary.TryGetValue(parameter.Type, out var models))
         {
-            if (parameter.IsOptional)
+            if (parameter.Type is not INamedTypeSymbol { IsGenericType: true } genericType
+                || !dependencyDictionary.TryGetValue(genericType.ConstructUnboundGenericType(), out models))
             {
+                if (parameter.IsOptional)
+                {
+                    return null;
+                }
+
+                if (parameter.IsNullable)
+                {
+                    return "null";
+                }
+
                 return null;
             }
-
-            if (parameter.IsNullable)
-            {
-                return "null";
-            }
-
-            return null;
         }
 
         if (parameter.IsEnumerable)
@@ -233,6 +251,8 @@ public static class ServiceRegistrarWriter
                 $"new {lastTypeInDictionary.ImplementationType.GloballyQualified()}({string.Join(", ", BuildParameters(dependencyDictionary, serviceModel))})";
         }
         
-        return $"Activator.CreateInstance(typeof({lastTypeInDictionary.ImplementationType.GloballyQualified()}).MakeGenericType(type.GenericTypeArguments), [{string.Join(", ", BuildParameters(dependencyDictionary, serviceModel))}])";
+        return $$"""
+                 Activator.CreateInstance(typeof({{lastTypeInDictionary.ImplementationType.GloballyQualified()}}).MakeGenericType(type.GenericTypeArguments), new object[] { {{string.Join(", ", BuildParameters(dependencyDictionary, serviceModel))}} })
+                """;
     }
 }

@@ -6,7 +6,7 @@ namespace Inject.NET.SourceGenerator.Sample.ServiceProviders;
 [Transient<Class1>]
 [Transient(typeof(IGeneric<>), typeof(Generic<>))]
 [Transient<Wrapper>]
-public partial class OpenGeneric5
+public partial class OpenGeneric
 {
     public interface Interface1;
 

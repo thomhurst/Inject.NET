@@ -27,17 +27,35 @@ public static class DependencyDictionary
                 continue;
             }
 
-            var parameters = GetParameters(implementationType, compilation);
+            var key = attributeData.NamedArguments.FirstOrDefault(x => x.Key == "Key").Value.Value as string;
 
-            list.Add(new ServiceModelBuilder
+            var lifetime = EnumPolyfill.Parse<Lifetime>(attributeData.AttributeClass!.Name.Replace("Attribute", string.Empty));
+
+            var isGenericDefinition = serviceType.IsGenericDefinition();
+            
+            Add(compilation, 
+                serviceType, 
+                implementationType, 
+                list,
+                key,
+                lifetime);
+
+            if (isGenericDefinition)
             {
-                ServiceType = serviceType,
-                ImplementationType = implementationType,
-                IsOpenGeneric = serviceType.IsGenericDefinition(),
-                Parameters = parameters,
-                Key = attributeData.NamedArguments.FirstOrDefault(x => x.Key == "Key").Value.Value as string,
-                Lifetime = EnumPolyfill.Parse<Lifetime>(attributeData.AttributeClass!.Name.Replace("Attribute", string.Empty))
-            });
+                var constructedTypes = GenericTypeHelper.GetConstructedTypes(compilation, serviceType);
+
+                foreach (var constructedType in constructedTypes)
+                {
+                    Add(compilation,
+                        constructedType,
+                        implementationType.IsGenericType
+                            ? implementationType.OriginalDefinition.Construct([..constructedType.TypeArguments])
+                            : implementationType,
+                        list,
+                        key,
+                        lifetime);
+                }
+            }
         }
         
         // TODO Merge with tenant ones too
@@ -92,7 +110,25 @@ public static class DependencyDictionary
         
         return enumerableDictionary;
     }
-    
+
+    private static void Add(Compilation compilation, INamedTypeSymbol serviceType, INamedTypeSymbol implementationType,
+        List<ServiceModelBuilder> list, string? key, Lifetime lifetime)
+    {
+        var isGenericDefinition = serviceType.IsGenericDefinition();
+
+        var parameters = GetParameters(implementationType, compilation);
+
+        list.Add(new ServiceModelBuilder
+        {
+            ServiceType = serviceType,
+            ImplementationType = implementationType,
+            IsOpenGeneric = isGenericDefinition,
+            Parameters = parameters,
+            Key = key,
+            Lifetime = lifetime
+        });
+    }
+
     private static bool TryGetServiceAndImplementation(AttributeData attributeData,
         out INamedTypeSymbol? serviceType, out INamedTypeSymbol? implementationType)
     {

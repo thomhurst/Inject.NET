@@ -19,7 +19,8 @@ jobs:
             SingletonWithInterface,
             ScopedWithInterface,
             TransientWithInterface,
-            NestedObjectTree
+            NestedObjectTree,
+            Assortment
           ]
       fail-fast: false
     runs-on: ${{ matrix.os }}

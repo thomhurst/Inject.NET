@@ -106,7 +106,7 @@ public static class DependencyDictionary
         
         var parameters = namedTypeSymbol
             ?.InstanceConstructors
-            .FirstOrDefault()
+            .FirstOrDefault(x => !x.IsImplicitlyDeclared)
             ?.Parameters ?? default;
 
         if (parameters.IsDefaultOrEmpty)

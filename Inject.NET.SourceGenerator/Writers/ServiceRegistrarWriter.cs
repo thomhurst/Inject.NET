@@ -100,7 +100,7 @@ public static class ServiceRegistrarWriter
         {
             foreach (var serviceModel in serviceModels)
             {
-                var parameters = serviceModel.GetAllNestedParameters(dependencyDictionary);
+                var parameters = serviceModel.GetAllNestedParameters(rootDependencyDictionary);
 
                 foreach (var parameter in parameters)
                 {

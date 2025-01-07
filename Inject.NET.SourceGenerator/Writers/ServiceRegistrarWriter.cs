@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Inject.NET.SourceGenerator.Models;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Inject.NET.SourceGenerator.Writers;
 
@@ -171,7 +170,7 @@ public static class ServiceRegistrarWriter
     {
         foreach (var parameter in serviceModel.Parameters)
         {
-            if (WriteParameter(dependencyDictionary, parameter) is { } written)
+            if (WriteParameter(dependencyDictionary, parameter, serviceModel) is { } written)
             {
                 if(!parameter.Type.IsGenericDefinition())
                 {
@@ -185,13 +184,20 @@ public static class ServiceRegistrarWriter
         }
     }
 
-    private static string? WriteParameter(Dictionary<ISymbol?, ServiceModel[]> dependencyDictionary, Parameter parameter)
+    private static string? WriteParameter(Dictionary<ISymbol?, ServiceModel[]> dependencyDictionary,
+        Parameter parameter, ServiceModel serviceModel)
     {
-        if (parameter.Type is ITypeParameterSymbol)
+        if (parameter.Type is ITypeParameterSymbol typeParameterSymbol)
         {
+            var substitutedTypeIndex = serviceModel.ServiceType.TypeParameters.ToList().FindIndex(x => x.Name == typeParameterSymbol.Name);
+            
+            var subtitutedType = serviceModel.ServiceType.TypeArguments[substitutedTypeIndex];
+            
             var key = parameter.Key is null ? "null" : $"\"{parameter.Key}\"";
             
-            return $"scope.GetService(new global::Inject.NET.Models.ServiceKey(typeof({parameter.Type.GloballyQualified()}), {key}))";
+            return parameter.IsOptional 
+                ? $"scope.GetOptionalService<{subtitutedType.GloballyQualified()}>({key})" 
+                : $"scope.GetRequiredService<{subtitutedType.GloballyQualified()}>({key})";
         }
         
         if (!dependencyDictionary.TryGetValue(parameter.Type, out var models))

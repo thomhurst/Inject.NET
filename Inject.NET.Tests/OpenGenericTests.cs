@@ -1,6 +1,5 @@
 ﻿using Inject.NET.Attributes;
 using Inject.NET.Extensions;
-using Microsoft.Testing.Platform.Services;
 
 namespace Inject.NET.Tests;
 

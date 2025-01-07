@@ -13,11 +13,11 @@ public class SingletonGenericServiceRegistrar : ServiceRegistrar
 	{
 		Register(new global::Inject.NET.Models.ServiceDescriptor
 		{
-			ServiceType = typeof(global::Inject.NET.SourceGenerator.Sample.Models.Generic<>),
-			ImplementationType = typeof(global::Inject.NET.SourceGenerator.Sample.Models.Generic<>),
+			ServiceType = typeof(Generic<>),
+			ImplementationType = typeof(Generic<>),
 			Lifetime = Inject.NET.Enums.Lifetime.Singleton,
 			Factory = (scope, type, key) =>
-			 Activator.CreateInstance(typeof(global::Inject.NET.SourceGenerator.Sample.Models.Generic<>).MakeGenericType(type.GenericTypeArguments), [ ..type.GenericTypeArguments.Select(x => scope.GetService(x)) ])
+			new Generic<>()
 		});
 
 	}

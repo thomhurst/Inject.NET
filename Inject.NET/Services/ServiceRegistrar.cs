@@ -1,7 +1,5 @@
 using System.Collections.Concurrent;
-using System.Diagnostics.CodeAnalysis;
 using Inject.NET.Delegates;
-using Inject.NET.Enums;
 using Inject.NET.Extensions;
 using Inject.NET.Interfaces;
 using Inject.NET.Models;

@@ -1,6 +1,5 @@
 using System;
 using System.Globalization;
-using System.Linq;
 using Inject.NET.SourceGenerator.Models;
 using Microsoft.CodeAnalysis;
 

@@ -60,6 +60,7 @@ public static class DependencyDictionary
                 {
                     ServiceType = namedParameterType,
                     ImplementationType = found.ImplementationType.OriginalDefinition.Construct([..namedParameterType.TypeArguments]),
+                    IsOpenGeneric = false,
                 });
             }
         }

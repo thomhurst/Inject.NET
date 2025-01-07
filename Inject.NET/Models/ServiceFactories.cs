@@ -12,4 +12,7 @@ public record ServiceFactories(
             x => x.Value.Last()
         );
 
+    public Dictionary<ServiceKey, FrozenSet<ServiceDescriptor>> LateBoundGenericDescriptors = [];
+
+    public Dictionary<ServiceKey, ServiceDescriptor> LateBoundGenericDescriptor { get; } = [];
 }

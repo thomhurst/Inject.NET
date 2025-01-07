@@ -1,6 +1,7 @@
 using System.Collections.Frozen;
 using System.Runtime.CompilerServices;
 using Inject.NET.Enums;
+using Inject.NET.Extensions;
 using Inject.NET.Interfaces;
 using Inject.NET.Models;
 using Inject.NET.Pools;
@@ -31,6 +32,11 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
     
     public object? GetService(Type type)
     {
+        if (type.IsIEnumerable())
+        {
+            return GetServices(new ServiceKey(type));
+        }
+        
         return GetService(new ServiceKey(type));
     }
 
@@ -65,10 +71,16 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
 
         if (!serviceFactories.Descriptor.TryGetValue(serviceKey, out var descriptor))
         {
-            if (!serviceKey.Type.IsGenericType ||
-                !serviceFactories.Descriptor.TryGetValue(serviceKey with { Type = serviceKey.Type.GetGenericTypeDefinition() }, out descriptor))
+            if (!serviceFactories.LateBoundGenericDescriptor.TryGetValue(serviceKey, out descriptor))
             {
-                return null;
+                if (!serviceKey.Type.IsGenericType ||
+                    !serviceFactories.Descriptor.TryGetValue(
+                        serviceKey with { Type = serviceKey.Type.GetGenericTypeDefinition() }, out descriptor))
+                {
+                    return null;
+                }
+
+                serviceFactories.LateBoundGenericDescriptor[serviceKey] = descriptor;
             }
         }
 

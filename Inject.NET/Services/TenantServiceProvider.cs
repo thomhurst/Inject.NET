@@ -8,12 +8,13 @@ internal class TenantServiceProvider : IServiceProvider
 {
     private readonly TenantedSingletonScope _singletonScope;
     private readonly ServiceProviderRoot _rootServiceProviderRoot;
-    private readonly ServiceFactories _serviceFactories;
+    
+    internal readonly ServiceFactories ServiceFactories;
 
     public TenantServiceProvider(ServiceProviderRoot rootServiceProviderRoot, ServiceFactories serviceFactories)
     {
         _rootServiceProviderRoot = rootServiceProviderRoot;
-        _serviceFactories = serviceFactories;
+        ServiceFactories = serviceFactories;
         _singletonScope = new(this, rootServiceProviderRoot, serviceFactories);
     }
 
@@ -23,7 +24,7 @@ internal class TenantServiceProvider : IServiceProvider
 
         await using var scope = CreateScope();
         
-        foreach (var type in _serviceFactories.Descriptors.Keys)
+        foreach (var type in ServiceFactories.Descriptors.Keys)
         {
             scope.GetService(type);
         }
@@ -38,6 +39,6 @@ internal class TenantServiceProvider : IServiceProvider
 
     public IServiceScope CreateScope()
     {
-        return new TenantedScope(this, (ServiceScope)_rootServiceProviderRoot.CreateScope(), _singletonScope, _serviceFactories);
+        return new TenantedScope(this, (ServiceScope)_rootServiceProviderRoot.CreateScope(), _singletonScope, ServiceFactories);
     }
 }

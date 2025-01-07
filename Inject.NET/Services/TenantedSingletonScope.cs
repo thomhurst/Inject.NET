@@ -1,5 +1,4 @@
-﻿using Inject.NET.Enums;
-using Inject.NET.Extensions;
+﻿using Inject.NET.Extensions;
 using Inject.NET.Interfaces;
 using Inject.NET.Models;
 using IServiceProvider = Inject.NET.Interfaces.IServiceProvider;
@@ -18,6 +17,11 @@ internal class TenantedSingletonScope(
 
     public object? GetService(Type serviceType)
     {
+        if (serviceType.IsIEnumerable())
+        {
+            return GetServices(serviceType);
+        }
+        
         return GetService(new ServiceKey(serviceType));
     }
     
@@ -31,11 +35,6 @@ internal class TenantedSingletonScope(
         if (serviceKey.Type == ServiceProviderType)
         {
             return ServiceProvider;
-        }
-
-        if (serviceKey.Type.IsIEnumerable())
-        {
-            return GetServices(serviceKey);
         }
         
         return _scope.GetService(serviceKey) ?? root.SingletonScope.GetService(serviceKey);
@@ -54,6 +53,8 @@ internal class TenantedSingletonScope(
         
         return _scope.GetServices(serviceKey);
     }
+
+    public IServiceScope SingletonScope => this;
 
     public IServiceProvider ServiceProvider => tenantServiceProvider;
 

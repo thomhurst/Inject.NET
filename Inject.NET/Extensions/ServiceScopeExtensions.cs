@@ -8,7 +8,7 @@ public static class ServiceScopeExtensions
 {
     public static T GetRequiredService<T>(this IServiceScope scope) where T : class
     {
-        return scope.GetService(typeof(T)) as T ??
+        return scope.GetService(new ServiceKey(typeof(T))) as T ??
                ThrowMissingDependencyError<T>(scope);
     }
     
@@ -42,7 +42,7 @@ public static class ServiceScopeExtensions
     
     public static T? GetOptionalService<T>(this IServiceScope scope) where T : class
     {
-        return scope.GetService(typeof(T)) as T;
+        return scope.GetService(new ServiceKey(typeof(T))) as T;
     }
     
     public static T? GetOptionalService<T>(this IServiceScope scope, string key) where T : class

@@ -19,7 +19,7 @@
     </PropertyGroup>
     
     <ItemGroup>
-        <Compile Remove="GeneratedViewer\*.cs" />
+        <Compile Remove="GeneratedViewer\**" />
     </ItemGroup>
 
 </Project>

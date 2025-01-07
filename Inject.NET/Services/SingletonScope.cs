@@ -18,9 +18,6 @@ internal sealed class SingletonScope(IServiceProvider root, ServiceFactories ser
     private readonly ConcurrentDictionary<ServiceKey, List<object>> _singletonsBuilder = [];
     private FrozenDictionary<ServiceKey, ImmutableArray<object>> _singletonEnumerables = FrozenDictionary<ServiceKey, ImmutableArray<object>>.Empty;
     private FrozenDictionary<ServiceKey, object> _singletons = FrozenDictionary<ServiceKey, object>.Empty;
-
-    private readonly ConcurrentDictionary<ServiceKey, object[]> _openGenericSingletons = [];
-
     
     private bool _isBuilt;
     
@@ -92,17 +89,12 @@ internal sealed class SingletonScope(IServiceProvider root, ServiceFactories ser
         
         return services[^1];
     }
-    
+
     public IReadOnlyList<object> GetServices(ServiceKey serviceKey)
     {
         if (_singletonEnumerables.TryGetValue(serviceKey, out var list))
         {
             return list;
-        }
-        
-        if (_openGenericSingletons.TryGetValue(serviceKey, out var openGenericSingletons))
-        {
-            return openGenericSingletons;
         }
 
         if (!_isBuilt)
@@ -115,24 +107,16 @@ internal sealed class SingletonScope(IServiceProvider root, ServiceFactories ser
             return _singletonsBuilder[serviceKey] =
             [
                 ..SingletonFactories(serviceKey)
-                    .Select(descriptor => Constructor.Construct(this, serviceKey.Type, descriptor))
-            ];
-        }
-
-        var type = serviceKey.Type;
-        if (type.IsGenericType && SingletonFactories(new ServiceKey(type.GetGenericTypeDefinition())) is {} genericTypeFactories)
-        {
-            return _openGenericSingletons[serviceKey] =
-            [
-                ..genericTypeFactories.OfType<OpenGenericServiceDescriptor>()
-                    .Select(descriptor => Constructor.Construct(this, type, descriptor))
+                    .Select(descriptor => descriptor.Factory(this, serviceKey.Type, descriptor.Key))
             ];
         }
 
         return [];
     }
 
-    private IEnumerable<IServiceDescriptor> SingletonFactories(ServiceKey serviceKey)
+    IServiceScope IServiceScope.SingletonScope => this;
+
+    private IEnumerable<ServiceDescriptor> SingletonFactories(ServiceKey serviceKey)
     {
         return serviceFactories.Descriptors.Where(x => x.Key == serviceKey)
             .SelectMany(x => x.Value)

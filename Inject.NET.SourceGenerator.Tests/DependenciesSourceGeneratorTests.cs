@@ -147,6 +147,10 @@ public class DependenciesSourceGeneratorTests : TestsBase<DependenciesSourceGene
                     "Inject.NET.SourceGenerator.Sample",
                     "Models",
                     "Interface1.cs"),
+                Path.Combine(Sourcy.Git.RootDirectory.FullName,
+                    "Inject.NET.SourceGenerator.Sample",
+                    "Models",
+                    "Generic.cs"),
             ]
         },
         async generatedFiles => { await Assert.That(generatedFiles.Length).IsEqualTo(2); });

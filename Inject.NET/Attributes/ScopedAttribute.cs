@@ -3,7 +3,7 @@ using Inject.NET.Enums;
 namespace Inject.NET.Attributes;
 
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
-public sealed class ScopedAttribute : DependencyForAttribute 
+public sealed class ScopedAttribute : DependencyInjectionAttribute 
 {
     public ScopedAttribute(Type implementationType) : base(implementationType, implementationType)
     {
@@ -17,14 +17,14 @@ public sealed class ScopedAttribute : DependencyForAttribute
 }
 
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
-public sealed class ScopedAttribute<TImplementation> : DependencyForAttribute<TImplementation, TImplementation> 
+public sealed class ScopedAttribute<TImplementation> : DependencyInjectionAttribute<TImplementation, TImplementation> 
     where TImplementation : class
 {
     public override Lifetime Lifetime => Lifetime.Scoped;
 }
 
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
-public sealed class ScopedAttribute<TService, TImplementation> : DependencyForAttribute<TService, TImplementation> 
+public sealed class ScopedAttribute<TService, TImplementation> : DependencyInjectionAttribute<TService, TImplementation> 
     where TService : class 
     where TImplementation : class, TService
 {

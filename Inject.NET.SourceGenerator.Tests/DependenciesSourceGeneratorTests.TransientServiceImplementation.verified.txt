@@ -10,7 +10,15 @@ public class TransientServiceImplementationServiceRegistrar : ServiceRegistrar
 {
 	public TransientServiceImplementationServiceRegistrar()
 	{
-		Register<Interface1, Class1>((scope, type) => new Class1(), Lifetime.Transient);
+		Register(new global::Inject.NET.Models.ServiceDescriptor
+		{
+			ServiceType = typeof(Interface1),
+			ImplementationType = typeof(Class1),
+			Lifetime = Inject.NET.Enums.Lifetime.Transient,
+			Factory = (scope, type, key) =>
+			new Class1()
+		});
+
 	}
 }
 

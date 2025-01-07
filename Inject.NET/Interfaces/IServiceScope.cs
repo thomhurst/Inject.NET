@@ -7,5 +7,6 @@ public interface IServiceScope : IAsyncDisposable, IDisposable, System.IServiceP
     object? GetService(ServiceKey serviceKey);
     IReadOnlyList<object> GetServices(ServiceKey serviceKey);
     
+    IServiceScope SingletonScope { get; }
     IServiceProvider ServiceProvider { get; }
 }

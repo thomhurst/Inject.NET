@@ -31,6 +31,16 @@ internal class ServiceProviderRoot : IServiceProviderRoot
         
         SingletonScope.PreBuild();
         
+        foreach (var (_, serviceProvider) in _tenants)
+        {
+            await using var tenantScope = serviceProvider.CreateScope();
+
+            foreach (var key in ((TenantServiceProvider)serviceProvider).ServiceFactories.Descriptors.Keys)
+            {
+                tenantScope.GetService(key);
+            }
+        }
+        
         await using var scope = CreateScope();
         
         foreach (var type in _serviceFactories.Descriptors.Keys)

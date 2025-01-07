@@ -11,7 +11,6 @@ namespace Benchmarks.Benchmarks.NestedObjectTree;
 public class NinjectBenchmark
 {
     private IKernel _serviceProvider = null!;
-    private object? _scope;
 
     [GlobalSetup]
     public void GlobalSetup()

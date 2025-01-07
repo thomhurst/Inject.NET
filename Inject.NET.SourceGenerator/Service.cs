@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CodeAnalysis;
 
 namespace Inject.NET.SourceGenerator;
 
@@ -51,8 +52,9 @@ public class Service
 
 public record Parameter
 {
-    public required string Type { get; init; }
+    public required ITypeSymbol Type { get; init; }
     public required bool IsOptional { get; init; }
+    public required bool IsNullable { get; init; }
     public required bool IsEnumerable { get; init; }
     public string? Key { get; init; }
 

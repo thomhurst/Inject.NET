@@ -10,7 +10,15 @@ public class SingletonServiceImplementationServiceRegistrar : ServiceRegistrar
 {
 	public SingletonServiceImplementationServiceRegistrar()
 	{
-		Register<Interface1, Class1>((scope, type) => new Class1(), Lifetime.Singleton);
+		Register(new global::Inject.NET.Models.ServiceDescriptor
+		{
+			ServiceType = typeof(Interface1),
+			ImplementationType = typeof(Class1),
+			Lifetime = Inject.NET.Enums.Lifetime.Singleton,
+			Factory = (scope, type, key) =>
+			new Class1()
+		});
+
 	}
 }
 

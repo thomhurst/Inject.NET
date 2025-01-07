@@ -25,6 +25,8 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
     
     private List<object>? _forDisposal;
     
+    public IServiceScope SingletonScope { get; } = singletonScope;
+
     public IServiceProvider ServiceProvider { get; } = root;
     
     public object? GetService(Type type)
@@ -38,7 +40,7 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-    public object? GetService(ServiceKey serviceKey, IServiceScope scope)
+    public object? GetService(ServiceKey serviceKey, IServiceScope requestingScope)
     {
         if (_cachedObjects?.TryGetValue(serviceKey, out var cachedObject) == true)
         {
@@ -68,10 +70,10 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
 
         if (descriptor.Lifetime == Lifetime.Singleton)
         {
-            return singletonScope.GetService(serviceKey);
+            return SingletonScope.GetService(serviceKey);
         }
-            
-        var obj = Constructor.Construct(scope, serviceKey.Type, descriptor);
+
+        var obj = descriptor.Factory(requestingScope, serviceKey.Type, descriptor.Key);
             
         if(descriptor.Lifetime != Lifetime.Transient)
         {
@@ -90,7 +92,7 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
     {
         return GetServices(serviceKey, this);
     }
-
+    
     [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
     public IReadOnlyList<object> GetServices(ServiceKey serviceKey, IServiceScope scope)
     {
@@ -114,7 +116,7 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
         return cachedEnumerables[serviceKey] = [..ConstructItems(factories, singletons, scope, serviceKey, cachedEnumerables)];
     }
 
-    private IEnumerable<object> ConstructItems(FrozenSet<IServiceDescriptor> factories,
+    private IEnumerable<object> ConstructItems(FrozenSet<ServiceDescriptor> factories,
         IReadOnlyList<object> singletons,
         IServiceScope scope, ServiceKey serviceKey, Dictionary<ServiceKey, List<object>> cachedEnumerables)
     {
@@ -131,7 +133,7 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
             }
             else
             {
-                item = Constructor.Construct(scope, serviceKey.Type, serviceDescriptor);
+                item = serviceDescriptor.Factory(scope, serviceKey.Type, serviceDescriptor.Key);
                 
                 if(item is IAsyncDisposable or IDisposable)
                 {

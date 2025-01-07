@@ -2,13 +2,13 @@ using Inject.NET.Enums;
 
 namespace Inject.NET.Attributes;
 
-public abstract class DependencyForAttribute<TService, TImplementation>() : DependencyForAttribute(typeof(TService), typeof(TImplementation))
+public abstract class DependencyInjectionAttribute<TService, TImplementation>() : DependencyInjectionAttribute(typeof(TService), typeof(TImplementation))
     where TService : class
     where TImplementation : class, TService;
 
-public abstract class DependencyForAttribute : Attribute
+public abstract class DependencyInjectionAttribute : Attribute, IDependencyInjectionAttribute
 {
-    internal DependencyForAttribute(Type serviceType, Type implementationType)
+    internal DependencyInjectionAttribute(Type serviceType, Type implementationType)
     {
         ServiceType = serviceType;
         ImplementationType = implementationType;

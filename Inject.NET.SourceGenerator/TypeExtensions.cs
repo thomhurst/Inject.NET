@@ -12,11 +12,6 @@ public static class TypeExtensions
         {
             return true;
         }
-
-        if (SymbolEqualityComparer.Default.Equals(typeSymbol.OriginalDefinition, typeSymbol))
-        {
-            return true;
-        }
         
         if (typeSymbol is not INamedTypeSymbol { IsGenericType: true } namedTypeSymbol)
         {
@@ -24,6 +19,11 @@ public static class TypeExtensions
         }
 
         if (namedTypeSymbol.IsUnboundGenericType)
+        {
+            return true;
+        }
+        
+        if (SymbolEqualityComparer.Default.Equals(typeSymbol.OriginalDefinition, typeSymbol))
         {
             return true;
         }

@@ -17,7 +17,7 @@ public class ScopedServiceImplementationServiceRegistrar : ServiceRegistrar
 			ImplementationType = typeof(Class1),
 			Lifetime = Inject.NET.Enums.Lifetime.Scoped,
 			Factory = (scope, type, key) =>
-			new Class1()
+			 Activator.CreateInstance(typeof(Class1).MakeGenericType(type.GenericTypeArguments), [ ..type.GenericTypeArguments.Select(x => scope.GetService(x)) ])
 		});
 
 	}

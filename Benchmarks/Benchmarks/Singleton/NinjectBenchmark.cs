@@ -10,14 +10,13 @@ namespace Benchmarks.Benchmarks.Singleton;
 [BenchmarkCategory("Singleton")]
 public class NinjectBenchmark
 {
-    private IKernel _serviceProvider = null!;
+    private StandardKernel _serviceProvider = null!;
 
     [GlobalSetup]
     public void GlobalSetup()
     {
-        _serviceProvider = new StandardKernel()
-            .Bind<Class1>().ToSelf().InSingletonScope()
-            .Kernel!;
+        _serviceProvider = new StandardKernel();
+        _serviceProvider.Bind<Class1>().ToSelf().InSingletonScope();
     }
 
     [Benchmark]

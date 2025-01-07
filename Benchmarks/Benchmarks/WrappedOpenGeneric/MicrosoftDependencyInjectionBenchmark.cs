@@ -3,11 +3,11 @@ using BenchmarkDotNet.Jobs;
 using Benchmarks.Models;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Benchmarks.Benchmarks.OpenGeneric;
+namespace Benchmarks.Benchmarks.WrappedOpenGeneric;
 
 [MarkdownExporterAttribute.GitHub]
 [SimpleJob(RuntimeMoniker.Net90)]
-[BenchmarkCategory("OpenGeneric")]
+[BenchmarkCategory("WrappedOpenGeneric")]
 public class MicrosoftDependencyInjectionBenchmark
 {
     private ServiceProvider _serviceProvider = null!;

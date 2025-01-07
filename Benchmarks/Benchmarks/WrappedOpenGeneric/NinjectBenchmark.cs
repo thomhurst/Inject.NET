@@ -3,14 +3,14 @@ using BenchmarkDotNet.Jobs;
 using Benchmarks.Models;
 using Ninject;
 
-namespace Benchmarks.Benchmarks.OpenGeneric;
+namespace Benchmarks.Benchmarks.WrappedOpenGeneric;
 
 [MarkdownExporterAttribute.GitHub]
 [SimpleJob(RuntimeMoniker.Net90)]
-[BenchmarkCategory("OpenGeneric")]
+[BenchmarkCategory("WrappedOpenGeneric")]
 public class NinjectBenchmark
 {
-    private IKernel _serviceProvider = null!;
+    private StandardKernel _serviceProvider = null!;
 
     [GlobalSetup]
     public void GlobalSetup()

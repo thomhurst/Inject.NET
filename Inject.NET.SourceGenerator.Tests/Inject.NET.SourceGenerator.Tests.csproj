@@ -24,9 +24,9 @@
     </ItemGroup>
 
     <ItemGroup>
-      <None Update="OpenGeneric.WithTenant.verified.txt">
+      <None Update="WrappedOpenGeneric.WithTenant.verified.txt">
         <ParentFile>WithTenantTests</ParentFile>
-        <DependentUpon>OpenGeneric.cs</DependentUpon>
+        <DependentUpon>WrappedOpenGeneric.cs</DependentUpon>
       </None>
       <None Update="AssortmentTests.WithTenant.verified.txt">
         <ParentFile>WithTenantTests</ParentFile>

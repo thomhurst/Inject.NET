@@ -3,11 +3,11 @@ using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Jobs;
 using Benchmarks.Models;
 
-namespace Benchmarks.Benchmarks.UncachedOpenGeneric;
+namespace Benchmarks.Benchmarks.DirectOpenGeneric;
 
 [MarkdownExporterAttribute.GitHub]
 [SimpleJob(RuntimeMoniker.Net90)]
-[BenchmarkCategory("UncachedOpenGeneric")]
+[BenchmarkCategory("DirectOpenGeneric")]
 public class AutofacBenchmark
 {
     private IContainer _serviceProvider = null!;

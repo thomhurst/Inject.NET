@@ -5,11 +5,11 @@ using Inject.NET.Attributes;
 using Inject.NET.Extensions;
 using Inject.NET.Interfaces;
 
-namespace Benchmarks.Benchmarks.OpenGeneric;
+namespace Benchmarks.Benchmarks.WrappedOpenGeneric;
 
 [MarkdownExporterAttribute.GitHub]
 [SimpleJob(RuntimeMoniker.Net90)]
-[BenchmarkCategory("OpenGeneric")]
+[BenchmarkCategory("WrappedOpenGeneric")]
 public partial class InjectDotNetBenchmark
 {
     [ServiceProvider]

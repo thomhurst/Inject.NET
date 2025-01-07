@@ -10,14 +10,13 @@ namespace Benchmarks.Benchmarks.Transient;
 [BenchmarkCategory("Transient")]
 public class NinjectBenchmark
 {
-    private IKernel _serviceProvider = null!;
+    private StandardKernel _serviceProvider = null!;
 
     [GlobalSetup]
     public void GlobalSetup()
     {
-        _serviceProvider = new StandardKernel()
-            .Bind<Class1>().ToSelf().InTransientScope()
-            .Kernel!;
+        _serviceProvider = new StandardKernel();
+        _serviceProvider.Bind<Class1>().ToSelf().InTransientScope();
     }
 
     [Benchmark]

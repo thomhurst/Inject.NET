@@ -10,18 +10,17 @@ namespace Benchmarks.Benchmarks.Assortment;
 [BenchmarkCategory("Assortment")]
 public class NinjectBenchmark
 {
-    private IKernel _serviceProvider = null!;
+    private StandardKernel _serviceProvider = null!;
 
     [GlobalSetup]
     public void GlobalSetup()
     {
-        _serviceProvider = new StandardKernel()
-            .Bind<Interface1>().To<Class1>().InSingletonScope()
-            .Kernel!.Bind<Interface2>().To<Class2>().InSingletonScope()
-            .Kernel!.Bind<Interface3>().To<Class3>().InSingletonScope()
-            .Kernel!.Bind<Interface4>().To<Class4>().InTransientScope()
-            .Kernel!.Bind<Interface5>().To<Class5>().InThreadScope()
-            .Kernel!;
+        _serviceProvider = new StandardKernel();
+        _serviceProvider.Bind<Interface1>().To<Class1>().InSingletonScope();
+        _serviceProvider.Bind<Interface2>().To<Class2>().InSingletonScope();
+        _serviceProvider.Bind<Interface3>().To<Class3>().InSingletonScope();
+        _serviceProvider.Bind<Interface4>().To<Class4>().InTransientScope();
+        _serviceProvider.Bind<Interface5>().To<Class5>().InThreadScope();
     }
 
     [Benchmark]

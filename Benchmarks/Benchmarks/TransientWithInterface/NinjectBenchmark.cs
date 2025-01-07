@@ -10,14 +10,13 @@ namespace Benchmarks.Benchmarks.TransientWithInterface;
 [BenchmarkCategory("TransientWithInterface")]
 public class NinjectBenchmark
 {
-    private IKernel _serviceProvider = null!;
+    private StandardKernel _serviceProvider = null!;
 
     [GlobalSetup]
     public void GlobalSetup()
     {
-        _serviceProvider = new StandardKernel()
-            .Bind<Interface1>().To<Class1>().InTransientScope()
-            .Kernel!;
+        _serviceProvider = new StandardKernel();
+        _serviceProvider.Bind<Interface1>().To<Class1>().InTransientScope();
     }
 
     [Benchmark]

@@ -17,6 +17,7 @@ public class MicrosoftDependencyInjectionBenchmark
     {
         _serviceProvider = new ServiceCollection()
             .AddTransient<Class1>()
+            .AddTransient<GenericWrapper>()
             .AddTransient(typeof(IGenericInterface<>), typeof(GenericClass<>))
             .BuildServiceProvider();
     }
@@ -26,6 +27,6 @@ public class MicrosoftDependencyInjectionBenchmark
     {
         await using var scope = _serviceProvider.CreateAsyncScope();
 
-        scope.ServiceProvider.GetRequiredService<IGenericInterface<Class1>>();
+        scope.ServiceProvider.GetRequiredService<GenericWrapper>();
     }
 }

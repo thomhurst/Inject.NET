@@ -15,6 +15,7 @@ public partial class InjectDotNetBenchmark
     [ServiceProvider]
     [Transient(typeof(IGenericInterface<>), typeof(GenericClass<>))]
     [Transient<Class1>]
+    [Transient<GenericWrapper>]
     public partial class MyServiceProvider;
     
     private IServiceProviderRoot _serviceProviderRoot = null!;
@@ -30,6 +31,6 @@ public partial class InjectDotNetBenchmark
     {
         await using var scope = _serviceProviderRoot.CreateScope();
 
-        scope.GetRequiredService<IGenericInterface<Class1>>();
+        scope.GetRequiredService<GenericWrapper>();
     }
 }

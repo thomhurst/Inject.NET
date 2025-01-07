@@ -19,6 +19,8 @@ public class AutofacBenchmark
 
         containerBuilder
             .RegisterType<Class1>().InstancePerDependency();
+
+        containerBuilder.RegisterType<GenericWrapper>().InstancePerDependency();
             
         containerBuilder
             .RegisterType(typeof(GenericClass<>)).As(typeof(IGenericInterface<>)).InstancePerDependency();
@@ -31,6 +33,6 @@ public class AutofacBenchmark
     {
         await using var scope = _serviceProvider.BeginLifetimeScope();
 
-        scope.Resolve<GenericClass<Class1>>();
+        scope.Resolve<GenericWrapper>();
     }
 }

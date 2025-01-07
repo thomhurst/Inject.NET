@@ -10,6 +10,8 @@ public interface IGenericInterface<T>;
 
 public class GenericClass<T>(T t) : IGenericInterface<T>;
 
+public class GenericWrapper(IGenericInterface<Class1> generic);
+
 public class Class1 : Interface1;
 public class Class2(Interface1 @interface) : Interface2;
 public class Class3(Interface2 @interface) : Interface3;

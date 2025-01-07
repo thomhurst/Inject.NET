@@ -18,6 +18,7 @@ public class NinjectBenchmark
         _serviceProvider = new StandardKernel();
 
         _serviceProvider.Bind<Class1>().ToSelf().InTransientScope();
+        _serviceProvider.Bind<GenericWrapper>().ToSelf().InTransientScope();
         _serviceProvider.Bind(typeof(IGenericInterface<>)).To(typeof(GenericClass<>)).InTransientScope();
     }
 
@@ -26,6 +27,6 @@ public class NinjectBenchmark
     {
         using var scope = _serviceProvider.BeginBlock();
 
-        scope.Get<IGenericInterface<Class1>>();
+        scope.Get<IGenericInterface<GenericWrapper>>();
     }
 }

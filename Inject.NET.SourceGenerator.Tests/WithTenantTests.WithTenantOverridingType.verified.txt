@@ -17,7 +17,7 @@ public class WithTenantOverridingTypeServiceRegistrar : ServiceRegistrar
 			ImplementationType = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.Parent),
 			Lifetime = Inject.NET.Enums.Lifetime.Transient,
 			Factory = (scope, type, key) =>
-			 Activator.CreateInstance(typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.Parent).MakeGenericType(type.GenericTypeArguments), [ ..type.GenericTypeArguments.Select(x => scope.GetService(x)) ])
+			new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.Parent((global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.IChild)new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.Child1())
 		});
 
 		Register(new global::Inject.NET.Models.ServiceDescriptor
@@ -26,7 +26,7 @@ public class WithTenantOverridingTypeServiceRegistrar : ServiceRegistrar
 			ImplementationType = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.Child1),
 			Lifetime = Inject.NET.Enums.Lifetime.Transient,
 			Factory = (scope, type, key) =>
-			 Activator.CreateInstance(typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.Child1).MakeGenericType(type.GenericTypeArguments), [ ..type.GenericTypeArguments.Select(x => scope.GetService(x)) ])
+			new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.Child1()
 		});
 
 		{
@@ -37,7 +37,7 @@ public class WithTenantOverridingTypeServiceRegistrar : ServiceRegistrar
 				ImplementationType = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.TenantChild1),
 				Lifetime = Inject.NET.Enums.Lifetime.Transient,
 				Factory = (scope, type, key) =>
-				 Activator.CreateInstance(typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.TenantChild1).MakeGenericType(type.GenericTypeArguments), [ ..type.GenericTypeArguments.Select(x => scope.GetService(x)) ])
+				new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.TenantChild1()
 			});
 
 			tenant.Register(new global::Inject.NET.Models.ServiceDescriptor
@@ -46,7 +46,7 @@ public class WithTenantOverridingTypeServiceRegistrar : ServiceRegistrar
 				ImplementationType = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.Parent),
 				Lifetime = Inject.NET.Enums.Lifetime.Transient,
 				Factory = (scope, type, key) =>
-				 Activator.CreateInstance(typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.Parent).MakeGenericType(type.GenericTypeArguments), [ ..type.GenericTypeArguments.Select(x => scope.GetService(x)) ])
+				new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.Parent((global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.IChild)new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.TenantChild1())
 			});
 
 		}

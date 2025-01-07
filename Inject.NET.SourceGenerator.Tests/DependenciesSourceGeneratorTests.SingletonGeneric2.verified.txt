@@ -17,7 +17,7 @@ public class SingletonGeneric2ServiceRegistrar : ServiceRegistrar
 			ImplementationType = typeof(Generic<>),
 			Lifetime = Inject.NET.Enums.Lifetime.Singleton,
 			Factory = (scope, type, key) =>
-			 Activator.CreateInstance(typeof(Generic<>).MakeGenericType(type.GenericTypeArguments), [ ..type.GenericTypeArguments.Select(x => scope.GetService(x)) ])
+			new Generic<>()
 		});
 
 	}

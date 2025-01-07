@@ -11,6 +11,8 @@ public static class GenericTypeHelper
         Compilation compilation,
         INamedTypeSymbol genericTypeDefinition)
     {
+        var originalGenericDefinition = genericTypeDefinition.OriginalDefinition;
+
         foreach (var syntaxTree in compilation.SyntaxTrees)
         {
             var semanticModel = compilation.GetSemanticModel(syntaxTree);
@@ -24,7 +26,7 @@ public static class GenericTypeHelper
                 if (semanticModel.GetTypeInfo(typeNode).Type 
                         is INamedTypeSymbol { IsGenericType: true } typeSymbol 
                     && !typeSymbol.IsGenericDefinition()
-                    && SymbolEqualityComparer.Default.Equals(typeSymbol.OriginalDefinition, genericTypeDefinition))
+                    && SymbolEqualityComparer.Default.Equals(typeSymbol.OriginalDefinition, originalGenericDefinition))
                 {
                     yield return typeSymbol;
                 }

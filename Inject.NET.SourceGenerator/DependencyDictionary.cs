@@ -46,14 +46,17 @@ public static class DependencyDictionary
 
                 foreach (var constructedType in constructedTypes)
                 {
-                    Add(compilation,
-                        constructedType,
-                        implementationType.IsGenericType
-                            ? implementationType.OriginalDefinition.Construct([..constructedType.TypeArguments])
-                            : implementationType,
-                        list,
-                        key,
-                        lifetime);
+                    if(!list.Any(x => SymbolEqualityComparer.Default.Equals(x.ServiceType, constructedType)))
+                    {
+                        Add(compilation,
+                            constructedType,
+                            implementationType.IsGenericType
+                                ? implementationType.OriginalDefinition.Construct([..constructedType.TypeArguments])
+                                : implementationType,
+                            list,
+                            key,
+                            lifetime);
+                    }
                 }
             }
         }

@@ -1,5 +1,6 @@
 ﻿[  
 using System;
+using System.Linq;
 using Inject.NET.Enums;
 using Inject.NET.Extensions;
 using Inject.NET.Services;

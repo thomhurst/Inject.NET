@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis;
 
 namespace Inject.NET.SourceGenerator.Models;
 
-public class ServiceModel
+public record ServiceModel
 {
     public required INamedTypeSymbol ServiceType { get; init; }
     

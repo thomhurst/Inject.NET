@@ -1,5 +1,6 @@
 ﻿[  
 using System;
+using System.Linq;
 using Inject.NET.Enums;
 using Inject.NET.Extensions;
 using Inject.NET.Services;
@@ -25,7 +26,7 @@ public class OpenGeneric5ServiceRegistrar : ServiceRegistrar
 			ImplementationType = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric5.Generic<>),
 			Lifetime = Inject.NET.Enums.Lifetime.Transient,
 			Factory = (scope, type, key) =>
-			Activator.CreateInstance(typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric5.Generic<>).MakeGenericType(type.GenericTypeArguments), [scope.GetService(new global::Inject.NET.Models.ServiceKey(type, null))])
+			 Activator.CreateInstance(typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric5.Generic<>).MakeGenericType(type.GenericTypeArguments), [ ..type.GenericTypeArguments.Select(x => scope.GetService(x)) ])
 		});
 
 		Register(new global::Inject.NET.Models.ServiceDescriptor
@@ -34,7 +35,7 @@ public class OpenGeneric5ServiceRegistrar : ServiceRegistrar
 			ImplementationType = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric5.Wrapper),
 			Lifetime = Inject.NET.Enums.Lifetime.Transient,
 			Factory = (scope, type, key) =>
-			new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric5.Wrapper((global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric5.IGeneric<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric5.Class1>)Activator.CreateInstance(typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric5.Generic<>).MakeGenericType(type.GenericTypeArguments), [scope.GetService(new global::Inject.NET.Models.ServiceKey(type, null))]))
+			new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric5.Wrapper((global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric5.IGeneric<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric5.Class1>) Activator.CreateInstance(typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric5.Generic<>).MakeGenericType(type.GenericTypeArguments), [ ..type.GenericTypeArguments.Select(x => scope.GetService(x)) ]))
 		});
 
 	}

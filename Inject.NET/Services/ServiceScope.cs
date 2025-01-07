@@ -65,7 +65,11 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
 
         if (!serviceFactories.Descriptor.TryGetValue(serviceKey, out var descriptor))
         {
-            return null;
+            if (!serviceKey.Type.IsGenericType ||
+                !serviceFactories.Descriptor.TryGetValue(serviceKey with { Type = serviceKey.Type.GetGenericTypeDefinition() }, out descriptor))
+            {
+                return null;
+            }
         }
 
         if (descriptor.Lifetime == Lifetime.Singleton)

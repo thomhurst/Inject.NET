@@ -1,5 +1,6 @@
 ﻿[  
 using System;
+using System.Linq;
 using Inject.NET.Enums;
 using Inject.NET.Extensions;
 using Inject.NET.Services;
@@ -16,7 +17,7 @@ public class SingletonGenericServiceRegistrar : ServiceRegistrar
 			ImplementationType = typeof(global::Inject.NET.SourceGenerator.Sample.Models.Generic<>),
 			Lifetime = Inject.NET.Enums.Lifetime.Singleton,
 			Factory = (scope, type, key) =>
-			Activator.CreateInstance(typeof(global::Inject.NET.SourceGenerator.Sample.Models.Generic<>).MakeGenericType(type.GenericTypeArguments), [])
+			 Activator.CreateInstance(typeof(global::Inject.NET.SourceGenerator.Sample.Models.Generic<>).MakeGenericType(type.GenericTypeArguments), [ ..type.GenericTypeArguments.Select(x => scope.GetService(x)) ])
 		});
 
 	}

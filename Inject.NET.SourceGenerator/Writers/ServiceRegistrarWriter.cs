@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Inject.NET.SourceGenerator.Models;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Inject.NET.SourceGenerator.Writers;
 
@@ -27,6 +28,7 @@ public static class ServiceRegistrarWriter
         var sourceCodeWriter = new SourceCodeWriter();
         
         sourceCodeWriter.WriteLine("using System;");
+        sourceCodeWriter.WriteLine("using System.Linq;");
         sourceCodeWriter.WriteLine("using Inject.NET.Enums;");
         sourceCodeWriter.WriteLine("using Inject.NET.Extensions;");
         sourceCodeWriter.WriteLine("using Inject.NET.Services;");
@@ -189,7 +191,7 @@ public static class ServiceRegistrarWriter
         {
             var key = parameter.Key is null ? "null" : $"\"{parameter.Key}\"";
             
-            return $"scope.GetService(new global::Inject.NET.Models.ServiceKey(type, {key}))";
+            return $"scope.GetService(new global::Inject.NET.Models.ServiceKey(typeof({parameter.Type.GloballyQualified()}), {key}))";
         }
         
         if (!dependencyDictionary.TryGetValue(parameter.Type, out var models))
@@ -252,7 +254,7 @@ public static class ServiceRegistrarWriter
         }
         
         return $$"""
-                 Activator.CreateInstance(typeof({{lastTypeInDictionary.ImplementationType.GloballyQualified()}}).MakeGenericType(type.GenericTypeArguments), new object[] { {{string.Join(", ", BuildParameters(dependencyDictionary, serviceModel))}} })
+                 Activator.CreateInstance(typeof({{lastTypeInDictionary.ImplementationType.GloballyQualified()}}).MakeGenericType(type.GenericTypeArguments), [ ..type.GenericTypeArguments.Select(x => scope.GetService(x)) ])
                 """;
     }
 }

@@ -35,7 +35,7 @@ internal class ServiceProviderRoot : IServiceProviderRoot
         {
             await using var tenantScope = serviceProvider.CreateScope();
 
-            foreach (var key in ((TenantServiceProvider)serviceProvider).ServiceFactories.Descriptors.Keys)
+            foreach (var key in ((TenantServiceProvider)serviceProvider).ServiceFactories.Descriptors.Keys.Where(x => x.Type.IsConstructedGenericType))
             {
                 tenantScope.GetService(key);
             }
@@ -43,9 +43,9 @@ internal class ServiceProviderRoot : IServiceProviderRoot
         
         await using var scope = CreateScope();
         
-        foreach (var type in _serviceFactories.Descriptors.Keys)
+        foreach (var key in _serviceFactories.Descriptors.Keys.Where(x => x.Type.IsConstructedGenericType))
         {
-            scope.GetService(type);
+            scope.GetService(key);
         }
         
         await SingletonScope.FinalizeAsync();

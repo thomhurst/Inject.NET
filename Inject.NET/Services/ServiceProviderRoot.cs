@@ -6,23 +6,19 @@ using IServiceProvider = Inject.NET.Interfaces.IServiceProvider;
 
 namespace Inject.NET.Services;
 
-public class ServiceProviderRoot : IServiceProviderRoot
+public abstract class ServiceProviderRoot : IServiceProviderRoot
 {
-    internal readonly ObjectPool<ServiceScope> ServiceScopePool;
-
-    internal readonly SingletonScope SingletonScope;
-    private readonly ServiceFactories _serviceFactories;
+    protected readonly ServiceFactories ServiceFactories;
     private readonly IDictionary<string, IServiceRegistrar> _tenantRegistrars;
 
     private FrozenDictionary<string, IServiceProvider> _tenants = null!;
+    
+    public abstract SingletonScope SingletonScope { get; }
 
     public ServiceProviderRoot(ServiceFactories serviceFactories, IDictionary<string, IServiceRegistrar> tenantRegistrars)
     {
-        _serviceFactories = serviceFactories;
+        ServiceFactories = serviceFactories;
         _tenantRegistrars = tenantRegistrars;
-        SingletonScope = new SingletonScope(this, serviceFactories);
-        ServiceScopePool =
-            new ObjectPool<ServiceScope>(new ServiceScopePoolPolicy(this, SingletonScope, serviceFactories));
     }
 
     public async ValueTask InitializeAsync()
@@ -43,7 +39,7 @@ public class ServiceProviderRoot : IServiceProviderRoot
         
         await using var scope = CreateScope();
         
-        foreach (var key in _serviceFactories.Descriptors.Keys.Where(x => x.Type.IsConstructedGenericType))
+        foreach (var key in ServiceFactories.Descriptors.Keys.Where(x => x.Type.IsConstructedGenericType))
         {
             scope.GetService(key);
         }
@@ -78,10 +74,7 @@ public class ServiceProviderRoot : IServiceProviderRoot
         return false;
     }
 
-    public IServiceScope CreateScope()
-    {
-        return ServiceScopePool.Get();
-    }
+    public abstract IServiceScope CreateScope();
 
     public IServiceProvider GetTenant(string tenantId)
     {

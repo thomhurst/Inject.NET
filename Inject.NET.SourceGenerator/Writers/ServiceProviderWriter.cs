@@ -36,6 +36,7 @@ internal static class ServiceProviderWriter
         
         ServiceRegistrarWriter.GenerateServiceRegistrarCode(sourceProductionContext, tuple.Compilation, tuple.ServiceProviderModel, rootDependencies);
         SingletonScopeWriter.Write(sourceProductionContext, compilation, tuple.ServiceProviderModel, rootDependencies, tenants);
+        ScopeWriter.Write(sourceProductionContext, compilation, tuple.ServiceProviderModel, rootDependencies, tenants);
         
         var sourceCodeWriter = new SourceCodeWriter();
         
@@ -68,7 +69,11 @@ internal static class ServiceProviderWriter
             $"{serviceProviderType.DeclaredAccessibility.ToString().ToLower(CultureInfo.InvariantCulture)} partial class {serviceProviderType.Name} : global::Inject.NET.Services.ServiceProviderRoot");
         sourceCodeWriter.WriteLine("{");
         
-        sourceCodeWriter.WriteLine($$"""public {{serviceProviderModel.Type.Name}}SingletonScope SingletonScope { get; }""");
+        sourceCodeWriter.WriteLine($$"""public override {{serviceProviderModel.Type.GloballyQualified()}}SingletonScope SingletonScope { get; }""");
+        
+        sourceCodeWriter.WriteLine($$"""
+                                     public override IServiceScope CreateScope() => new {{serviceProviderModel.Type.GloballyQualified()}}Scope(this, SingletonScope, ServiceFactories);
+                                     """);
         
         sourceCodeWriter.WriteLine(
             $"public {serviceProviderType.Name}(Inject.NET.Models.ServiceFactories serviceFactories, global::System.Collections.Generic.IDictionary<string, IServiceRegistrar> tenantRegistrars) : base(serviceFactories, tenantRegistrars)");

@@ -41,7 +41,7 @@ internal static class ScopeWriter
         }
 
         sourceCodeWriter.WriteLine(
-            $"public class {serviceProviderModel.Type.Name}Scope : Scope");
+            $"public class {serviceProviderModel.Type.Name}Scope : ServiceScope");
         sourceCodeWriter.WriteLine("{");
         
         sourceCodeWriter.WriteLine($"public {serviceProviderModel.Type.Name}Scope(ServiceProviderRoot root, IServiceScope singletonScope, ServiceFactories serviceFactories) : base(root, singletonScope, serviceFactories)");
@@ -93,7 +93,7 @@ internal static class ScopeWriter
             foreach (var (_, singleton) in singletons)
             {
                 sourceCodeWriter.WriteLine(
-                    $"{PropertyNameHelper.Format(singleton)} = new global::System.Lazy<{singleton.ServiceType.GloballyQualified()}>(() => {WriteScoped(singleton, dependencyDictionary)});");
+                    $"{PropertyNameHelper.Format(singleton)} = new global::System.Lazy<{singleton.ServiceType.GloballyQualified()}>(() => {WriteScoped(serviceProviderType, singleton, dependencyDictionary)});");
             }
         }
 
@@ -109,23 +109,39 @@ internal static class ScopeWriter
         return singletons;
     }
 
-    private static string WriteScoped(ServiceModel singleton,
+    private static string WriteScoped(
+        INamedTypeSymbol serviceProviderType,
+        ServiceModel singleton,
         Dictionary<ISymbol?, ServiceModel[]> dependencyDictionary)
     {
-        return $"new {singleton.ImplementationType.GloballyQualified()}({string.Join(", ", GetParameters(singleton, dependencyDictionary))})";
+        return $"new {singleton.ImplementationType.GloballyQualified()}({string.Join(", ", GetParameters(serviceProviderType, singleton, dependencyDictionary))})";
     }
 
-    private static IEnumerable<string> GetParameters(ServiceModel serviceModel,
+    private static IEnumerable<string> GetParameters(
+        INamedTypeSymbol serviceProviderType,
+        ServiceModel serviceModel,
         Dictionary<ISymbol?, ServiceModel[]> dependencyDictionary)
     {
         return serviceModel.Parameters.Select(parameter =>
         {
-            if (!dependencyDictionary.ContainsKey(parameter.Type))
+            if (!dependencyDictionary.TryGetValue(parameter.Type, out var models))
             {
                 return $"global::Inject.NET.ThrowHelpers.Throw<{parameter.Type.GloballyQualified()}>(\"No dependency found for {parameter.Type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)} when trying to construct {serviceModel.ImplementationType.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)}\")";
             }
+
+            var model = models[^1];
             
-            return $"{PropertyNameHelper.Format(parameter.Type)}.Value";
+            if (model.Lifetime == Lifetime.Scoped)
+            {
+                return $"{PropertyNameHelper.Format(parameter.Type)}.Value";
+            }
+
+            if (model.Lifetime == Lifetime.Singleton)
+            {
+                return $"SingletonScope.{PropertyNameHelper.Format(parameter.Type)}.Value";
+            }
+
+            return ObjectConstructionHelper.ConstructNewObject(serviceProviderType, dependencyDictionary, model);
         });
     }
 

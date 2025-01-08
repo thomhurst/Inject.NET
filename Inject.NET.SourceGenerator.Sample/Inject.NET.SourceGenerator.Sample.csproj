@@ -12,10 +12,20 @@
                         OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
       <ProjectReference Include="..\Inject.NET\Inject.NET.csproj" />
     </ItemGroup>
+    
+    <Target Name="CleanGenerated" BeforeTargets="PreBuildEvent">
+        <Message Text="Removing SourceGeneratedViewer directory..." Importance="high" />
+        <RemoveDir Directories="$(ProjectDir)SourceGeneratedViewer" />
+    </Target>
 
     <PropertyGroup>
-<!--        <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>-->
-<!--        <CompilerGeneratedFilesOutputPath>GeneratedViewer</CompilerGeneratedFilesOutputPath>-->
+        <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+        <CompilerGeneratedFilesOutputPath>SourceGeneratedViewer</CompilerGeneratedFilesOutputPath>
     </PropertyGroup>
+    
+    <ItemGroup>
+        <Compile Remove="SourceGeneratedViewer\**" />
+        <None Include="SourceGeneratedViewer\**" />
+    </ItemGroup>
 
 </Project>

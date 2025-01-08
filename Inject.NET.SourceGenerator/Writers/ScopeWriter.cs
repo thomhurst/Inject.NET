@@ -6,21 +6,20 @@ using Microsoft.CodeAnalysis;
 
 namespace Inject.NET.SourceGenerator.Writers;
 
-internal static class ServiceRegistrarWriter
+internal static class ScopeWriter
 {
-    public static void GenerateServiceRegistrarCode(SourceProductionContext sourceProductionContext,
+    public static void Write(SourceProductionContext sourceProductionContext,
         Compilation compilation, TypedServiceProviderModel serviceProviderModel,
-        Dictionary<ISymbol?, ServiceModel[]> dependencyDictionary)
+        Dictionary<ISymbol?, ServiceModel[]> dependencyDictionary, IEnumerable<Tenant> tenants)
     {
-        var withTenantAttributeType = compilation.GetTypeByMetadataName("Inject.NET.Attributes.WithTenantAttribute`1");
-        
         var sourceCodeWriter = new SourceCodeWriter();
         
         sourceCodeWriter.WriteLine("using System;");
         sourceCodeWriter.WriteLine("using System.Linq;");
-        sourceCodeWriter.WriteLine("using System.Threading.Tasks;");
         sourceCodeWriter.WriteLine("using Inject.NET.Enums;");
         sourceCodeWriter.WriteLine("using Inject.NET.Extensions;");
+        sourceCodeWriter.WriteLine("using Inject.NET.Interfaces;");
+        sourceCodeWriter.WriteLine("using Inject.NET.Models;");
         sourceCodeWriter.WriteLine("using Inject.NET.Services;");
         sourceCodeWriter.WriteLine();
 
@@ -42,46 +41,33 @@ internal static class ServiceRegistrarWriter
         }
 
         sourceCodeWriter.WriteLine(
-            $"public class {serviceProviderModel.Type.Name}ServiceRegistrar : ServiceRegistrar<{serviceProviderModel.Type.GloballyQualified()}>");
+            $"public class {serviceProviderModel.Type.Name}Scope : ServiceScope");
         sourceCodeWriter.WriteLine("{");
         
-        sourceCodeWriter.WriteLine($"public {serviceProviderModel.Type.Name}ServiceRegistrar()");
+        sourceCodeWriter.WriteLine($"public {serviceProviderModel.Type.Name}Scope(ServiceProviderRoot root, IServiceScope singletonScope, ServiceFactories serviceFactories) : base(root, singletonScope, serviceFactories)");
         sourceCodeWriter.WriteLine("{");
-
-        WriteRegistration(sourceCodeWriter, serviceProviderModel.Type, dependencyDictionary, string.Empty);
-
-        var withTenantAttributes = serviceProviderModel.Type.GetAttributes().Where(x =>
-            SymbolEqualityComparer.Default.Equals(x.AttributeClass?.OriginalDefinition, withTenantAttributeType));
         
-        foreach (var withTenantAttribute in withTenantAttributes)
+        var singletons = WriteRegistrations(serviceProviderModel.Type, dependencyDictionary, sourceCodeWriter, false);
+        
+        foreach (var tenant in tenants)
         {
-            var tenantId = withTenantAttribute.ConstructorArguments[0].Value!.ToString();
-            var tenantDefinitionClass = (INamedTypeSymbol) withTenantAttribute.AttributeClass!.TypeArguments[0];
+            sourceCodeWriter.WriteLine("{");
             
-            WriteWithTenant(sourceCodeWriter, serviceProviderModel.Type, compilation, tenantId, tenantDefinitionClass, dependencyDictionary);
-        }
-        
-        sourceCodeWriter.WriteLine("}");
+            sourceCodeWriter.WriteLine($"var tenant = GetOrCreateTenant(\"{tenant.TenantId}\");");
+            
+            WriteRegistrations(serviceProviderModel.Type, tenant.TenantDependencies, sourceCodeWriter, true);
 
-        sourceCodeWriter.WriteLine();
+            sourceCodeWriter.WriteLine("}");
+        }
+
+        sourceCodeWriter.WriteLine("}");
         
-        sourceCodeWriter.WriteLine($$"""
-                                   public override async ValueTask<{{serviceProviderModel.Type.GloballyQualified()}}> BuildAsync()
-                                   {
-                                       OnBeforeBuild(this);
-                                   
-                                       var serviceProvider = new {{serviceProviderModel.Type.GloballyQualified()}}(ServiceFactoryBuilders.AsReadOnly(), Tenants);
-                                       
-                                       var vt = serviceProvider.InitializeAsync();
-                                   
-                                       if (!vt.IsCompletedSuccessfully)
-                                       {
-                                           await vt.ConfigureAwait(false);
-                                       }
-                                       
-                                       return serviceProvider;
-                                   }
-                                   """);
+        foreach (var (_, singleton) in singletons)
+        {
+            sourceCodeWriter.WriteLine($$"""
+                                         public global::System.Lazy<{{singleton.ServiceType.GloballyQualified()}}> {{PropertyNameHelper.Format(singleton)}} { get; }
+                                         """);
+        }
 
         sourceCodeWriter.WriteLine("}");
         
@@ -90,7 +76,73 @@ internal static class ServiceRegistrarWriter
             sourceCodeWriter.WriteLine("}");
         }
         
-        sourceProductionContext.AddSource($"{serviceProviderModel.Type.Name}ServiceRegistrar_{Guid.NewGuid():N}.g.cs", sourceCodeWriter.ToString());
+        sourceProductionContext.AddSource($"{serviceProviderModel.Type.Name}SingletonScope{Guid.NewGuid():N}.g.cs", sourceCodeWriter.ToString());
+    }
+
+    private static KeyValuePair<ISymbol, ServiceModel>[] WriteRegistrations(INamedTypeSymbol serviceProviderType, Dictionary<ISymbol?, ServiceModel[]> dependencyDictionary, SourceCodeWriter sourceCodeWriter, bool isTenant)
+    {
+        var prefix = isTenant ? "tenant." : null;
+        
+        var singletons = dependencyDictionary.Where(x => x.Value[^1].Lifetime is Lifetime.Scoped)
+            .Select(x => new KeyValuePair<ISymbol, ServiceModel>(x.Key!, x.Value[^1]))
+            .Where(x => !x.Value.ServiceType.IsGenericDefinition())
+            .ToArray();
+
+        if (!isTenant)
+        {
+            foreach (var (_, singleton) in singletons)
+            {
+                sourceCodeWriter.WriteLine(
+                    $"{PropertyNameHelper.Format(singleton)} = new global::System.Lazy<{singleton.ServiceType.GloballyQualified()}>(() => {WriteScoped(serviceProviderType, singleton, dependencyDictionary)});");
+            }
+        }
+
+        foreach (var (_, singleton) in singletons)
+        {
+            var propertyName = PropertyNameHelper.Format(singleton);
+
+            var key = singleton.Key is null ? "null" : $"\"{singleton.Key}\"";
+            
+            sourceCodeWriter.WriteLine($"{prefix}Register(new global::Inject.NET.Models.ServiceKey(typeof({singleton.ServiceType.GloballyQualified()}), {key}), new global::System.Lazy<object>(() => {propertyName}.Value));");
+        }
+
+        return singletons;
+    }
+
+    private static string WriteScoped(
+        INamedTypeSymbol serviceProviderType,
+        ServiceModel singleton,
+        Dictionary<ISymbol?, ServiceModel[]> dependencyDictionary)
+    {
+        return $"new {singleton.ImplementationType.GloballyQualified()}({string.Join(", ", GetParameters(serviceProviderType, singleton, dependencyDictionary))})";
+    }
+
+    private static IEnumerable<string> GetParameters(
+        INamedTypeSymbol serviceProviderType,
+        ServiceModel serviceModel,
+        Dictionary<ISymbol?, ServiceModel[]> dependencyDictionary)
+    {
+        return serviceModel.Parameters.Select(parameter =>
+        {
+            if (!dependencyDictionary.TryGetValue(parameter.Type, out var models))
+            {
+                return $"global::Inject.NET.ThrowHelpers.Throw<{parameter.Type.GloballyQualified()}>(\"No dependency found for {parameter.Type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)} when trying to construct {serviceModel.ImplementationType.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)}\")";
+            }
+
+            var model = models[^1];
+            
+            if (model.Lifetime == Lifetime.Scoped)
+            {
+                return $"{PropertyNameHelper.Format(parameter.Type)}.Value";
+            }
+
+            if (model.Lifetime == Lifetime.Singleton)
+            {
+                return $"SingletonScope.{PropertyNameHelper.Format(parameter.Type)}.Value";
+            }
+
+            return ObjectConstructionHelper.ConstructNewObject(serviceProviderType, dependencyDictionary, model);
+        });
     }
 
     private static void WriteWithTenant(SourceCodeWriter sourceCodeWriter, INamedTypeSymbol serviceProviderType, Compilation compilation, string tenantId,
@@ -160,8 +212,8 @@ internal static class ServiceRegistrarWriter
         }
     }
 
-    private static void WriteRegistration(SourceCodeWriter sourceCodeWriter,
-        INamedTypeSymbol serviceProviderType, Dictionary<ISymbol?, ServiceModel[]> dependencyDictionary, string prefix)
+    private static void WriteRegistration(SourceCodeWriter sourceCodeWriter, INamedTypeSymbol serviceProviderType,
+        Dictionary<ISymbol?, ServiceModel[]> dependencyDictionary, string prefix)
     {
         foreach (var (_, serviceModels) in dependencyDictionary)
         {

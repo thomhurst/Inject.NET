@@ -6,14 +6,18 @@ using Inject.NET.Extensions;
 using Inject.NET.Helpers;
 using Inject.NET.Interfaces;
 using Inject.NET.Models;
+using Inject.NET.Pools;
 using IServiceProvider = Inject.NET.Interfaces.IServiceProvider;
 
 namespace Inject.NET.Services;
 
-internal sealed class SingletonScope(IServiceProvider root, ServiceFactories serviceFactories) : IServiceScope
+public class SingletonScope(IServiceProviderRoot root, ServiceFactories serviceFactories) : IServiceScope
 {
     private static readonly Type ServiceScopeType = typeof(IServiceScope);
     private static readonly Type ServiceProviderType = typeof(IServiceProvider);
+    
+    private Dictionary<ServiceKey, Lazy<object>>? _registered;
+    private Dictionary<ServiceKey, List<Lazy<object>>>? _registeredEnumerables;
 
     private readonly ConcurrentDictionary<ServiceKey, List<object>> _singletonsBuilder = [];
     private FrozenDictionary<ServiceKey, ImmutableArray<object>> _singletonEnumerables = FrozenDictionary<ServiceKey, ImmutableArray<object>>.Empty;
@@ -29,6 +33,15 @@ internal sealed class SingletonScope(IServiceProvider root, ServiceFactories ser
         {
             GetServices(cacheKey);
         }
+    }
+    
+    public void Register(ServiceKey key, Lazy<object> lazy)
+    {
+        (_registered ??= DictionaryPool<ServiceKey, Lazy<object>>.Shared.Get()).Add(key, lazy);
+        
+        (_registeredEnumerables ??= DictionaryPool<ServiceKey, List<Lazy<object>>>.Shared.Get())
+            .GetOrAdd(key, _ => [])
+            .Add(lazy);
     }
 
     internal async Task FinalizeAsync()
@@ -65,7 +78,7 @@ internal sealed class SingletonScope(IServiceProvider root, ServiceFactories ser
 
     public object? GetService(ServiceKey serviceKey)
     {
-        if (_singletons.TryGetValue(serviceKey, out var singleton))
+        if (_registered?.TryGetValue(serviceKey, out var singleton) == true)
         {
             return singleton;
         }

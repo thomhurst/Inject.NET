@@ -1,15 +1,42 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using Inject.NET.SourceGenerator.Models;
 using Microsoft.CodeAnalysis;
 
 namespace Inject.NET.SourceGenerator.Writers;
 
-public static class ServiceProviderWriter
+internal static class ServiceProviderWriter
 {
     public static void GenerateServiceProviderCode(SourceProductionContext sourceProductionContext, (TypedServiceProviderModel ServiceProviderModel, Compilation Compilation) tuple)
     {
-        ServiceRegistrarWriter.GenerateServiceRegistrarCode(sourceProductionContext, tuple.Compilation, tuple.ServiceProviderModel);
+        var compilation = tuple.Compilation;
+        var serviceProviderModel = tuple.ServiceProviderModel;
+        
+        var dependencyInjectionAttributeType = compilation.GetTypeByMetadataName("Inject.NET.Attributes.IDependencyInjectionAttribute");
+
+        var withTenantAttributeType = compilation.GetTypeByMetadataName("Inject.NET.Attributes.WithTenantAttribute`1");
+        
+        var attributes = serviceProviderModel.Type
+            .GetAttributes();
+        
+        var dependencyAttributes = attributes
+            .Where(x => x.AttributeClass?.AllInterfaces.Contains(dependencyInjectionAttributeType,
+                SymbolEqualityComparer.Default) == true)
+            .ToArray();
+        
+        var withTenantAttributes = attributes
+            .Where(x => x.AttributeClass?.IsGenericType is true && SymbolEqualityComparer.Default.Equals(withTenantAttributeType, x.AttributeClass))
+            .ToArray();
+
+        var rootDependencies = DependencyDictionary.Create(compilation, dependencyAttributes);
+
+        var tenants = TenantHelper.ConstructTenants(compilation, withTenantAttributes, rootDependencies);
+        
+        ServiceRegistrarWriter.GenerateServiceRegistrarCode(sourceProductionContext, tuple.Compilation, tuple.ServiceProviderModel, rootDependencies);
+        SingletonScopeWriter.Write(sourceProductionContext, compilation, tuple.ServiceProviderModel, rootDependencies, tenants);
+        ScopeWriter.Write(sourceProductionContext, compilation, tuple.ServiceProviderModel, rootDependencies, tenants);
         
         var sourceCodeWriter = new SourceCodeWriter();
         
@@ -39,14 +66,28 @@ public static class ServiceProviderWriter
         }
 
         sourceCodeWriter.WriteLine(
-            $"{serviceProviderType.DeclaredAccessibility.ToString().ToLower(CultureInfo.InvariantCulture)} partial class {serviceProviderType.Name}");
+            $"{serviceProviderType.DeclaredAccessibility.ToString().ToLower(CultureInfo.InvariantCulture)} partial class {serviceProviderType.Name} : global::Inject.NET.Services.ServiceProviderRoot");
         sourceCodeWriter.WriteLine("{");
-
-        sourceCodeWriter.WriteLine("public static ValueTask<IServiceProviderRoot> BuildAsync() =>");
-        sourceCodeWriter.WriteLine($"\tnew {serviceProviderType.Name}ServiceRegistrar().BuildAsync();");
-
+        
+        sourceCodeWriter.WriteLine($$"""public override {{serviceProviderModel.Type.GloballyQualified()}}SingletonScope SingletonScope { get; }""");
+        
+        sourceCodeWriter.WriteLine($$"""
+                                     public override IServiceScope CreateScope() => new {{serviceProviderModel.Type.GloballyQualified()}}Scope(this, SingletonScope, ServiceFactories);
+                                     """);
+        
+        sourceCodeWriter.WriteLine(
+            $"public {serviceProviderType.Name}(Inject.NET.Models.ServiceFactories serviceFactories, global::System.Collections.Generic.IDictionary<string, IServiceRegistrar> tenantRegistrars) : base(serviceFactories, tenantRegistrars)");
+        sourceCodeWriter.WriteLine("{");
+        
+        sourceCodeWriter.WriteLine("""SingletonScope = new(this, serviceFactories);""");
+        
         sourceCodeWriter.WriteLine("}");
 
+        sourceCodeWriter.WriteLine($"public static ValueTask<{serviceProviderModel.Type.GloballyQualified()}> BuildAsync() =>");
+        sourceCodeWriter.WriteLine($"\tnew {serviceProviderType.Name}ServiceRegistrar().BuildAsync();");
+        
+        sourceCodeWriter.WriteLine("}");
+        
         for (var i = 0; i < nestedClassCount; i++)
         {
             sourceCodeWriter.WriteLine("}");

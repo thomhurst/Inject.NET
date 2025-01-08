@@ -3,7 +3,7 @@ using Microsoft.CodeAnalysis;
 
 namespace Inject.NET.SourceGenerator;
 
-public static class TypeExtensions
+internal static class TypeExtensions
 {
     public static bool IsGenericDefinition(this ITypeSymbol typeSymbol)
     {
@@ -32,6 +32,9 @@ public static class TypeExtensions
     
     public static string GloballyQualified(this ITypeSymbol typeSymbol) =>
         typeSymbol.ToDisplayString(DisplayFormats.FullyQualifiedGenericWithGlobalPrefix);
+    
+    public static string FullyQualified(this ITypeSymbol typeSymbol) =>
+        typeSymbol.ToDisplayString(DisplayFormats.FullyQualifiedGenericWithoutGlobalPrefix);
     
     public static string GloballyQualifiedNonGeneric(this ITypeSymbol typeSymbol) =>
         typeSymbol.ToDisplayString(DisplayFormats.FullyQualifiedNonGenericWithGlobalPrefix);

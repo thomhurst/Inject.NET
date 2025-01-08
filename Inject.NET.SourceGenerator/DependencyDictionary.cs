@@ -5,13 +5,13 @@ using Microsoft.CodeAnalysis;
 
 namespace Inject.NET.SourceGenerator;
 
-public static class DependencyDictionary
+internal static class DependencyDictionary
 {
-    public static Dictionary<ISymbol?, ServiceModel[]> Create(Compilation compilation, AttributeData[] attributes)
+    public static Dictionary<ISymbol?, ServiceModel[]> Create(Compilation compilation, AttributeData[] dependencyAttributes)
     {
         var list = new List<ServiceModelBuilder>();
         
-        foreach (var attributeData in attributes)
+        foreach (var attributeData in dependencyAttributes.OrderBy(x => x.ConstructorArguments.Length))
         {
             var attributeClass = attributeData.AttributeClass;
 
@@ -203,4 +203,12 @@ public static class DependencyDictionary
             Key = parameterSymbol.GetAttributes().FirstOrDefault(x => SymbolEqualityComparer.Default.Equals(x.AttributeClass, compilation.GetTypeByMetadataName("Inject.NET.Attributes.ServiceKeyAttribute")))?.ConstructorArguments[0].Value as string
         };
     }
+}
+
+internal class Tenant
+{
+    public required INamedTypeSymbol TenantDefinition { get; init; }
+    public required string TenantId { get; init; }
+    public required Dictionary<ISymbol?, ServiceModel[]> RootDependencies { get; init; }
+    public required Dictionary<ISymbol?, ServiceModel[]> TenantDependencies { get; init; }
 }

@@ -9,11 +9,12 @@ using IServiceProvider = Inject.NET.Interfaces.IServiceProvider;
 
 namespace Inject.NET.Services;
 
-internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singletonScope, ServiceFactories serviceFactories)
-    : IServiceScope
+public class ServiceScope : IServiceScope
 {
     private static readonly Type ServiceScopeType = typeof(IServiceScope);
     private static readonly Type ServiceProviderType = typeof(IServiceProvider);
+    
+    public IServiceScope scope { get; }
     
 #if NET9_0_OR_GREATER
     private bool _disposed;
@@ -21,14 +22,37 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
     private int _disposed;
 #endif
     
+    private Dictionary<ServiceKey, Lazy<object>>? _registered;
+    private Dictionary<ServiceKey, List<Lazy<object>>>? _registeredEnumerables;
+    
     private Dictionary<ServiceKey, object>? _cachedObjects;
     private Dictionary<ServiceKey, List<object>>? _cachedEnumerables;
     
     private List<object>? _forDisposal;
-    
-    public IServiceScope SingletonScope { get; } = singletonScope;
+    private readonly ServiceProviderRoot _root;
+    private readonly ServiceFactories _serviceFactories;
 
-    public IServiceProvider ServiceProvider { get; } = root;
+    public ServiceScope(ServiceProviderRoot root, IServiceScope singletonScope, ServiceFactories serviceFactories)
+    {
+        _root = root;
+        _serviceFactories = serviceFactories;
+        SingletonScope = singletonScope;
+        ServiceProvider = root;
+        scope = this;
+    }
+
+    public IServiceScope SingletonScope { get; }
+
+    public IServiceProvider ServiceProvider { get; }
+
+    public void Register(ServiceKey key, Lazy<object> lazy)
+    {
+        (_registered ??= DictionaryPool<ServiceKey, Lazy<object>>.Shared.Get()).Add(key, lazy);
+        
+        (_registeredEnumerables ??= DictionaryPool<ServiceKey, List<Lazy<object>>>.Shared.Get())
+            .GetOrAdd(key, _ => [])
+            .Add(lazy);
+    }
     
     public object? GetService(Type type)
     {
@@ -48,6 +72,11 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
     [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
     public object? GetService(ServiceKey serviceKey, IServiceScope requestingScope)
     {
+        if (_registered?.TryGetValue(serviceKey, out var lazy) == true)
+        {
+            return lazy.Value;
+        }
+        
         if (_cachedObjects?.TryGetValue(serviceKey, out var cachedObject) == true)
         {
             return cachedObject;
@@ -69,18 +98,18 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
             return cachedEnumerable[^1];
         }
 
-        if (!serviceFactories.Descriptor.TryGetValue(serviceKey, out var descriptor))
+        if (!_serviceFactories.Descriptor.TryGetValue(serviceKey, out var descriptor))
         {
-            if (!serviceFactories.LateBoundGenericDescriptor.TryGetValue(serviceKey, out descriptor))
+            if (!_serviceFactories.LateBoundGenericDescriptor.TryGetValue(serviceKey, out descriptor))
             {
                 if (!serviceKey.Type.IsGenericType ||
-                    !serviceFactories.Descriptor.TryGetValue(
+                    !_serviceFactories.Descriptor.TryGetValue(
                         serviceKey with { Type = serviceKey.Type.GetGenericTypeDefinition() }, out descriptor))
                 {
                     return null;
                 }
 
-                serviceFactories.LateBoundGenericDescriptor[serviceKey] = descriptor;
+                _serviceFactories.LateBoundGenericDescriptor[serviceKey] = descriptor;
             }
         }
 
@@ -117,12 +146,12 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
             return cachedObjects;
         }
 
-        if (!serviceFactories.Descriptors.TryGetValue(serviceKey, out var factories))
+        if (!_serviceFactories.Descriptors.TryGetValue(serviceKey, out var factories))
         {
             return Array.Empty<object>();
         }
         
-        if (!root.TryGetSingletons(serviceKey, out var singletons))
+        if (!_root.TryGetSingletons(serviceKey, out var singletons))
         {
             singletons = Array.Empty<object>();
         }
@@ -190,7 +219,6 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
         
         if (Interlocked.Exchange(ref _forDisposal, null) is not {} forDisposal)
         {
-            root.ServiceScopePool.Return(this);
             return default;
         }
         
@@ -204,7 +232,7 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
                 
                 if (!vt.IsCompleted)
                 {
-                    return Await(--i, vt, forDisposal, root.ServiceScopePool, this);
+                    return Await(--i, vt, forDisposal, this);
                 }
             }
             else if (obj is IDisposable disposable)
@@ -214,13 +242,10 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
         }
         
         ListPool<object>.Shared.Return(forDisposal);
-
-        root.ServiceScopePool.Return(this);
-
+        
         return default;
         
-        static async ValueTask Await(int i, ValueTask vt, List<object> toDispose,
-            ObjectPool<ServiceScope> serviceScopePool, ServiceScope serviceScope)
+        static async ValueTask Await(int i, ValueTask vt, List<object> toDispose, ServiceScope serviceScope)
         {
             await vt.ConfigureAwait(false);
 
@@ -237,8 +262,7 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
                 }
             }
             
-            ListPool<object>.Shared.Return(toDispose);
-            serviceScopePool.Return(serviceScope);
+            ListPool<object>.Shared.Return(toDispose); 
         }
     }
 
@@ -267,6 +291,5 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
         }
         
         ListPool<object>.Shared.Return(forDisposal);
-        root.ServiceScopePool.Return(this);
     }
 }

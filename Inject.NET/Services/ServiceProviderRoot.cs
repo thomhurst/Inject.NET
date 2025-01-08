@@ -6,26 +6,22 @@ using IServiceProvider = Inject.NET.Interfaces.IServiceProvider;
 
 namespace Inject.NET.Services;
 
-internal class ServiceProviderRoot : IServiceProviderRoot
+public abstract class ServiceProviderRoot : IServiceProviderRoot
 {
-    internal readonly ObjectPool<ServiceScope> ServiceScopePool;
-
-    internal readonly SingletonScope SingletonScope;
-    private readonly ServiceFactories _serviceFactories;
+    protected readonly ServiceFactories ServiceFactories;
     private readonly IDictionary<string, IServiceRegistrar> _tenantRegistrars;
 
     private FrozenDictionary<string, IServiceProvider> _tenants = null!;
+    
+    public abstract SingletonScope SingletonScope { get; }
 
-    internal ServiceProviderRoot(ServiceFactories serviceFactories, IDictionary<string, IServiceRegistrar> tenantRegistrars)
+    public ServiceProviderRoot(ServiceFactories serviceFactories, IDictionary<string, IServiceRegistrar> tenantRegistrars)
     {
-        _serviceFactories = serviceFactories;
+        ServiceFactories = serviceFactories;
         _tenantRegistrars = tenantRegistrars;
-        SingletonScope = new SingletonScope(this, serviceFactories);
-        ServiceScopePool =
-            new ObjectPool<ServiceScope>(new ServiceScopePoolPolicy(this, SingletonScope, serviceFactories));
     }
 
-    internal async ValueTask InitializeAsync()
+    public async ValueTask InitializeAsync()
     {
         await BuildTenants();
         
@@ -43,7 +39,7 @@ internal class ServiceProviderRoot : IServiceProviderRoot
         
         await using var scope = CreateScope();
         
-        foreach (var key in _serviceFactories.Descriptors.Keys.Where(x => x.Type.IsConstructedGenericType))
+        foreach (var key in ServiceFactories.Descriptors.Keys.Where(x => x.Type.IsConstructedGenericType))
         {
             scope.GetService(key);
         }
@@ -78,10 +74,7 @@ internal class ServiceProviderRoot : IServiceProviderRoot
         return false;
     }
 
-    public IServiceScope CreateScope()
-    {
-        return ServiceScopePool.Get();
-    }
+    public abstract IServiceScope CreateScope();
 
     public IServiceProvider GetTenant(string tenantId)
     {

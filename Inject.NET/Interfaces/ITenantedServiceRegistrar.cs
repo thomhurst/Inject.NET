@@ -3,15 +3,15 @@ using Inject.NET.Models;
 
 namespace Inject.NET.Interfaces;
 
-public interface ITenantedServiceRegistrar
+public interface ITenantedServiceRegistrar<TServiceProviderRoot> where TServiceProviderRoot : IServiceProviderRoot
 {
     ServiceFactoryBuilders ServiceFactoryBuilders { get; }
     
-    ITenantedServiceRegistrar Register(ServiceDescriptor descriptor);
+    ITenantedServiceRegistrar<TServiceProviderRoot> Register(ServiceDescriptor descriptor);
     
-    OnBeforeTenantBuild OnBeforeBuild { get; set; }
+    OnBeforeTenantBuild<ITenantedServiceRegistrar<TServiceProviderRoot>, TServiceProviderRoot> OnBeforeBuild { get; set; }
     
-    ValueTask<IServiceProviderRoot> BuildAsync();
+    ValueTask<TServiceProviderRoot> BuildAsync();
     
     IServiceRegistrar GetOrCreateTenant(string tenantId);
 }

@@ -1,44 +1,29 @@
 using System.Collections.Concurrent;
 using Inject.NET.Delegates;
-using Inject.NET.Extensions;
 using Inject.NET.Interfaces;
 using Inject.NET.Models;
 
 namespace Inject.NET.Services;
 
-public class ServiceRegistrar : ITenantedServiceRegistrar
+public abstract class ServiceRegistrar<TServiceProviderRoot> : ITenantedServiceRegistrar<TServiceProviderRoot> where TServiceProviderRoot : IServiceProviderRoot
 {
-    private readonly ConcurrentDictionary<string, IServiceRegistrar> _tenants = [];
+    protected readonly ConcurrentDictionary<string, IServiceRegistrar> Tenants = [];
 
     public ServiceFactoryBuilders ServiceFactoryBuilders { get; } = new();
 
-    public ITenantedServiceRegistrar Register(ServiceDescriptor serviceDescriptor)
+    public ITenantedServiceRegistrar<TServiceProviderRoot> Register(ServiceDescriptor serviceDescriptor)
     {
         ServiceFactoryBuilders.Add(serviceDescriptor);
 
         return this;
     }
 
-    public OnBeforeTenantBuild OnBeforeBuild { get; set; } = _ => { };
+    public OnBeforeTenantBuild<ITenantedServiceRegistrar<TServiceProviderRoot>, TServiceProviderRoot> OnBeforeBuild { get; set; } = _ => { };
 
-    public async ValueTask<IServiceProviderRoot> BuildAsync()
-    {
-        OnBeforeBuild(this);
-
-        var serviceProvider = new ServiceProviderRoot(ServiceFactoryBuilders.AsReadOnly(), _tenants);
-        
-        var vt = serviceProvider.InitializeAsync();
-
-        if (!vt.IsCompletedSuccessfully)
-        {
-            await vt.ConfigureAwait(false);
-        }
-        
-        return serviceProvider;
-    }
+    public abstract ValueTask<TServiceProviderRoot> BuildAsync();
 
     public IServiceRegistrar GetOrCreateTenant(string tenantId)
     {
-        return _tenants.GetOrAdd(tenantId, new TenantServiceRegistrar());
+        return Tenants.GetOrAdd(tenantId, new TenantServiceRegistrar());
     }
 }

@@ -11,7 +11,7 @@ public static class DependencyDictionary
     {
         var list = new List<ServiceModelBuilder>();
         
-        foreach (var attributeData in attributes)
+        foreach (var attributeData in attributes.OrderBy(x => x.ConstructorArguments.Length))
         {
             var attributeClass = attributeData.AttributeClass;
 

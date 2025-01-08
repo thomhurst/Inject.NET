@@ -1,7 +1,8 @@
 ﻿using Inject.NET.Attributes;
 using Inject.NET.Extensions;
+using Inject.NET.SourceGenerator.Sample.ServiceProviders;
 
-var serviceProvider = await MyServiceProvider.BuildAsync();
+var serviceProvider = await SingletonGeneric2.BuildAsync();
 
 for (var i = 0; i < 10_000_000; i++)
 {

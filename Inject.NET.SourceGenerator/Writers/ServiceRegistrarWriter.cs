@@ -38,6 +38,17 @@ public static class ServiceRegistrarWriter
             sourceCodeWriter.WriteLine($"namespace {serviceProviderModel.Type.ContainingNamespace.ToDisplayString()};");
             sourceCodeWriter.WriteLine();
         }
+        
+        var nestedClassCount = 0;
+        var parent = serviceProviderModel.Type.ContainingType;
+
+        while (parent is not null)
+        {
+            nestedClassCount++;
+            sourceCodeWriter.WriteLine($"public partial class {parent.Name}");
+            sourceCodeWriter.WriteLine("{");
+            parent = parent.ContainingType;
+        }
 
         sourceCodeWriter.WriteLine(
             $"public class {serviceProviderModel.Type.Name}ServiceRegistrar : ServiceRegistrar");
@@ -62,6 +73,11 @@ public static class ServiceRegistrarWriter
         sourceCodeWriter.WriteLine("}");
 
         sourceCodeWriter.WriteLine("}");
+        
+        for (var i = 0; i < nestedClassCount; i++)
+        {
+            sourceCodeWriter.WriteLine("}");
+        }
         
         sourceProductionContext.AddSource($"{serviceProviderModel.Type.Name}ServiceRegistrar_{Guid.NewGuid():N}.g.cs", sourceCodeWriter.ToString());
     }
@@ -224,7 +240,7 @@ public static class ServiceRegistrarWriter
                     return "null";
                 }
 
-                return null;
+                return $"global::Inject.NET.ThrowHelpers.Throw<{parameter.Type.GloballyQualified()}>(\"No dependency found for {parameter.Type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)} when trying to construct {serviceModel.ImplementationType.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)}\")";
             }
         }
 

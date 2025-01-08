@@ -70,7 +70,7 @@ internal static class ServiceRegistrarWriter
                                    {
                                        OnBeforeBuild(this);
                                    
-                                       var serviceProvider = new {{serviceProviderModel.Type.GloballyQualified()}}(ServiceFactoryBuilders.AsReadOnly(), _tenants);
+                                       var serviceProvider = new {{serviceProviderModel.Type.GloballyQualified()}}(ServiceFactoryBuilders.AsReadOnly(), Tenants);
                                        
                                        var vt = serviceProvider.InitializeAsync();
                                    

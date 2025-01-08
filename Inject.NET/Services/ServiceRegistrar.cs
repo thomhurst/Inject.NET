@@ -7,7 +7,7 @@ namespace Inject.NET.Services;
 
 public abstract class ServiceRegistrar<TServiceProviderRoot> : ITenantedServiceRegistrar<TServiceProviderRoot> where TServiceProviderRoot : IServiceProviderRoot
 {
-    private readonly ConcurrentDictionary<string, IServiceRegistrar> _tenants = [];
+    protected readonly ConcurrentDictionary<string, IServiceRegistrar> Tenants = [];
 
     public ServiceFactoryBuilders ServiceFactoryBuilders { get; } = new();
 
@@ -24,6 +24,6 @@ public abstract class ServiceRegistrar<TServiceProviderRoot> : ITenantedServiceR
 
     public IServiceRegistrar GetOrCreateTenant(string tenantId)
     {
-        return _tenants.GetOrAdd(tenantId, new TenantServiceRegistrar());
+        return Tenants.GetOrAdd(tenantId, new TenantServiceRegistrar());
     }
 }

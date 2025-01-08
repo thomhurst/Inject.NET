@@ -93,7 +93,7 @@ internal static class SingletonScopeWriter
             foreach (var (_, singleton) in singletons)
             {
                 sourceCodeWriter.WriteLine(
-                    $"{PropertyNameHelper.Format(singleton)} = new global::System.Lazy<{singleton.ServiceType.GloballyQualified()}>(() => {WriteSingleton(singleton)});");
+                    $"{PropertyNameHelper.Format(singleton)} = new global::System.Lazy<{singleton.ServiceType.GloballyQualified()}>(() => {WriteSingleton(singleton, dependencyDictionary)});");
             }
         }
 
@@ -109,14 +109,24 @@ internal static class SingletonScopeWriter
         return singletons;
     }
 
-    private static string WriteSingleton(ServiceModel singleton)
+    private static string WriteSingleton(ServiceModel singleton,
+        Dictionary<ISymbol?, ServiceModel[]> dependencyDictionary)
     {
-        return $"new {singleton.ImplementationType.GloballyQualified()}({string.Join(", ", GetParameters(singleton.Parameters))})";
+        return $"new {singleton.ImplementationType.GloballyQualified()}({string.Join(", ", GetParameters(singleton, dependencyDictionary))})";
     }
 
-    private static IEnumerable<string> GetParameters(Parameter[] singletonParameters)
+    private static IEnumerable<string> GetParameters(ServiceModel serviceModel,
+        Dictionary<ISymbol?, ServiceModel[]> dependencyDictionary)
     {
-        return singletonParameters.Select(x => $"{PropertyNameHelper.Format(x.Type)}.Value");
+        return serviceModel.Parameters.Select(parameter =>
+        {
+            if (!dependencyDictionary.ContainsKey(parameter.Type))
+            {
+                return $"global::Inject.NET.ThrowHelpers.Throw<{parameter.Type.GloballyQualified()}>(\"No dependency found for {parameter.Type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)} when trying to construct {serviceModel.ImplementationType.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)}\")";
+            }
+            
+            return $"{PropertyNameHelper.Format(parameter.Type)}.Value";
+        });
     }
 
     private static void WriteWithTenant(SourceCodeWriter sourceCodeWriter, INamedTypeSymbol serviceProviderType, Compilation compilation, string tenantId,

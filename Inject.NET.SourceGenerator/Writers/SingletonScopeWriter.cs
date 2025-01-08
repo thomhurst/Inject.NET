@@ -103,7 +103,7 @@ internal static class SingletonScopeWriter
 
             var key = singleton.Key is null ? "null" : $"\"{singleton.Key}\"";
             
-            sourceCodeWriter.WriteLine($"{prefix}Register(new global::Inject.NET.Models.ServiceKey(typeof({singleton.ServiceType.GloballyQualified()}), {key}), global::System.Runtime.CompilerServices.Unsafe.As<global::System.Lazy<object>>({propertyName}));");
+            sourceCodeWriter.WriteLine($"{prefix}Register(new global::Inject.NET.Models.ServiceKey(typeof({singleton.ServiceType.GloballyQualified()}), {key}), new global::System.Lazy<object>(() => {propertyName}.Value));");
         }
 
         return singletons;

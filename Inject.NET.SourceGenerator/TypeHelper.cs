@@ -19,9 +19,9 @@ internal static class TypeHelper
 
         if (serviceModel.Lifetime == Lifetime.Singleton)
         {
-            return $"(({serviceProviderType.GloballyQualified()})scope).SingletonScope.{PropertyNameHelper.Format(serviceModel)}.Value";
+            return $"(({serviceProviderType.GloballyQualified()}SingletonScope)scope.SingletonScope).{PropertyNameHelper.Format(serviceModel)}.Value";
         }
         
-        return $"(({serviceProviderType.GloballyQualified()})scope).{PropertyNameHelper.Format(serviceModel)}.Value";
+        return $"(({serviceProviderType.GloballyQualified()}Scope)scope).{PropertyNameHelper.Format(serviceModel)}.Value";
     }
 }

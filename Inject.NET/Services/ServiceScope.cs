@@ -21,6 +21,9 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
     private int _disposed;
 #endif
     
+    private Dictionary<ServiceKey, Lazy<object>>? _registered;
+    private Dictionary<ServiceKey, List<Lazy<object>>>? _registeredEnumerables;
+    
     private Dictionary<ServiceKey, object>? _cachedObjects;
     private Dictionary<ServiceKey, List<object>>? _cachedEnumerables;
     
@@ -29,6 +32,15 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
     public IServiceScope SingletonScope { get; } = singletonScope;
 
     public IServiceProvider ServiceProvider { get; } = root;
+
+    public void Register(ServiceKey key, Lazy<object> lazy)
+    {
+        (_registered ??= DictionaryPool<ServiceKey, Lazy<object>>.Shared.Get()).Add(key, lazy);
+        
+        (_registeredEnumerables ??= DictionaryPool<ServiceKey, List<Lazy<object>>>.Shared.Get())
+            .GetOrAdd(key, _ => [])
+            .Add(lazy);
+    }
     
     public object? GetService(Type type)
     {
@@ -48,6 +60,11 @@ internal sealed class ServiceScope(ServiceProviderRoot root, IServiceScope singl
     [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
     public object? GetService(ServiceKey serviceKey, IServiceScope requestingScope)
     {
+        if (_registered?.TryGetValue(serviceKey, out var lazy) == true)
+        {
+            return lazy.Value;
+        }
+        
         if (_cachedObjects?.TryGetValue(serviceKey, out var cachedObject) == true)
         {
             return cachedObject;

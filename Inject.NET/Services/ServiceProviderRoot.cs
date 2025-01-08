@@ -6,7 +6,7 @@ using IServiceProvider = Inject.NET.Interfaces.IServiceProvider;
 
 namespace Inject.NET.Services;
 
-internal class ServiceProviderRoot : IServiceProviderRoot
+public class ServiceProviderRoot : IServiceProviderRoot
 {
     internal readonly ObjectPool<ServiceScope> ServiceScopePool;
 
@@ -16,7 +16,7 @@ internal class ServiceProviderRoot : IServiceProviderRoot
 
     private FrozenDictionary<string, IServiceProvider> _tenants = null!;
 
-    internal ServiceProviderRoot(ServiceFactories serviceFactories, IDictionary<string, IServiceRegistrar> tenantRegistrars)
+    public ServiceProviderRoot(ServiceFactories serviceFactories, IDictionary<string, IServiceRegistrar> tenantRegistrars)
     {
         _serviceFactories = serviceFactories;
         _tenantRegistrars = tenantRegistrars;
@@ -25,7 +25,7 @@ internal class ServiceProviderRoot : IServiceProviderRoot
             new ObjectPool<ServiceScope>(new ServiceScopePoolPolicy(this, SingletonScope, serviceFactories));
     }
 
-    internal async ValueTask InitializeAsync()
+    public async ValueTask InitializeAsync()
     {
         await BuildTenants();
         

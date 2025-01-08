@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Inject.NET.SourceGenerator;
 
-public static class GenericTypeHelper
+internal static class GenericTypeHelper
 {
     public static IEnumerable<INamedTypeSymbol> GetConstructedTypes(
         Compilation compilation,

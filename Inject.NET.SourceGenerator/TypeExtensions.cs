@@ -3,7 +3,7 @@ using Microsoft.CodeAnalysis;
 
 namespace Inject.NET.SourceGenerator;
 
-public static class TypeExtensions
+internal static class TypeExtensions
 {
     public static bool IsGenericDefinition(this ITypeSymbol typeSymbol)
     {

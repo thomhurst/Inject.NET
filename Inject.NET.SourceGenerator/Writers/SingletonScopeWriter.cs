@@ -48,17 +48,6 @@ internal static class SingletonScopeWriter
         sourceCodeWriter.WriteLine("{");
         
         var singletons = WriteRegistrations(serviceProviderModel.Type, dependencyDictionary, sourceCodeWriter, false);
-        
-        foreach (var tenant in tenants)
-        {
-            sourceCodeWriter.WriteLine("{");
-            
-            sourceCodeWriter.WriteLine($"var tenant = GetOrCreateTenant(\"{tenant.TenantId}\");");
-            
-            WriteRegistrations(serviceProviderModel.Type, tenant.TenantDependencies, sourceCodeWriter, true);
-
-            sourceCodeWriter.WriteLine("}");
-        }
 
         sourceCodeWriter.WriteLine("}");
         

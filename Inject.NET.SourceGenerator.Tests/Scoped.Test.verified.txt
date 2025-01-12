@@ -97,7 +97,7 @@ public partial class Scoped
 		public ScopedServiceProviderScope(ServiceProviderRoot root, IServiceScope singletonScope, ServiceFactories serviceFactories) : base(root, singletonScope, serviceFactories)
 		{
 			Inject__NET__Tests__Scoped__ScopedClass = new global::System.Lazy<global::Inject.NET.Tests.Scoped.ScopedClass>(() => new global::Inject.NET.Tests.Scoped.ScopedClass());
-			Register(new global::Inject.NET.Models.ServiceKey(typeof(global::Inject.NET.Tests.Scoped.ScopedClass), null), new global::System.Lazy<object>(() => Inject__NET__Tests__Scoped__ScopedClass.Value));
+			Register(new global::Inject.NET.Models.ServiceKey(typeof(global::Inject.NET.Tests.Scoped.ScopedClass), null), new global::System.object(() => Inject__NET__Tests__Scoped__ScopedClass.Value));
 		}
 		public global::System.Lazy<global::Inject.NET.Tests.Scoped.ScopedClass> Inject__NET__Tests__Scoped__ScopedClass { get; }
 	}

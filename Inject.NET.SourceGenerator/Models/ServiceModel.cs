@@ -30,4 +30,10 @@ public record ServiceModel
             }
         }
     }
+
+    public string GetKey()
+    {
+        var key = Key is null ? "null" : $"\"{Key}\"";
+        return $$"""new ServiceKey { Type = typeof({{ServiceType.GloballyQualified()}}), Key = {{key}} }""";
+    }
 }

@@ -76,7 +76,7 @@ public partial class Singletons
 		public SingletonServiceProviderSingletonScope(IServiceProviderRoot root, ServiceFactories serviceFactories) : base(root, serviceFactories)
 		{
 			Inject__NET__Tests__Singletons__SingletonClass = new global::System.Lazy<global::Inject.NET.Tests.Singletons.SingletonClass>(() => new global::Inject.NET.Tests.Singletons.SingletonClass());
-			Register(new global::Inject.NET.Models.ServiceKey(typeof(global::Inject.NET.Tests.Singletons.SingletonClass), null), new global::System.Lazy<object>(() => Inject__NET__Tests__Singletons__SingletonClass.Value));
+			Register(new global::Inject.NET.Models.ServiceKey(typeof(global::Inject.NET.Tests.Singletons.SingletonClass), null), new global::System.object(() => Inject__NET__Tests__Singletons__SingletonClass.Value));
 		}
 		public global::System.Lazy<global::Inject.NET.Tests.Singletons.SingletonClass> Inject__NET__Tests__Singletons__SingletonClass { get; }
 	}

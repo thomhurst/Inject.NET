@@ -94,7 +94,7 @@ public partial class Transient
 		public TransientServiceProviderSingletonScope(IServiceProviderRoot root, ServiceFactories serviceFactories) : base(root, serviceFactories)
 		{
 			Inject__NET__Tests__Transient__ClassContainingTransient = new global::System.Lazy<global::Inject.NET.Tests.Transient.ClassContainingTransient>(() => new global::Inject.NET.Tests.Transient.ClassContainingTransient(Inject__NET__Tests__Transient__TransientClass.Value));
-			Register(new global::Inject.NET.Models.ServiceKey(typeof(global::Inject.NET.Tests.Transient.ClassContainingTransient), null), new global::System.Lazy<object>(() => Inject__NET__Tests__Transient__ClassContainingTransient.Value));
+			Register(new global::Inject.NET.Models.ServiceKey(typeof(global::Inject.NET.Tests.Transient.ClassContainingTransient), null), new global::System.object(() => Inject__NET__Tests__Transient__ClassContainingTransient.Value));
 		}
 		public global::System.Lazy<global::Inject.NET.Tests.Transient.ClassContainingTransient> Inject__NET__Tests__Transient__ClassContainingTransient { get; }
 	}

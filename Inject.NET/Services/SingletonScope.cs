@@ -16,8 +16,8 @@ public class SingletonScope(IServiceProviderRoot root, ServiceFactories serviceF
     private static readonly Type ServiceScopeType = typeof(IServiceScope);
     private static readonly Type ServiceProviderType = typeof(IServiceProvider);
     
-    private Dictionary<ServiceKey, Lazy<object>>? _registered;
-    private Dictionary<ServiceKey, List<Lazy<object>>>? _registeredEnumerables;
+    private Dictionary<ServiceKey, object>? _registered;
+    private Dictionary<ServiceKey, List<object>>? _registeredEnumerables;
 
     private readonly ConcurrentDictionary<ServiceKey, List<object>> _singletonsBuilder = [];
     
@@ -35,13 +35,15 @@ public class SingletonScope(IServiceProviderRoot root, ServiceFactories serviceF
         }
     }
     
-    public void Register(ServiceKey key, Lazy<object> lazy)
+    public T Register<T>(ServiceKey key, T value)
     {
-        (_registered ??= DictionaryPool<ServiceKey, Lazy<object>>.Shared.Get()).Add(key, lazy);
+        (_registered ??= DictionaryPool<ServiceKey, object>.Shared.Get()).Add(key, value!);
         
-        (_registeredEnumerables ??= DictionaryPool<ServiceKey, List<Lazy<object>>>.Shared.Get())
+        (_registeredEnumerables ??= DictionaryPool<ServiceKey, List<object>>.Shared.Get())
             .GetOrAdd(key, _ => [])
-            .Add(lazy);
+            .Add(value!);
+
+        return value;
     }
 
     internal async Task FinalizeAsync()
@@ -49,7 +51,6 @@ public class SingletonScope(IServiceProviderRoot root, ServiceFactories serviceF
         if(_registeredEnumerables is not null)
         {
             foreach (var singletonAsyncInitialization in _registeredEnumerables.SelectMany(s => s.Value)
-                         .Select(x => x.Value)
                          .OfType<ISingletonAsyncInitialization>()
                          .OrderBy(x => x.Order))
             {
@@ -74,7 +75,7 @@ public class SingletonScope(IServiceProviderRoot root, ServiceFactories serviceF
     {
         if (_registered?.TryGetValue(serviceKey, out var singleton) == true)
         {
-            return singleton.Value;
+            return singleton;
         }
         
         if (serviceKey.Type == ServiceScopeType)
@@ -106,7 +107,7 @@ public class SingletonScope(IServiceProviderRoot root, ServiceFactories serviceF
         
         if (_registeredEnumerables?.TryGetValue(serviceKey, out var singletons) == true)
         {
-            return _singletonEnumerables[serviceKey] = singletons.Select(s => s.Value).ToArray();
+            return _singletonEnumerables[serviceKey] = singletons;
         }
 
         if (!_isBuilt)

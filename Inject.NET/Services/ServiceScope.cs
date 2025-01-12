@@ -23,8 +23,8 @@ public class ServiceScope<TSingletonScope> : IServiceScope
     private int _disposed;
 #endif
     
-    private Dictionary<ServiceKey, Lazy<object>>? _registered;
-    private Dictionary<ServiceKey, List<Lazy<object>>>? _registeredEnumerables;
+    private Dictionary<ServiceKey, object>? _registered;
+    private Dictionary<ServiceKey, List<object>>? _registeredEnumerables;
     
     private Dictionary<ServiceKey, object>? _cachedObjects;
     private Dictionary<ServiceKey, List<object>>? _cachedEnumerables;
@@ -46,13 +46,15 @@ public class ServiceScope<TSingletonScope> : IServiceScope
 
     public IServiceProvider ServiceProvider { get; }
 
-    public void Register(ServiceKey key, Lazy<object> lazy)
+    public T Register<T>(ServiceKey key, T obj)
     {
-        (_registered ??= DictionaryPool<ServiceKey, Lazy<object>>.Shared.Get()).Add(key, lazy);
+        (_registered ??= DictionaryPool<ServiceKey, object>.Shared.Get()).Add(key, obj!);
         
-        (_registeredEnumerables ??= DictionaryPool<ServiceKey, List<Lazy<object>>>.Shared.Get())
+        (_registeredEnumerables ??= DictionaryPool<ServiceKey, List<object>>.Shared.Get())
             .GetOrAdd(key, _ => [])
-            .Add(lazy);
+            .Add(obj!);
+
+        return obj;
     }
     
     public object? GetService(Type type)
@@ -73,9 +75,9 @@ public class ServiceScope<TSingletonScope> : IServiceScope
     [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
     public object? GetService(ServiceKey serviceKey, IServiceScope requestingScope)
     {
-        if (_registered?.TryGetValue(serviceKey, out var lazy) == true)
+        if (_registered?.TryGetValue(serviceKey, out var value) == true)
         {
-            return lazy.Value;
+            return value;
         }
         
         if (_cachedObjects?.TryGetValue(serviceKey, out var cachedObject) == true)

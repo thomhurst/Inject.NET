@@ -32,6 +32,22 @@
         <ParentFile>WithTenantTests</ParentFile>
         <DependentUpon>AssortmentTests.cs</DependentUpon>
       </None>
+      <None Update="Singletons.WithTenant.verified.txt">
+        <ParentFile>WithTenantTests</ParentFile>
+        <DependentUpon>Singletons.cs</DependentUpon>
+      </None>
+      <None Update="Singletons.WithTenantOverridingType.verified.txt">
+        <ParentFile>WithTenantTests</ParentFile>
+        <DependentUpon>Singletons.cs</DependentUpon>
+      </None>
+      <None Update="Scoped.WithTenant.verified.txt">
+        <ParentFile>Singletons</ParentFile>
+        <DependentUpon>Scoped.cs</DependentUpon>
+      </None>
+      <None Update="Scoped.WithTenantOverridingType.verified.txt">
+        <ParentFile>Singletons</ParentFile>
+        <DependentUpon>Scoped.cs</DependentUpon>
+      </None>
     </ItemGroup>
 
 

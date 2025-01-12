@@ -1,0 +1,129 @@
+﻿[  
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+using Inject.NET.Enums;
+using Inject.NET.Extensions;
+using Inject.NET.Services;
+
+namespace Inject.NET.Tests;
+
+public partial class Scoped
+{
+	public class ScopedServiceProviderServiceRegistrar : ServiceRegistrar<global::Inject.NET.Tests.Scoped.ScopedServiceProvider>
+	{
+		public ScopedServiceProviderServiceRegistrar()
+		{
+			Register(new global::Inject.NET.Models.ServiceDescriptor
+			{
+				ServiceType = typeof(global::Inject.NET.Tests.Scoped.ScopedClass),
+				ImplementationType = typeof(global::Inject.NET.Tests.Scoped.ScopedClass),
+				Lifetime = Inject.NET.Enums.Lifetime.Scoped,
+				Factory = (scope, type, key) =>
+				new global::Inject.NET.Tests.Scoped.ScopedClass()
+			});
+
+			{
+				var tenant = GetOrCreateTenant("NonOverridingTenant");
+			}
+			{
+				var tenant = GetOrCreateTenant("OverridingTenant");
+				tenant.Register(new global::Inject.NET.Models.ServiceDescriptor
+				{
+					ServiceType = typeof(global::Inject.NET.Tests.Scoped.ScopedClass),
+					ImplementationType = typeof(global::Inject.NET.Tests.Scoped.ScopedClass),
+					Lifetime = Inject.NET.Enums.Lifetime.Scoped,
+					Factory = (scope, type, key) =>
+					new global::Inject.NET.Tests.Scoped.ScopedClass()
+				});
+
+			}
+		}
+
+		public override async ValueTask<global::Inject.NET.Tests.Scoped.ScopedServiceProvider> BuildAsync()
+{
+    OnBeforeBuild(this);
+
+    var serviceProvider = new global::Inject.NET.Tests.Scoped.ScopedServiceProvider(ServiceFactoryBuilders.AsReadOnly(), Tenants);
+    
+    var vt = serviceProvider.InitializeAsync();
+
+    if (!vt.IsCompletedSuccessfully)
+    {
+        await vt.ConfigureAwait(false);
+    }
+    
+    return serviceProvider;
+}
+	}
+}
+
+  
+using System;
+using System.Linq;
+using Inject.NET.Enums;
+using Inject.NET.Extensions;
+using Inject.NET.Interfaces;
+using Inject.NET.Models;
+using Inject.NET.Services;
+
+namespace Inject.NET.Tests;
+
+public partial class Scoped
+{
+	public class ScopedServiceProviderSingletonScope : SingletonScope
+	{
+		public ScopedServiceProviderSingletonScope(IServiceProviderRoot root, ServiceFactories serviceFactories) : base(root, serviceFactories)
+		{
+		}
+	}
+}
+
+  
+using System;
+using System.Linq;
+using Inject.NET.Enums;
+using Inject.NET.Extensions;
+using Inject.NET.Interfaces;
+using Inject.NET.Models;
+using Inject.NET.Services;
+
+namespace Inject.NET.Tests;
+
+public partial class Scoped
+{
+	public class ScopedServiceProviderScope : ServiceScope
+	{
+		public ScopedServiceProviderScope(ServiceProviderRoot root, IServiceScope singletonScope, ServiceFactories serviceFactories) : base(root, singletonScope, serviceFactories)
+		{
+			Inject__NET__Tests__Scoped__ScopedClass = new global::System.Lazy<global::Inject.NET.Tests.Scoped.ScopedClass>(() => new global::Inject.NET.Tests.Scoped.ScopedClass());
+			Register(new global::Inject.NET.Models.ServiceKey(typeof(global::Inject.NET.Tests.Scoped.ScopedClass), null), new global::System.Lazy<object>(() => Inject__NET__Tests__Scoped__ScopedClass.Value));
+		}
+		public global::System.Lazy<global::Inject.NET.Tests.Scoped.ScopedClass> Inject__NET__Tests__Scoped__ScopedClass { get; }
+	}
+}
+
+  
+using System;
+using System.Threading.Tasks;
+using Inject.NET.Enums;
+using Inject.NET.Interfaces;
+
+namespace Inject.NET.Tests;
+
+public partial class Scoped
+{
+	public partial class ScopedServiceProvider : global::Inject.NET.Services.ServiceProviderRoot
+	{
+		public override global::Inject.NET.Tests.Scoped.ScopedServiceProviderSingletonScope SingletonScope { get; }
+		public override IServiceScope CreateScope() => new global::Inject.NET.Tests.Scoped.ScopedServiceProviderScope(this, SingletonScope, ServiceFactories);
+		public ScopedServiceProvider(Inject.NET.Models.ServiceFactories serviceFactories, global::System.Collections.Generic.IDictionary<string, IServiceRegistrar> tenantRegistrars) : base(serviceFactories, tenantRegistrars)
+		{
+			SingletonScope = new(this, serviceFactories);
+		}
+		public static ValueTask<global::Inject.NET.Tests.Scoped.ScopedServiceProvider> BuildAsync() =>
+			new ScopedServiceProviderServiceRegistrar().BuildAsync();
+	}
+}
+
+]

@@ -1,0 +1,129 @@
+﻿[  
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+using Inject.NET.Enums;
+using Inject.NET.Extensions;
+using Inject.NET.Services;
+
+namespace Inject.NET.Tests;
+
+public partial class Singletons
+{
+	public class SingletonServiceProviderServiceRegistrar : ServiceRegistrar<global::Inject.NET.Tests.Singletons.SingletonServiceProvider>
+	{
+		public SingletonServiceProviderServiceRegistrar()
+		{
+			Register(new global::Inject.NET.Models.ServiceDescriptor
+			{
+				ServiceType = typeof(global::Inject.NET.Tests.Singletons.SingletonClass),
+				ImplementationType = typeof(global::Inject.NET.Tests.Singletons.SingletonClass),
+				Lifetime = Inject.NET.Enums.Lifetime.Singleton,
+				Factory = (scope, type, key) =>
+				new global::Inject.NET.Tests.Singletons.SingletonClass()
+			});
+
+			{
+				var tenant = GetOrCreateTenant("NonOverridingTenant");
+			}
+			{
+				var tenant = GetOrCreateTenant("OverridingTenant");
+				tenant.Register(new global::Inject.NET.Models.ServiceDescriptor
+				{
+					ServiceType = typeof(global::Inject.NET.Tests.Singletons.SingletonClass),
+					ImplementationType = typeof(global::Inject.NET.Tests.Singletons.SingletonClass),
+					Lifetime = Inject.NET.Enums.Lifetime.Singleton,
+					Factory = (scope, type, key) =>
+					new global::Inject.NET.Tests.Singletons.SingletonClass()
+				});
+
+			}
+		}
+
+		public override async ValueTask<global::Inject.NET.Tests.Singletons.SingletonServiceProvider> BuildAsync()
+{
+    OnBeforeBuild(this);
+
+    var serviceProvider = new global::Inject.NET.Tests.Singletons.SingletonServiceProvider(ServiceFactoryBuilders.AsReadOnly(), Tenants);
+    
+    var vt = serviceProvider.InitializeAsync();
+
+    if (!vt.IsCompletedSuccessfully)
+    {
+        await vt.ConfigureAwait(false);
+    }
+    
+    return serviceProvider;
+}
+	}
+}
+
+  
+using System;
+using System.Linq;
+using Inject.NET.Enums;
+using Inject.NET.Extensions;
+using Inject.NET.Interfaces;
+using Inject.NET.Models;
+using Inject.NET.Services;
+
+namespace Inject.NET.Tests;
+
+public partial class Singletons
+{
+	public class SingletonServiceProviderSingletonScope : SingletonScope
+	{
+		public SingletonServiceProviderSingletonScope(IServiceProviderRoot root, ServiceFactories serviceFactories) : base(root, serviceFactories)
+		{
+			Inject__NET__Tests__Singletons__SingletonClass = new global::System.Lazy<global::Inject.NET.Tests.Singletons.SingletonClass>(() => new global::Inject.NET.Tests.Singletons.SingletonClass());
+			Register(new global::Inject.NET.Models.ServiceKey(typeof(global::Inject.NET.Tests.Singletons.SingletonClass), null), new global::System.Lazy<object>(() => Inject__NET__Tests__Singletons__SingletonClass.Value));
+		}
+		public global::System.Lazy<global::Inject.NET.Tests.Singletons.SingletonClass> Inject__NET__Tests__Singletons__SingletonClass { get; }
+	}
+}
+
+  
+using System;
+using System.Linq;
+using Inject.NET.Enums;
+using Inject.NET.Extensions;
+using Inject.NET.Interfaces;
+using Inject.NET.Models;
+using Inject.NET.Services;
+
+namespace Inject.NET.Tests;
+
+public partial class Singletons
+{
+	public class SingletonServiceProviderScope : ServiceScope
+	{
+		public SingletonServiceProviderScope(ServiceProviderRoot root, IServiceScope singletonScope, ServiceFactories serviceFactories) : base(root, singletonScope, serviceFactories)
+		{
+		}
+	}
+}
+
+  
+using System;
+using System.Threading.Tasks;
+using Inject.NET.Enums;
+using Inject.NET.Interfaces;
+
+namespace Inject.NET.Tests;
+
+public partial class Singletons
+{
+	public partial class SingletonServiceProvider : global::Inject.NET.Services.ServiceProviderRoot
+	{
+		public override global::Inject.NET.Tests.Singletons.SingletonServiceProviderSingletonScope SingletonScope { get; }
+		public override IServiceScope CreateScope() => new global::Inject.NET.Tests.Singletons.SingletonServiceProviderScope(this, SingletonScope, ServiceFactories);
+		public SingletonServiceProvider(Inject.NET.Models.ServiceFactories serviceFactories, global::System.Collections.Generic.IDictionary<string, IServiceRegistrar> tenantRegistrars) : base(serviceFactories, tenantRegistrars)
+		{
+			SingletonScope = new(this, serviceFactories);
+		}
+		public static ValueTask<global::Inject.NET.Tests.Singletons.SingletonServiceProvider> BuildAsync() =>
+			new SingletonServiceProviderServiceRegistrar().BuildAsync();
+	}
+}
+
+]

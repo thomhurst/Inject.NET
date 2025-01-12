@@ -52,7 +52,7 @@ internal static class ScopeWriter
         sourceCodeWriter.WriteLine($"public {serviceProviderModel.Type.Name}Scope(ServiceProviderRoot root, IServiceScope singletonScope, ServiceFactories serviceFactories) : base(root, singletonScope, serviceFactories)");
         sourceCodeWriter.WriteLine("{");
         
-        var singletons = WriteRegistrations(serviceProviderModel.Type, dependencyDictionary, sourceCodeWriter, false);
+        var scoped = WriteRegistrations(serviceProviderModel.Type, dependencyDictionary, sourceCodeWriter, false);
         
         foreach (var tenant in tenants)
         {
@@ -68,7 +68,7 @@ internal static class ScopeWriter
 
         sourceCodeWriter.WriteLine("}");
         
-        foreach (var (_, singleton) in singletons)
+        foreach (var (_, singleton) in scoped)
         {
             sourceCodeWriter.WriteLine($$"""
                                          public global::System.Lazy<{{singleton.ServiceType.GloballyQualified()}}> {{PropertyNameHelper.Format(singleton)}} { get; }

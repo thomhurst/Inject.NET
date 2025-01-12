@@ -43,16 +43,6 @@ internal static class ScopeWriter
         sourceCodeWriter.WriteLine(
             $"public class {serviceProviderModel.Type.Name}Scope : ServiceScope");
         sourceCodeWriter.WriteLine("{");
-        
-        var transient = dependencyDictionary.Where(x => x.Value[^1].Lifetime is Lifetime.Transient)
-            .Select(x => new KeyValuePair<ISymbol, ServiceModel>(x.Key!, x.Value[^1]))
-            .Where(x => !x.Value.ServiceType.IsGenericDefinition())
-            .ToArray();
-        
-        foreach (var (key, value) in transient)
-        {
-            sourceCodeWriter.WriteLine($"public {value.ServiceType.GloballyQualified()} {PropertyNameHelper.Format(value)} => {TypeHelper.WriteType(serviceProviderModel.Type, dependencyDictionary, value)};");
-        }
 
         foreach (var tenant in tenants)
         {

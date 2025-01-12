@@ -108,8 +108,11 @@ public partial class Transient
         public Guid Id { get; } = Guid.NewGuid();
     }
 
+    public class ClassContainingTransient(TransientClass transientClass);
+
     [ServiceProvider]
     [Transient<TransientClass>]
+    [Transient<ClassContainingTransient>]
     [WithTenant<NonOverridingTenant>("NonOverridingTenant")]
     [WithTenant<OverridingTenant>("OverridingTenant")]
     public partial class TransientServiceProvider

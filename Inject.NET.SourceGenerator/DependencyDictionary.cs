@@ -206,7 +206,7 @@ internal static class DependencyDictionary
     }
 }
 
-internal class Tenant
+public class Tenant
 {
     public Guid Guid { get; } = Guid.NewGuid();
     public required INamedTypeSymbol TenantDefinition { get; init; }

@@ -9,7 +9,8 @@ using IServiceProvider = Inject.NET.Interfaces.IServiceProvider;
 
 namespace Inject.NET.Services;
 
-public class ServiceScope : IServiceScope
+public class ServiceScope<TSingletonScope> : IServiceScope
+    where TSingletonScope : IServiceScope
 {
     private static readonly Type ServiceScopeType = typeof(IServiceScope);
     private static readonly Type ServiceProviderType = typeof(IServiceProvider);
@@ -29,10 +30,10 @@ public class ServiceScope : IServiceScope
     private Dictionary<ServiceKey, List<object>>? _cachedEnumerables;
     
     private List<object>? _forDisposal;
-    private readonly ServiceProviderRoot _root;
+    private readonly ServiceProviderRoot<TSingletonScope> _root;
     private readonly ServiceFactories _serviceFactories;
 
-    public ServiceScope(ServiceProviderRoot root, IServiceScope singletonScope, ServiceFactories serviceFactories)
+    public ServiceScope(ServiceProviderRoot<TSingletonScope> root, IServiceScope singletonScope, ServiceFactories serviceFactories)
     {
         _root = root;
         _serviceFactories = serviceFactories;
@@ -245,7 +246,7 @@ public class ServiceScope : IServiceScope
         
         return default;
         
-        static async ValueTask Await(int i, ValueTask vt, List<object> toDispose, ServiceScope serviceScope)
+        static async ValueTask Await(int i, ValueTask vt, List<object> toDispose, ServiceScope<TSingletonScope> serviceScope)
         {
             await vt.ConfigureAwait(false);
 

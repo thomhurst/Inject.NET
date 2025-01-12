@@ -6,7 +6,8 @@ using IServiceProvider = Inject.NET.Interfaces.IServiceProvider;
 
 namespace Inject.NET.Services;
 
-public class TenantServiceRegistrar : IServiceRegistrar
+public class TenantServiceRegistrar<TSingletonScope> : IServiceRegistrar
+    where TSingletonScope : IServiceScope
 {
     public ServiceFactoryBuilders ServiceFactoryBuilders { get; } = new();
     
@@ -23,9 +24,9 @@ public class TenantServiceRegistrar : IServiceRegistrar
     {
         OnBeforeBuild(this);
 
-        var serviceProviderRoot = (ServiceProviderRoot)rootServiceProvider;
+        var serviceProviderRoot = (ServiceProviderRoot<TSingletonScope>)rootServiceProvider;
         
-        var serviceProvider = new TenantServiceProvider(serviceProviderRoot, ServiceFactoryBuilders.AsReadOnly());
+        var serviceProvider = new TenantServiceProvider<TSingletonScope>(serviceProviderRoot, ServiceFactoryBuilders.AsReadOnly());
         
         var vt = serviceProvider.InitializeAsync();
 

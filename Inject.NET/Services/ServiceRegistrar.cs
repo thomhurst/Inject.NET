@@ -5,7 +5,7 @@ using Inject.NET.Models;
 
 namespace Inject.NET.Services;
 
-public abstract class ServiceRegistrar<TServiceProviderRoot> : ITenantedServiceRegistrar<TServiceProviderRoot> where TServiceProviderRoot : IServiceProviderRoot
+public abstract class ServiceRegistrar<TServiceProviderRoot, TSingletonScope> : ITenantedServiceRegistrar<TServiceProviderRoot> where TServiceProviderRoot : IServiceProviderRoot where TSingletonScope : IServiceScope
 {
     protected readonly ConcurrentDictionary<string, IServiceRegistrar> Tenants = [];
 
@@ -24,6 +24,6 @@ public abstract class ServiceRegistrar<TServiceProviderRoot> : ITenantedServiceR
 
     public IServiceRegistrar GetOrCreateTenant(string tenantId)
     {
-        return Tenants.GetOrAdd(tenantId, new TenantServiceRegistrar());
+        return Tenants.GetOrAdd(tenantId, new TenantServiceRegistrar<TSingletonScope>());
     }
 }

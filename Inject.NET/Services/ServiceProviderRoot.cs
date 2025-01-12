@@ -6,14 +6,15 @@ using IServiceProvider = Inject.NET.Interfaces.IServiceProvider;
 
 namespace Inject.NET.Services;
 
-public abstract class ServiceProviderRoot : IServiceProviderRoot
+public abstract class ServiceProviderRoot<TSingletonScope> : IServiceProviderRoot
+    where TSingletonScope : IServiceScope
 {
     protected readonly ServiceFactories ServiceFactories;
     private readonly IDictionary<string, IServiceRegistrar> _tenantRegistrars;
 
     private FrozenDictionary<string, IServiceProvider> _tenants = null!;
     
-    public abstract SingletonScope SingletonScope { get; }
+    public abstract TSingletonScope SingletonScope { get; }
 
     public ServiceProviderRoot(ServiceFactories serviceFactories, IDictionary<string, IServiceRegistrar> tenantRegistrars)
     {
@@ -25,13 +26,11 @@ public abstract class ServiceProviderRoot : IServiceProviderRoot
     {
         await BuildTenants();
         
-        SingletonScope.PreBuild();
-        
         foreach (var (_, serviceProvider) in _tenants)
         {
             await using var tenantScope = serviceProvider.CreateScope();
 
-            foreach (var key in ((TenantServiceProvider)serviceProvider).ServiceFactories.Descriptors.Keys.Where(x => x.Type.IsConstructedGenericType))
+            foreach (var key in ((TenantServiceProvider<TSingletonScope>)serviceProvider).ServiceFactories.Descriptors.Keys.Where(x => x.Type.IsConstructedGenericType))
             {
                 tenantScope.GetService(key);
             }
@@ -43,8 +42,6 @@ public abstract class ServiceProviderRoot : IServiceProviderRoot
         {
             scope.GetService(key);
         }
-        
-        await SingletonScope.FinalizeAsync();
     }
 
     private async Task BuildTenants()

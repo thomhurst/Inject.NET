@@ -42,7 +42,7 @@ internal static class ServiceRegistrarWriter
         }
 
         sourceCodeWriter.WriteLine(
-            $"public class {serviceProviderModel.Type.Name}ServiceRegistrar : ServiceRegistrar<{serviceProviderModel.Type.GloballyQualified()}>");
+            $"public class {serviceProviderModel.Type.Name}ServiceRegistrar : ServiceRegistrar<{serviceProviderModel.Type.GloballyQualified()}, {serviceProviderModel.Type.GloballyQualified()}SingletonScope>");
         sourceCodeWriter.WriteLine("{");
         
         sourceCodeWriter.WriteLine($"public {serviceProviderModel.Type.Name}ServiceRegistrar()");

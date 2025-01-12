@@ -16,8 +16,6 @@ internal static class ObjectConstructionHelper
                 $"new {lastTypeInDictionary.ImplementationType.GloballyQualified()}({string.Join(", ", ParameterHelper.BuildParameters(serviceProviderType, dependencyDictionary, serviceModel, currentLifetime))})";
         }
         
-        return $$"""
-                  Activator.CreateInstance(typeof({{lastTypeInDictionary.ImplementationType.GloballyQualified()}}).MakeGenericType(type.GenericTypeArguments), [ ..type.GenericTypeArguments.Select(x => scope.GetService(x)) ])
-                 """;
+        return $" Activator.CreateInstance(typeof({lastTypeInDictionary.ImplementationType.GloballyQualified()}).MakeGenericType(type.GenericTypeArguments), [ ..type.GenericTypeArguments.Select(x => scope.GetService(x)) ])";
     }
 }

@@ -8,7 +8,17 @@ internal static class TypeHelper
 {
     public static string WriteType(
         INamedTypeSymbol serviceProviderType,
-        Dictionary<ISymbol?, ServiceModel[]> dependencyDictionary,
+        Dictionary<ISymbol?, ServiceModel[]> dependencies,
+        ServiceModel serviceModel,
+        Lifetime currentLifetime)
+    {
+        return WriteType(serviceProviderType, dependencies, [], serviceModel, currentLifetime);
+    }
+    
+    public static string WriteType(
+        INamedTypeSymbol serviceProviderType,
+        Dictionary<ISymbol?, ServiceModel[]> dependencies,
+        Dictionary<ISymbol?, ServiceModel[]> parentDependencies,
         ServiceModel serviceModel,
         Lifetime currentLifetime)
     {
@@ -16,17 +26,38 @@ internal static class TypeHelper
         {
             return $"global::Inject.NET.ThrowHelpers.Throw<{serviceModel.ServiceType.GloballyQualified()}>(\"Injecting type {serviceModel.ImplementationType.Name} with a lifetime of {serviceModel.Lifetime} into an object with a lifetime of {currentLifetime} will cause it to also be {currentLifetime}\")";
         }
+
+        if (!dependencies.ContainsKey(serviceModel.ServiceType) &&
+            !parentDependencies.ContainsKey(serviceModel.ServiceType))
+        {
+            return $"global::Inject.NET.ThrowHelpers.Throw<{serviceModel.ServiceType.GloballyQualified()}>(\"No dependency found for {serviceModel.ServiceType.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)}\")";
+        }
         
         if (serviceModel.Lifetime == Lifetime.Transient)
         {
-            return ObjectConstructionHelper.ConstructNewObject(serviceProviderType, dependencyDictionary, serviceModel, currentLifetime);
+            if(dependencies.ContainsKey(serviceModel.ServiceType))
+            {
+                return ObjectConstructionHelper.ConstructNewObject(serviceProviderType, dependencies, serviceModel, currentLifetime);
+            }
+
+            return ObjectConstructionHelper.ConstructNewObject(serviceProviderType, parentDependencies, serviceModel, currentLifetime);
         }
 
         if (serviceModel.Lifetime == Lifetime.Singleton)
         {
-            return $"(({serviceProviderType.GloballyQualified()}SingletonScope)scope.SingletonScope).{PropertyNameHelper.Format(serviceModel)}.Value";
+            if(dependencies.ContainsKey(serviceModel.ServiceType))
+            {
+                return $"SingletonScope.{PropertyNameHelper.Format(serviceModel)}.Value";
+            }
+
+            return $"Root.SingletonScope.{PropertyNameHelper.Format(serviceModel)}.Value";
         }
         
-        return $"(({serviceProviderType.GloballyQualified()}Scope)scope).{PropertyNameHelper.Format(serviceModel)}.Value";
+        if(dependencies.ContainsKey(serviceModel.ServiceType))
+        {
+            return $"{PropertyNameHelper.Format(serviceModel)}.Value";
+        }
+
+        return $"DefaultScope.{PropertyNameHelper.Format(serviceModel)}.Value";
     }
 }

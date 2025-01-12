@@ -5,11 +5,12 @@ using IServiceProvider = Inject.NET.Interfaces.IServiceProvider;
 
 namespace Inject.NET.Services;
 
-public class TenantedSingletonScope(
-    TenantServiceProvider tenantServiceProvider,
-    ServiceProviderRoot root,
-    ServiceFactories serviceFactories) : IServiceScope
+public class TenantedSingletonScope<TSingletonScope>(
+    TenantServiceProvider<TSingletonScope> tenantServiceProvider,
+    ServiceProviderRoot<TSingletonScope> root,
+    ServiceFactories serviceFactories) : IServiceScope where TSingletonScope : IServiceScope
 {
+    public ServiceProviderRoot<TSingletonScope> Root { get; } = root;
     private static readonly Type ServiceScopeType = typeof(IServiceScope);
     private static readonly Type ServiceProviderType = typeof(IServiceProvider);
     
@@ -37,12 +38,12 @@ public class TenantedSingletonScope(
             return ServiceProvider;
         }
         
-        return _scope.GetService(serviceKey) ?? root.SingletonScope.GetService(serviceKey);
+        return _scope.GetService(serviceKey) ?? Root.SingletonScope.GetService(serviceKey);
     }
 
     public IReadOnlyList<object> GetServices(ServiceKey serviceKey)
     {
-        if (root.TryGetSingletons(serviceKey, out var defaultSingletons))
+        if (Root.TryGetSingletons(serviceKey, out var defaultSingletons))
         {
             return
             [

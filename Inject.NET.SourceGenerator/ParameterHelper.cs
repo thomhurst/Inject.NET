@@ -75,6 +75,6 @@ internal static class ParameterHelper
 
         var lastModel = models.Last();
         
-        return TypeHelper.WriteType(serviceProviderType, dependencyDictionary, lastModel, parameter);
+        return TypeHelper.WriteType(serviceProviderType, dependencyDictionary, lastModel);
     }
 }

@@ -43,6 +43,16 @@ internal static class ScopeWriter
         sourceCodeWriter.WriteLine(
             $"public class {serviceProviderModel.Type.Name}Scope : ServiceScope");
         sourceCodeWriter.WriteLine("{");
+        
+        var transient = dependencyDictionary.Where(x => x.Value[^1].Lifetime is Lifetime.Transient)
+            .Select(x => new KeyValuePair<ISymbol, ServiceModel>(x.Key!, x.Value[^1]))
+            .Where(x => !x.Value.ServiceType.IsGenericDefinition())
+            .ToArray();
+        
+        foreach (var (key, value) in transient)
+        {
+            sourceCodeWriter.WriteLine($"public {value.ServiceType.GloballyQualified()} {PropertyNameHelper.Format(value)} => {TypeHelper.WriteType(serviceProviderModel.Type, dependencyDictionary, value)};");
+        }
 
         foreach (var tenant in tenants)
         {
@@ -89,21 +99,21 @@ internal static class ScopeWriter
     {
         var prefix = isTenant ? "tenant." : null;
         
-        var singletons = dependencyDictionary.Where(x => x.Value[^1].Lifetime is Lifetime.Scoped)
+        var scoped = dependencyDictionary.Where(x => x.Value[^1].Lifetime is Lifetime.Scoped)
             .Select(x => new KeyValuePair<ISymbol, ServiceModel>(x.Key!, x.Value[^1]))
             .Where(x => !x.Value.ServiceType.IsGenericDefinition())
             .ToArray();
 
         if (!isTenant)
         {
-            foreach (var (_, singleton) in singletons)
+            foreach (var (_, singleton) in scoped)
             {
                 sourceCodeWriter.WriteLine(
                     $"{PropertyNameHelper.Format(singleton)} = new global::System.Lazy<{singleton.ServiceType.GloballyQualified()}>(() => {WriteScoped(serviceProviderType, singleton, dependencyDictionary)});");
             }
         }
 
-        foreach (var (_, singleton) in singletons)
+        foreach (var (_, singleton) in scoped)
         {
             var propertyName = PropertyNameHelper.Format(singleton);
 
@@ -112,7 +122,7 @@ internal static class ScopeWriter
             sourceCodeWriter.WriteLine($"{prefix}Register(new global::Inject.NET.Models.ServiceKey(typeof({singleton.ServiceType.GloballyQualified()}), {key}), new global::System.Lazy<object>(() => {propertyName}.Value));");
         }
 
-        return singletons;
+        return scoped;
     }
 
     private static string WriteScoped(

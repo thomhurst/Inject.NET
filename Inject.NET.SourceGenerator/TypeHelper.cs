@@ -9,8 +9,7 @@ internal static class TypeHelper
     public static string WriteType(
         INamedTypeSymbol serviceProviderType,
         Dictionary<ISymbol?, ServiceModel[]> dependencyDictionary,
-        ServiceModel serviceModel, 
-        Parameter parameter)
+        ServiceModel serviceModel)
     {
         if (serviceModel.Lifetime == Lifetime.Transient)
         {

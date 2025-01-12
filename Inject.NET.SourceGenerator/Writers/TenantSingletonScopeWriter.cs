@@ -213,7 +213,7 @@ internal static class TenantSingletonScopeWriter
                 
         sourceCodeWriter.WriteLine("Factory = (scope, type, key) =>");
                 
-        sourceCodeWriter.WriteLine(ObjectConstructionHelper.ConstructNewObject(serviceProviderType, dependencyDictionary, serviceModel));
+        sourceCodeWriter.WriteLine(ObjectConstructionHelper.ConstructNewObject(serviceProviderType, dependencyDictionary, serviceModel, Lifetime.Singleton));
                 
         sourceCodeWriter.WriteLine("});");
         sourceCodeWriter.WriteLine();

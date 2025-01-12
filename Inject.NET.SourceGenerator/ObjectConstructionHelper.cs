@@ -6,14 +6,14 @@ namespace Inject.NET.SourceGenerator;
 
 internal static class ObjectConstructionHelper
 {
-    public static string ConstructNewObject(INamedTypeSymbol serviceProviderType, Dictionary<ISymbol?, ServiceModel[]> dependencyDictionary, ServiceModel serviceModel)
+    public static string ConstructNewObject(INamedTypeSymbol serviceProviderType, Dictionary<ISymbol?, ServiceModel[]> dependencyDictionary, ServiceModel serviceModel, Lifetime currentLifetime)
     {
         var lastTypeInDictionary = dependencyDictionary[serviceModel.ServiceType][^1];
         
         if (!serviceModel.IsOpenGeneric)
         {
             return
-                $"new {lastTypeInDictionary.ImplementationType.GloballyQualified()}({string.Join(", ", ParameterHelper.BuildParameters(serviceProviderType, dependencyDictionary, serviceModel))})";
+                $"new {lastTypeInDictionary.ImplementationType.GloballyQualified()}({string.Join(", ", ParameterHelper.BuildParameters(serviceProviderType, dependencyDictionary, serviceModel, currentLifetime))})";
         }
         
         return $$"""

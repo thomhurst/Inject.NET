@@ -113,6 +113,11 @@ internal static class SingletonScopeWriter
             {
                 return $"global::Inject.NET.ThrowHelpers.Throw<{parameter.Type.GloballyQualified()}>(\"No dependency found for {parameter.Type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)} when trying to construct {serviceModel.ImplementationType.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)}\")";
             }
+
+            if (serviceModel.Lifetime > Lifetime.Singleton)
+            {
+                return $"global::Inject.NET.ThrowHelpers.Throw<{serviceModel.ServiceType.GloballyQualified()}>(\"Injecting type {serviceModel.ImplementationType.Name} with a lifetime of {serviceModel.Lifetime} into an object with a lifetime of {Lifetime.Singleton} will cause it to also be {Lifetime.Singleton}\")";
+            }
             
             return $"{PropertyNameHelper.Format(parameter.Type)}.Value";
         });
@@ -213,7 +218,7 @@ internal static class SingletonScopeWriter
                 
         sourceCodeWriter.WriteLine("Factory = (scope, type, key) =>");
                 
-        sourceCodeWriter.WriteLine(ObjectConstructionHelper.ConstructNewObject(serviceProviderType, dependencyDictionary, serviceModel));
+        sourceCodeWriter.WriteLine(ObjectConstructionHelper.ConstructNewObject(serviceProviderType, dependencyDictionary, serviceModel, Lifetime.Singleton));
                 
         sourceCodeWriter.WriteLine("});");
         sourceCodeWriter.WriteLine();

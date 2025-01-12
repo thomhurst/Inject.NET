@@ -188,7 +188,7 @@ internal static class ServiceRegistrarWriter
                 
         sourceCodeWriter.WriteLine("Factory = (scope, type, key) =>");
                 
-        sourceCodeWriter.WriteLine(ObjectConstructionHelper.ConstructNewObject(serviceProviderType, dependencyDictionary, serviceModel));
+        sourceCodeWriter.WriteLine(ObjectConstructionHelper.ConstructNewObject(serviceProviderType, dependencyDictionary, serviceModel, serviceModel.Lifetime));
                 
         sourceCodeWriter.WriteLine("});");
         sourceCodeWriter.WriteLine();

@@ -10,11 +10,11 @@ namespace Inject.NET.SourceGenerator;
 
 internal static class ParameterHelper
 {
-    public static IEnumerable<string> BuildParameters(INamedTypeSymbol serviceProviderType, Dictionary<ISymbol?,ServiceModel[]> dependencyDictionary, ServiceModel serviceModel)
+    public static IEnumerable<string> BuildParameters(INamedTypeSymbol serviceProviderType, Dictionary<ISymbol?,ServiceModel[]> dependencyDictionary, ServiceModel serviceModel, Lifetime currentLifetime)
     {
         foreach (var parameter in serviceModel.Parameters)
         {
-            if (WriteParameter(serviceProviderType, dependencyDictionary, parameter, serviceModel) is { } written)
+            if (WriteParameter(serviceProviderType, dependencyDictionary, parameter, serviceModel, currentLifetime) is { } written)
             {
                 yield return written;
             }
@@ -25,7 +25,8 @@ internal static class ParameterHelper
         INamedTypeSymbol serviceProviderType,
         Dictionary<ISymbol?, ServiceModel[]> dependencyDictionary,
         Parameter parameter, 
-        ServiceModel serviceModel)
+        ServiceModel serviceModel,
+        Lifetime currentLifetime)
     {
         ServiceModel[]? models = null;
         
@@ -75,6 +76,6 @@ internal static class ParameterHelper
 
         var lastModel = models.Last();
         
-        return TypeHelper.WriteType(serviceProviderType, dependencyDictionary, lastModel);
+        return TypeHelper.WriteType(serviceProviderType, dependencyDictionary, lastModel, currentLifetime);
     }
 }

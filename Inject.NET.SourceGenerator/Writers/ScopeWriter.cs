@@ -147,7 +147,7 @@ internal static class ScopeWriter
                 return $"SingletonScope.{PropertyNameHelper.Format(parameter.Type)}.Value";
             }
 
-            return ObjectConstructionHelper.ConstructNewObject(serviceProviderType, dependencyDictionary, model);
+            return ObjectConstructionHelper.ConstructNewObject(serviceProviderType, dependencyDictionary, model, Lifetime.Transient);
         });
     }
 
@@ -246,7 +246,7 @@ internal static class ScopeWriter
                 
         sourceCodeWriter.WriteLine("Factory = (scope, type, key) =>");
                 
-        sourceCodeWriter.WriteLine(ObjectConstructionHelper.ConstructNewObject(serviceProviderType, dependencyDictionary, serviceModel));
+        sourceCodeWriter.WriteLine(ObjectConstructionHelper.ConstructNewObject(serviceProviderType, dependencyDictionary, serviceModel, serviceModel.Lifetime));
                 
         sourceCodeWriter.WriteLine("});");
         sourceCodeWriter.WriteLine();

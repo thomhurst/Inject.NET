@@ -48,6 +48,14 @@
         <ParentFile>Singletons</ParentFile>
         <DependentUpon>Scoped.cs</DependentUpon>
       </None>
+      <None Update="Transient.WithTenant.verified.txt">
+        <ParentFile>Scoped</ParentFile>
+        <DependentUpon>Transient.cs</DependentUpon>
+      </None>
+      <None Update="Transient.WithTenantOverridingType.verified.txt">
+        <ParentFile>Scoped</ParentFile>
+        <DependentUpon>Transient.cs</DependentUpon>
+      </None>
     </ItemGroup>
 
 

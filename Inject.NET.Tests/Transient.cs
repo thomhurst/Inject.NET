@@ -112,7 +112,7 @@ public partial class Transient
 
     [ServiceProvider]
     [Transient<TransientClass>]
-    [Transient<ClassContainingTransient>]
+    [Singleton<ClassContainingTransient>]
     [WithTenant<NonOverridingTenant>("NonOverridingTenant")]
     [WithTenant<OverridingTenant>("OverridingTenant")]
     public partial class TransientServiceProvider

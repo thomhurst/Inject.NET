@@ -12,6 +12,7 @@ internal static class SingletonScopeWriter
         var sourceCodeWriter = new SourceCodeWriter();
         
         sourceCodeWriter.WriteLine("using System;");
+        sourceCodeWriter.WriteLine("using System.Diagnostics.CodeAnalysis;");
         sourceCodeWriter.WriteLine("using System.Linq;");
         sourceCodeWriter.WriteLine("using Inject.NET.Enums;");
         sourceCodeWriter.WriteLine("using Inject.NET.Extensions;");
@@ -44,29 +45,37 @@ internal static class SingletonScopeWriter
         
         sourceCodeWriter.WriteLine($"public {className}(ServiceProviderRoot<{serviceProviderInformation.ServiceProviderType.GloballyQualified()}SingletonScope> root, ServiceFactories serviceFactories) : base(root, serviceFactories)");
         sourceCodeWriter.WriteLine("{");
-        
+        sourceCodeWriter.WriteLine("}");
+
         foreach (var (_, serviceModels) in serviceProviderInformation.Dependencies)
         {
-            foreach (var serviceModel in serviceModels.Where(x => x.Lifetime == Lifetime.Singleton))
+            var serviceModel = serviceModels.Last();
+
+            if (serviceModel.Lifetime == Lifetime.Singleton || serviceModel.IsOpenGeneric)
             {
-                sourceCodeWriter.WriteLine("[field: AllowNull, MaybeNull]");
-                var propertyName = PropertyNameHelper.Format(serviceModel);
-                sourceCodeWriter.WriteLine($"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => field ??= {TypeHelper.WriteType(serviceProviderInformation.ServiceProviderType, serviceProviderInformation.Dependencies, serviceProviderInformation.ParentDependencies, serviceModel, Lifetime.Singleton)};");
+                continue;
             }
+
+            sourceCodeWriter.WriteLine();
+            sourceCodeWriter.WriteLine("[field: AllowNull, MaybeNull]");
+            var propertyName = PropertyNameHelper.Format(serviceModel);
+            sourceCodeWriter.WriteLine($"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => field ??= {TypeHelper.WriteType(serviceProviderInformation.ServiceProviderType, serviceProviderInformation.Dependencies, serviceProviderInformation.ParentDependencies, serviceModel, Lifetime.Singleton)};");
         }
         
         foreach (var (_, serviceModels) in serviceProviderInformation.ParentDependencies
                      .Where(x => !serviceProviderInformation.Dependencies.Keys.Contains(x.Key, SymbolEqualityComparer.Default)))
         {
-            foreach (var serviceModel in serviceModels.Where(x => x.Lifetime == Lifetime.Singleton))
+            var serviceModel = serviceModels.Last();
+
+            if (serviceModel.Lifetime == Lifetime.Singleton || serviceModel.IsOpenGeneric)
             {
-                var propertyName = PropertyNameHelper.Format(serviceModel);
-                sourceCodeWriter.WriteLine($"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => Root.SingletonScope.{propertyName};");
+                continue;
             }
+            
+            var propertyName = PropertyNameHelper.Format(serviceModel);
+            sourceCodeWriter.WriteLine($"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => Root.SingletonScope.{propertyName};");
         }
         
-        sourceCodeWriter.WriteLine("}");
-
         sourceCodeWriter.WriteLine("}");
         
         for (var i = 0; i < nestedClassCount; i++)

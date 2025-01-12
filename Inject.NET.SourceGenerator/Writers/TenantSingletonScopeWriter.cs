@@ -6,11 +6,11 @@ using Microsoft.CodeAnalysis;
 
 namespace Inject.NET.SourceGenerator.Writers;
 
-internal static class ScopeWriter
+internal static class TenantSingletonScopeWriter
 {
     public static void Write(SourceProductionContext sourceProductionContext,
         Compilation compilation, TypedServiceProviderModel serviceProviderModel,
-        Dictionary<ISymbol?, ServiceModel[]> dependencyDictionary, IReadOnlyList<Tenant> tenants)
+        Dictionary<ISymbol?, ServiceModel[]> dependencyDictionary, Tenant tenant)
     {
         var sourceCodeWriter = new SourceCodeWriter();
         
@@ -41,30 +41,13 @@ internal static class ScopeWriter
         }
 
         sourceCodeWriter.WriteLine(
-            $"public class {serviceProviderModel.Type.Name}Scope : ServiceScope");
+            $"public class {serviceProviderModel.Type.Name}TenantSingletonScope_{tenant.Guid} : SingletonScope");
         sourceCodeWriter.WriteLine("{");
-
-        foreach (var tenant in tenants)
-        {
-            sourceCodeWriter.WriteLine($"public IServiceScope {serviceProviderModel.Type.Name}TenantScope_{tenant.Guid} {{ get; }}");
-        }
         
-        sourceCodeWriter.WriteLine($"public {serviceProviderModel.Type.Name}Scope(ServiceProviderRoot root, IServiceScope singletonScope, ServiceFactories serviceFactories) : base(root, singletonScope, serviceFactories)");
+        sourceCodeWriter.WriteLine($"public {serviceProviderModel.Type.Name}TenantSingletonScope_{tenant.Guid}(TenantServiceProvider tenantServiceProvider, IServiceProviderRoot root, ServiceFactories serviceFactories) : base(tenantServiceProvider, root, serviceFactories)");
         sourceCodeWriter.WriteLine("{");
         
         var singletons = WriteRegistrations(serviceProviderModel.Type, dependencyDictionary, sourceCodeWriter, false);
-        
-        foreach (var tenant in tenants)
-        {
-            sourceCodeWriter.WriteLine("{");
-            
-            sourceCodeWriter.WriteLine($"{serviceProviderModel.Type.Name}TenantScope_{tenant.Guid} = GetOrCreateTenant(\"{tenant.TenantId}\");");
-            TenantServiceProviderWriter.Write(sourceProductionContext, tenant, serviceProviderModel, compilation);
-            TenantScopeWriter.Write(sourceProductionContext, compilation, serviceProviderModel, dependencyDictionary, tenant);
-            WriteRegistrations(serviceProviderModel.Type, tenant.TenantDependencies, sourceCodeWriter, true);
-
-            sourceCodeWriter.WriteLine("}");
-        }
 
         sourceCodeWriter.WriteLine("}");
         
@@ -89,7 +72,7 @@ internal static class ScopeWriter
     {
         var prefix = isTenant ? "tenant." : null;
         
-        var singletons = dependencyDictionary.Where(x => x.Value[^1].Lifetime is Lifetime.Scoped)
+        var singletons = dependencyDictionary.Where(x => x.Value[^1].Lifetime is Lifetime.Singleton)
             .Select(x => new KeyValuePair<ISymbol, ServiceModel>(x.Key!, x.Value[^1]))
             .Where(x => !x.Value.ServiceType.IsGenericDefinition())
             .ToArray();
@@ -99,7 +82,7 @@ internal static class ScopeWriter
             foreach (var (_, singleton) in singletons)
             {
                 sourceCodeWriter.WriteLine(
-                    $"{PropertyNameHelper.Format(singleton)} = new global::System.Lazy<{singleton.ServiceType.GloballyQualified()}>(() => {WriteScoped(serviceProviderType, singleton, dependencyDictionary)});");
+                    $"{PropertyNameHelper.Format(singleton)} = new global::System.Lazy<{singleton.ServiceType.GloballyQualified()}>(() => {WriteSingleton(singleton, dependencyDictionary)});");
             }
         }
 
@@ -115,39 +98,23 @@ internal static class ScopeWriter
         return singletons;
     }
 
-    private static string WriteScoped(
-        INamedTypeSymbol serviceProviderType,
-        ServiceModel singleton,
+    private static string WriteSingleton(ServiceModel singleton,
         Dictionary<ISymbol?, ServiceModel[]> dependencyDictionary)
     {
-        return $"new {singleton.ImplementationType.GloballyQualified()}({string.Join(", ", GetParameters(serviceProviderType, singleton, dependencyDictionary))})";
+        return $"new {singleton.ImplementationType.GloballyQualified()}({string.Join(", ", GetParameters(singleton, dependencyDictionary))})";
     }
 
-    private static IEnumerable<string> GetParameters(
-        INamedTypeSymbol serviceProviderType,
-        ServiceModel serviceModel,
+    private static IEnumerable<string> GetParameters(ServiceModel serviceModel,
         Dictionary<ISymbol?, ServiceModel[]> dependencyDictionary)
     {
         return serviceModel.Parameters.Select(parameter =>
         {
-            if (!dependencyDictionary.TryGetValue(parameter.Type, out var models))
+            if (!dependencyDictionary.ContainsKey(parameter.Type))
             {
                 return $"global::Inject.NET.ThrowHelpers.Throw<{parameter.Type.GloballyQualified()}>(\"No dependency found for {parameter.Type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)} when trying to construct {serviceModel.ImplementationType.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)}\")";
             }
-
-            var model = models[^1];
             
-            if (model.Lifetime == Lifetime.Scoped)
-            {
-                return $"{PropertyNameHelper.Format(parameter.Type)}.Value";
-            }
-
-            if (model.Lifetime == Lifetime.Singleton)
-            {
-                return $"SingletonScope.{PropertyNameHelper.Format(parameter.Type)}.Value";
-            }
-
-            return ObjectConstructionHelper.ConstructNewObject(serviceProviderType, dependencyDictionary, model);
+            return $"{PropertyNameHelper.Format(parameter.Type)}.Value";
         });
     }
 

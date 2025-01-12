@@ -5,7 +5,7 @@ using IServiceProvider = Inject.NET.Interfaces.IServiceProvider;
 
 namespace Inject.NET.Services;
 
-internal sealed class TenantedScope(
+public class TenantedScope(
     TenantServiceProvider tenantServiceProvider,
     ServiceScope defaultScope,
     TenantedSingletonScope singletonScope,

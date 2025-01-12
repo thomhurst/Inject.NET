@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Inject.NET.SourceGenerator.Models;
 using Microsoft.CodeAnalysis;
@@ -207,6 +208,7 @@ internal static class DependencyDictionary
 
 internal class Tenant
 {
+    public Guid Guid { get; } = Guid.NewGuid();
     public required INamedTypeSymbol TenantDefinition { get; init; }
     public required string TenantId { get; init; }
     public required Dictionary<ISymbol?, ServiceModel[]> RootDependencies { get; init; }

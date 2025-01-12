@@ -6,12 +6,14 @@ using Microsoft.CodeAnalysis;
 
 namespace Inject.NET.SourceGenerator.Writers;
 
-internal static class ScopeWriter
+internal static class TenantScopeWriter
 {
     public static void Write(SourceProductionContext sourceProductionContext,
         Compilation compilation, TypedServiceProviderModel serviceProviderModel,
-        Dictionary<ISymbol?, ServiceModel[]> dependencyDictionary, IReadOnlyList<Tenant> tenants)
+        Dictionary<ISymbol?, ServiceModel[]> dependencyDictionary, Tenant tenant)
     {
+        var className = $"{serviceProviderModel.Type.Name}TenantScope_{tenant.Guid}";
+        
         var sourceCodeWriter = new SourceCodeWriter();
         
         sourceCodeWriter.WriteLine("using System;");
@@ -41,30 +43,19 @@ internal static class ScopeWriter
         }
 
         sourceCodeWriter.WriteLine(
-            $"public class {serviceProviderModel.Type.Name}Scope : ServiceScope");
+            $"public class {className} : TenantedScope");
         sourceCodeWriter.WriteLine("{");
-
-        foreach (var tenant in tenants)
-        {
-            sourceCodeWriter.WriteLine($"public IServiceScope {serviceProviderModel.Type.Name}TenantScope_{tenant.Guid} {{ get; }}");
-        }
         
-        sourceCodeWriter.WriteLine($"public {serviceProviderModel.Type.Name}Scope(ServiceProviderRoot root, IServiceScope singletonScope, ServiceFactories serviceFactories) : base(root, singletonScope, serviceFactories)");
+        sourceCodeWriter.WriteLine($"public {serviceProviderModel.Type.Name}Scope(TenantServiceProvider tenantServiceProvider, ServiceScope defaultScope, TenantedSingletonScope singletonScope, ServiceFactories serviceFactories) : base(tenantServiceProvider, defaultScope, singletonScope, serviceFactories)");
         sourceCodeWriter.WriteLine("{");
         
         var singletons = WriteRegistrations(serviceProviderModel.Type, dependencyDictionary, sourceCodeWriter, false);
         
-        foreach (var tenant in tenants)
-        {
-            sourceCodeWriter.WriteLine("{");
-            
-            sourceCodeWriter.WriteLine($"{serviceProviderModel.Type.Name}TenantScope_{tenant.Guid} = GetOrCreateTenant(\"{tenant.TenantId}\");");
-            TenantServiceProviderWriter.Write(sourceProductionContext, tenant, serviceProviderModel, compilation);
-            TenantScopeWriter.Write(sourceProductionContext, compilation, serviceProviderModel, dependencyDictionary, tenant);
-            WriteRegistrations(serviceProviderModel.Type, tenant.TenantDependencies, sourceCodeWriter, true);
+        sourceCodeWriter.WriteLine("{");
+        
+        WriteRegistrations(serviceProviderModel.Type, tenant.TenantDependencies, sourceCodeWriter, true);
 
-            sourceCodeWriter.WriteLine("}");
-        }
+        sourceCodeWriter.WriteLine("}");
 
         sourceCodeWriter.WriteLine("}");
         

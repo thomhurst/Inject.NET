@@ -33,31 +33,11 @@ internal static class TypeHelper
             return $"global::Inject.NET.ThrowHelpers.Throw<{serviceModel.ServiceType.GloballyQualified()}>(\"No dependency found for {serviceModel.ServiceType.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)}\")";
         }
         
-        if (serviceModel.Lifetime == Lifetime.Transient)
-        {
-            if(dependencies.ContainsKey(serviceModel.ServiceType))
-            {
-                return ObjectConstructionHelper.ConstructNewObject(serviceProviderType, dependencies, serviceModel, currentLifetime);
-            }
-
-            return ObjectConstructionHelper.ConstructNewObject(serviceProviderType, parentDependencies, serviceModel, currentLifetime);
-        }
-
-        if (serviceModel.Lifetime == Lifetime.Singleton)
-        {
-            if(dependencies.ContainsKey(serviceModel.ServiceType))
-            {
-                return $"SingletonScope.{PropertyNameHelper.Format(serviceModel)}.Value";
-            }
-
-            return $"Root.SingletonScope.{PropertyNameHelper.Format(serviceModel)}.Value";
-        }
-        
         if(dependencies.ContainsKey(serviceModel.ServiceType))
         {
-            return $"{PropertyNameHelper.Format(serviceModel)}.Value";
+            return ObjectConstructionHelper.ConstructNewObject(serviceProviderType, dependencies, serviceModel, currentLifetime);
         }
 
-        return $"DefaultScope.{PropertyNameHelper.Format(serviceModel)}.Value";
+        return ObjectConstructionHelper.ConstructNewObject(serviceProviderType, parentDependencies, serviceModel, currentLifetime);
     }
 }

@@ -22,7 +22,7 @@ public abstract class ServiceProviderRoot<TSingletonScope> : IServiceProviderRoo
         _tenantRegistrars = tenantRegistrars;
     }
 
-    public async ValueTask InitializeAsync()
+    public virtual async ValueTask InitializeAsync()
     {
         await BuildTenants();
         

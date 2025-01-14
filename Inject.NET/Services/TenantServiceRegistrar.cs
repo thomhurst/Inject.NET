@@ -1,28 +1,24 @@
 using Inject.NET.Delegates;
 using Inject.NET.Extensions;
 using Inject.NET.Interfaces;
-using Inject.NET.Models;
 using IServiceProvider = Inject.NET.Interfaces.IServiceProvider;
 
 namespace Inject.NET.Services;
 
-public class TenantServiceRegistrar<TSingletonScope> : IServiceRegistrar
+public abstract class TenantServiceRegistrar<TSelf, TServiceProvider, TSingletonScope> : ServiceRegistrar<TServiceProvider>
+    where TSelf : TenantServiceRegistrar<TSelf, TServiceProvider, TSingletonScope>
+    where TServiceProvider : IServiceProvider 
     where TSingletonScope : IServiceScope
 {
-    public ServiceFactoryBuilders ServiceFactoryBuilders { get; } = new();
-    
-    public IServiceRegistrar Register(ServiceDescriptor serviceDescriptor)
+    public new OnBeforeTenantBuild<TSelf, TServiceProvider> OnBeforeBuild { get; set; } = _ => { };
+    public override ValueTask<TServiceProvider> BuildAsync()
     {
-        ServiceFactoryBuilders.Add(serviceDescriptor);
-
-        return this;
+        throw new NotImplementedException();
     }
 
-    public OnBeforeBuild OnBeforeBuild { get; set; } = _ => { };
-    
     public async ValueTask<IServiceProvider> BuildAsync(IServiceProvider rootServiceProvider)
     {
-        OnBeforeBuild(this);
+        OnBeforeBuild((TSelf)this);
 
         var serviceProviderRoot = (ServiceProviderRoot<TSingletonScope>)rootServiceProvider;
         

@@ -18,6 +18,6 @@ public class DependenciesSourceGenerator : IIncrementalGenerator
                 })
             .Combine(context.CompilationProvider);
 
-        context.RegisterSourceOutput(provider, ServiceProviderWriter.GenerateServiceProviderCode);
+        context.RegisterSourceOutput(provider, (sourceProductionContext, tuple) => MainWriter.GenerateServiceProviderCode(sourceProductionContext, tuple.Left, tuple.Right));
     }
 }

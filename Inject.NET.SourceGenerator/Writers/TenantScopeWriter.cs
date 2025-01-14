@@ -2,19 +2,22 @@ using Microsoft.CodeAnalysis;
 
 namespace Inject.NET.SourceGenerator.Writers;
 
-internal static class SingletonScopeWriter
+internal static class TenantScopeWriter
 {
     public static void Write(SourceProductionContext sourceProductionContext,
-        Compilation compilation, ServiceProviderInformation serviceProviderInformation, Tenant? tenant = null)
+        Compilation compilation, ServiceProviderInformation serviceProviderInformation, Tenant tenant)
     {
         NestedServiceWrapperWriter.Wrap(sourceProductionContext, serviceProviderInformation.ServiceProviderType,
             sourceCodeWriter =>
             {
-                sourceCodeWriter.WriteLine($"public class SingletonScope : SingletonScope");
+                var className = $"Scope{tenant.Guid}";
+                
+                sourceCodeWriter.WriteLine(
+                    $"public class {className} : ServiceScope<SingletonScope>");
                 sourceCodeWriter.WriteLine("{");
 
                 sourceCodeWriter.WriteLine(
-                    $"public SingletonScope(ServiceProviderRoot<SingletonScope> root, ServiceFactories serviceFactories) : base(root, serviceFactories)");
+                    $"public {className}(ServiceProviderRoot<SingletonScope> root, SingletonScope singletonScope, ServiceFactories serviceFactories) : base(root, singletonScope, serviceFactories)");
                 sourceCodeWriter.WriteLine("{");
                 sourceCodeWriter.WriteLine("}");
 
@@ -22,7 +25,7 @@ internal static class SingletonScopeWriter
                 {
                     var serviceModel = serviceModels.Last();
 
-                    if (serviceModel.Lifetime != Lifetime.Singleton || serviceModel.IsOpenGeneric)
+                    if (serviceModel.Lifetime != Lifetime.Scoped || serviceModel.IsOpenGeneric)
                     {
                         continue;
                     }
@@ -30,9 +33,8 @@ internal static class SingletonScopeWriter
                     sourceCodeWriter.WriteLine();
                     sourceCodeWriter.WriteLine("[field: AllowNull, MaybeNull]");
                     var propertyName = PropertyNameHelper.Format(serviceModel);
-                    
                     sourceCodeWriter.WriteLine(
-                        $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => field ??= Register({serviceModel.GetKey()}, {ObjectConstructionHelper.ConstructNewObject(serviceProviderInformation.ServiceProviderType, serviceProviderInformation.Dependencies, serviceProviderInformation.ParentDependencies, serviceModel, Lifetime.Singleton)});");
+                        $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => field ??= Register({serviceModel.GetKey()}, {TypeHelper.GetOrConstructType(serviceProviderInformation.ServiceProviderType, serviceProviderInformation.Dependencies, serviceProviderInformation.ParentDependencies, serviceModel, Lifetime.Singleton)});");
                 }
 
                 foreach (var (_, serviceModels) in serviceProviderInformation.ParentDependencies
@@ -41,7 +43,7 @@ internal static class SingletonScopeWriter
                 {
                     var serviceModel = serviceModels.Last();
 
-                    if (serviceModel.Lifetime == Lifetime.Singleton || serviceModel.IsOpenGeneric)
+                    if (serviceModel.Lifetime == Lifetime.Scoped || serviceModel.IsOpenGeneric)
                     {
                         continue;
                     }

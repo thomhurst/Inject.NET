@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Inject.NET.SourceGenerator.Models;
 using Microsoft.CodeAnalysis;
 
@@ -8,89 +5,62 @@ namespace Inject.NET.SourceGenerator.Writers;
 
 internal static class ServiceRegistrarWriter
 {
-    public static void GenerateServiceRegistrarCode(SourceProductionContext sourceProductionContext,
+    public static void Write(SourceProductionContext sourceProductionContext,
         Compilation compilation, TypedServiceProviderModel serviceProviderModel,
         Dictionary<ISymbol?, ServiceModel[]> dependencyDictionary)
     {
         var withTenantAttributeType = compilation.GetTypeByMetadataName("Inject.NET.Attributes.WithTenantAttribute`1");
-        
-        var sourceCodeWriter = new SourceCodeWriter();
-        
-        sourceCodeWriter.WriteLine("using System;");
-        sourceCodeWriter.WriteLine("using System.Linq;");
-        sourceCodeWriter.WriteLine("using System.Threading.Tasks;");
-        sourceCodeWriter.WriteLine("using Inject.NET.Enums;");
-        sourceCodeWriter.WriteLine("using Inject.NET.Extensions;");
-        sourceCodeWriter.WriteLine("using Inject.NET.Services;");
-        sourceCodeWriter.WriteLine();
 
-        if (serviceProviderModel.Type.ContainingNamespace is { IsGlobalNamespace: false })
-        {
-            sourceCodeWriter.WriteLine($"namespace {serviceProviderModel.Type.ContainingNamespace.ToDisplayString()};");
-            sourceCodeWriter.WriteLine();
-        }
-        
-        var nestedClassCount = 0;
-        var parent = serviceProviderModel.Type.ContainingType;
+        NestedServiceWrapperWriter.Wrap(sourceProductionContext, serviceProviderModel.Type,
+            sourceCodeWriter =>
+            {
+                sourceCodeWriter.WriteLine(
+                    $"public class ServiceRegistrar : ServiceRegistrar<{serviceProviderModel.Type.GloballyQualified()}, {serviceProviderModel.Type.GloballyQualified()}SingletonScope>");
+                
+                sourceCodeWriter.WriteLine("{");
 
-        while (parent is not null)
-        {
-            nestedClassCount++;
-            sourceCodeWriter.WriteLine($"public partial class {parent.Name}");
-            sourceCodeWriter.WriteLine("{");
-            parent = parent.ContainingType;
-        }
+                sourceCodeWriter.WriteLine($"public ServiceRegistrar()");
+                sourceCodeWriter.WriteLine("{");
 
-        sourceCodeWriter.WriteLine(
-            $"public class {serviceProviderModel.Type.Name}ServiceRegistrar : ServiceRegistrar<{serviceProviderModel.Type.GloballyQualified()}, {serviceProviderModel.Type.GloballyQualified()}SingletonScope>");
-        sourceCodeWriter.WriteLine("{");
-        
-        sourceCodeWriter.WriteLine($"public {serviceProviderModel.Type.Name}ServiceRegistrar()");
-        sourceCodeWriter.WriteLine("{");
+                WriteRegistration(sourceCodeWriter, serviceProviderModel.Type, dependencyDictionary, string.Empty);
 
-        WriteRegistration(sourceCodeWriter, serviceProviderModel.Type, dependencyDictionary, string.Empty);
+                var withTenantAttributes = serviceProviderModel.Type.GetAttributes().Where(x =>
+                    SymbolEqualityComparer.Default.Equals(x.AttributeClass?.OriginalDefinition,
+                        withTenantAttributeType));
 
-        var withTenantAttributes = serviceProviderModel.Type.GetAttributes().Where(x =>
-            SymbolEqualityComparer.Default.Equals(x.AttributeClass?.OriginalDefinition, withTenantAttributeType));
-        
-        foreach (var withTenantAttribute in withTenantAttributes)
-        {
-            var tenantId = withTenantAttribute.ConstructorArguments[0].Value!.ToString();
-            var tenantDefinitionClass = (INamedTypeSymbol) withTenantAttribute.AttributeClass!.TypeArguments[0];
-            
-            WriteWithTenant(sourceCodeWriter, serviceProviderModel.Type, compilation, tenantId, tenantDefinitionClass, dependencyDictionary);
-        }
-        
-        sourceCodeWriter.WriteLine("}");
+                foreach (var withTenantAttribute in withTenantAttributes)
+                {
+                    var tenantId = withTenantAttribute.ConstructorArguments[0].Value!.ToString();
+                    var tenantDefinitionClass = (INamedTypeSymbol)withTenantAttribute.AttributeClass!.TypeArguments[0];
 
-        sourceCodeWriter.WriteLine();
-        
-        sourceCodeWriter.WriteLine($$"""
-                                   public override async ValueTask<{{serviceProviderModel.Type.GloballyQualified()}}> BuildAsync()
-                                   {
-                                       OnBeforeBuild(this);
-                                   
-                                       var serviceProvider = new {{serviceProviderModel.Type.GloballyQualified()}}(ServiceFactoryBuilders.AsReadOnly(), Tenants);
-                                       
-                                       var vt = serviceProvider.InitializeAsync();
-                                   
-                                       if (!vt.IsCompletedSuccessfully)
-                                       {
-                                           await vt.ConfigureAwait(false);
-                                       }
-                                       
-                                       return serviceProvider;
-                                   }
-                                   """);
+                    WriteWithTenant(sourceCodeWriter, serviceProviderModel.Type, compilation, tenantId,
+                        tenantDefinitionClass, dependencyDictionary);
+                }
 
-        sourceCodeWriter.WriteLine("}");
-        
-        for (var i = 0; i < nestedClassCount; i++)
-        {
-            sourceCodeWriter.WriteLine("}");
-        }
-        
-        sourceProductionContext.AddSource($"{serviceProviderModel.Type.Name}ServiceRegistrar_{Guid.NewGuid():N}.g.cs", sourceCodeWriter.ToString());
+                sourceCodeWriter.WriteLine("}");
+
+                sourceCodeWriter.WriteLine();
+
+                sourceCodeWriter.WriteLine($$"""
+                                             public override async ValueTask<{{serviceProviderModel.Type.GloballyQualified()}}> BuildAsync()
+                                             {
+                                                 OnBeforeBuild(this);
+                                             
+                                                 var serviceProvider = new {{serviceProviderModel.Type.GloballyQualified()}}(ServiceFactoryBuilders.AsReadOnly(), Tenants);
+                                                 
+                                                 var vt = serviceProvider.InitializeAsync();
+                                             
+                                                 if (!vt.IsCompletedSuccessfully)
+                                                 {
+                                                     await vt.ConfigureAwait(false);
+                                                 }
+                                                 
+                                                 return serviceProvider;
+                                             }
+                                             """);
+
+                sourceCodeWriter.WriteLine("}");
+            });
     }
 
     private static void WriteWithTenant(SourceCodeWriter sourceCodeWriter, INamedTypeSymbol serviceProviderType, Compilation compilation, string tenantId,
@@ -188,7 +158,7 @@ internal static class ServiceRegistrarWriter
                 
         sourceCodeWriter.WriteLine("Factory = (scope, type, key) =>");
                 
-        sourceCodeWriter.WriteLine(ObjectConstructionHelper.ConstructNewObject(serviceProviderType, dependencyDictionary, serviceModel, serviceModel.Lifetime));
+        sourceCodeWriter.WriteLine(ObjectConstructionHelper.ConstructNewObject(serviceProviderType, dependencyDictionary, [], serviceModel, serviceModel.Lifetime));
                 
         sourceCodeWriter.WriteLine("});");
         sourceCodeWriter.WriteLine();

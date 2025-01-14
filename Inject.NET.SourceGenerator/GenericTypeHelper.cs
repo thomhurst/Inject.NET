@@ -1,6 +1,4 @@
 ﻿using Microsoft.CodeAnalysis;
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Inject.NET.SourceGenerator;

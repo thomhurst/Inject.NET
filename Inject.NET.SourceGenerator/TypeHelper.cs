@@ -1,21 +1,11 @@
-﻿using System.Collections.Generic;
-using Inject.NET.SourceGenerator.Models;
+﻿using Inject.NET.SourceGenerator.Models;
 using Microsoft.CodeAnalysis;
 
 namespace Inject.NET.SourceGenerator;
 
 internal static class TypeHelper
 {
-    public static string WriteType(
-        INamedTypeSymbol serviceProviderType,
-        Dictionary<ISymbol?, ServiceModel[]> dependencies,
-        ServiceModel serviceModel,
-        Lifetime currentLifetime)
-    {
-        return WriteType(serviceProviderType, dependencies, [], serviceModel, currentLifetime);
-    }
-    
-    public static string WriteType(
+    public static string GetOrConstructType(
         INamedTypeSymbol serviceProviderType,
         Dictionary<ISymbol?, ServiceModel[]> dependencies,
         Dictionary<ISymbol?, ServiceModel[]> parentDependencies,
@@ -24,20 +14,33 @@ internal static class TypeHelper
     {
         if (serviceModel.Lifetime > currentLifetime)
         {
-            return $"global::Inject.NET.ThrowHelpers.Throw<{serviceModel.ServiceType.GloballyQualified()}>(\"Injecting type {serviceModel.ImplementationType.Name} with a lifetime of {serviceModel.Lifetime} into an object with a lifetime of {currentLifetime} will cause it to also be {currentLifetime}\")";
+            return
+                $"global::Inject.NET.ThrowHelpers.Throw<{serviceModel.ServiceType.GloballyQualified()}>(\"Injecting type {serviceModel.ImplementationType.Name} with a lifetime of {serviceModel.Lifetime} into an object with a lifetime of {currentLifetime} will cause it to also be {currentLifetime}\")";
         }
 
-        if (!dependencies.ContainsKey(serviceModel.ServiceType) &&
-            !parentDependencies.ContainsKey(serviceModel.ServiceType))
+        if (!dependencies.Keys.Contains(serviceModel.ServiceType, SymbolEqualityComparer.Default) &&
+            !parentDependencies.Keys.Contains(serviceModel.ServiceType, SymbolEqualityComparer.Default))
         {
-            return $"global::Inject.NET.ThrowHelpers.Throw<{serviceModel.ServiceType.GloballyQualified()}>(\"No dependency found for {serviceModel.ServiceType.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)}\")";
+            return
+                $"global::Inject.NET.ThrowHelpers.Throw<{serviceModel.ServiceType.GloballyQualified()}>(\"No dependency found for {serviceModel.ServiceType.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)}\")";
         }
         
-        if(dependencies.ContainsKey(serviceModel.ServiceType))
+        if (!dependencies.ContainsKey(serviceModel.ServiceType))
         {
-            return ObjectConstructionHelper.ConstructNewObject(serviceProviderType, dependencies, serviceModel, currentLifetime);
+            switch (serviceModel.Lifetime)
+            {
+                case Lifetime.Singleton:
+                    return $"Root.SingletonScope.{PropertyNameHelper.Format(serviceModel)}";
+                case Lifetime.Scoped:
+                    return $"DefaultScope.{PropertyNameHelper.Format(serviceModel)}";
+                case Lifetime.Transient:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
         }
 
-        return ObjectConstructionHelper.ConstructNewObject(serviceProviderType, parentDependencies, serviceModel, currentLifetime);
+        return ObjectConstructionHelper.ConstructNewObject(serviceProviderType, dependencies, parentDependencies,
+            serviceModel, currentLifetime);
     }
 }

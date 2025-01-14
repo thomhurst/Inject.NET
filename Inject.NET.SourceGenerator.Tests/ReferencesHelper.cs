@@ -14,7 +14,7 @@ internal class ReferencesHelper
             .Concat([
                 // add your app/lib specifics, e.g.:
                 MetadataReference.CreateFromFile(typeof(Attribute).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(IServiceProviderRoot).Assembly.Location),
+                MetadataReference.CreateFromFile(typeof(IServiceProvider<>).Assembly.Location),
             ])
             .ToList();
 }

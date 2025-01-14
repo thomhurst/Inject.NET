@@ -5,11 +5,13 @@ using Inject.NET.Helpers;
 using Inject.NET.Interfaces;
 using Inject.NET.Models;
 using Inject.NET.Pools;
-using IServiceProvider = Inject.NET.Interfaces.IServiceProvider;
 
 namespace Inject.NET.Services;
 
-public class SingletonScope(IServiceProviderRoot root, ServiceFactories serviceFactories) : IServiceScope
+public class SingletonScope<TSelf, TServiceProviderRoot, TScope>(TServiceProviderRoot root, ServiceFactories serviceFactories) : IServiceScope, ISingleton
+where TServiceProviderRoot : ServiceProviderRoot<TServiceProviderRoot, TSelf, TScope>
+where TSelf : SingletonScope<TSelf, TServiceProviderRoot, TScope>
+where TScope : ServiceScope<TServiceProviderRoot, TSelf, TScope>
 {
     private static readonly Type ServiceScopeType = typeof(IServiceScope);
     private static readonly Type ServiceProviderType = typeof(IServiceProvider);
@@ -23,7 +25,7 @@ public class SingletonScope(IServiceProviderRoot root, ServiceFactories serviceF
     
     private bool _isBuilt;
     
-    public IServiceProvider ServiceProvider { get; } = root;
+    public TServiceProviderRoot ServiceProvider { get; } = root;
 
     public void PreBuild()
     {

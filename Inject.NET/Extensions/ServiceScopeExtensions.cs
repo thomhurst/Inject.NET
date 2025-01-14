@@ -52,7 +52,7 @@ public static class ServiceScopeExtensions
     
     private static T ThrowMissingDependencyError<T>(IServiceScope scope) where T : class
     {
-        if (scope is SingletonScope)
+        if (scope is ISingleton)
         {
             throw new ArgumentException($"No singleton registered for type {typeof(T).FullName}. Transient and Scoped dependencies cannot be injected into a singleton.");
         }
@@ -62,7 +62,7 @@ public static class ServiceScopeExtensions
     
     private static T ThrowMissingDependencyError<T>(string key, IServiceScope scope) where T : class
     {
-        if (scope is SingletonScope)
+        if (scope is IScoped)
         {
             throw new ArgumentException($"No singleton registered for type {typeof(T).FullName} with key {key}. Transient and Scoped dependencies cannot be injected into a singleton");
         }

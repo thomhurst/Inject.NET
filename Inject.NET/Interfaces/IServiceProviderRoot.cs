@@ -1,6 +1,6 @@
 ﻿namespace Inject.NET.Interfaces;
 
-public interface IServiceProviderRoot : IServiceProvider
+public interface IServiceProviderRoot<out TScope> : IServiceProvider<TScope> where TScope : IServiceScope
 {
     IServiceProvider GetTenant(string tenantId);
 }

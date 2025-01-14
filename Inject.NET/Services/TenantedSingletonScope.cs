@@ -2,16 +2,17 @@
 using Inject.NET.Interfaces;
 using Inject.NET.Models;
 using Inject.NET.Pools;
-using IServiceProvider = Inject.NET.Interfaces.IServiceProvider;
 
 namespace Inject.NET.Services;
 
-public class TenantedSingletonScope<TSelf, TServiceProviderRoot, TDefaultSingletonScope, TDefaultScope>(
+public abstract class TenantedSingletonScope<TSelf, TServiceProviderRoot, TDefaultSingletonScope, TDefaultScope>(
     TenantServiceProvider<TSelf, TServiceProviderRoot, TDefaultSingletonScope, TDefaultScope> tenantServiceProvider,
     TServiceProviderRoot root,
-    ServiceFactories serviceFactories) : IServiceScope where TDefaultSingletonScope : SingletonScope where TServiceProviderRoot : ServiceProviderRoot<TServiceProviderRoot, TDefaultSingletonScope> 
+    ServiceFactories serviceFactories) : IServiceScope, ISingleton 
+    where TDefaultSingletonScope : SingletonScope<TDefaultSingletonScope, TServiceProviderRoot, TDefaultScope>
+    where TServiceProviderRoot : ServiceProviderRoot<TServiceProviderRoot, TDefaultSingletonScope, TDefaultScope> 
     where TSelf : TenantedSingletonScope<TSelf, TServiceProviderRoot, TDefaultSingletonScope, TDefaultScope>
-    where TDefaultScope : ServiceScope<TServiceProviderRoot, TDefaultSingletonScope>
+    where TDefaultScope : ServiceScope<TServiceProviderRoot, TDefaultSingletonScope, TDefaultScope>
 {
     public TServiceProviderRoot Root { get; } = root;
     private static readonly Type ServiceScopeType = typeof(IServiceScope);
@@ -20,7 +21,7 @@ public class TenantedSingletonScope<TSelf, TServiceProviderRoot, TDefaultSinglet
     private Dictionary<ServiceKey, object>? _registered;
     private Dictionary<ServiceKey, List<object>>? _registeredEnumerables;
     
-    private readonly SingletonScope _scope = new(root, serviceFactories);
+    public abstract TDefaultSingletonScope DefaultScope { get; }
 
     public T Register<T>(ServiceKey key, T value)
     {
@@ -55,7 +56,7 @@ public class TenantedSingletonScope<TSelf, TServiceProviderRoot, TDefaultSinglet
             return ServiceProvider;
         }
         
-        return _scope.GetService(serviceKey) ?? Root.SingletonScope.GetService(serviceKey);
+        return DefaultScope.GetService(serviceKey) ?? Root.SingletonScope.GetService(serviceKey);
     }
 
     public IReadOnlyList<object> GetServices(ServiceKey serviceKey)
@@ -65,11 +66,11 @@ public class TenantedSingletonScope<TSelf, TServiceProviderRoot, TDefaultSinglet
             return
             [
                 ..defaultSingletons,
-                .._scope.GetServices(serviceKey)
+                ..DefaultScope.GetServices(serviceKey)
             ];
         }
         
-        return _scope.GetServices(serviceKey);
+        return DefaultScope.GetServices(serviceKey);
     }
 
     public IServiceScope SingletonScope => this;
@@ -78,7 +79,7 @@ public class TenantedSingletonScope<TSelf, TServiceProviderRoot, TDefaultSinglet
 
     public ValueTask DisposeAsync()
     {
-        return _scope.DisposeAsync();
+        return DefaultScope.DisposeAsync();
     }
     
     public void Dispose()
@@ -101,9 +102,9 @@ public class TenantedSingletonScope<TSelf, TServiceProviderRoot, TDefaultSinglet
         DictionaryPool<ServiceKey, object>.Shared.Return(_registered);
         DictionaryPool<ServiceKey, List<object>>.Shared.Return(_registeredEnumerables);
             
-        _scope.Dispose();
+        DefaultScope.Dispose();
     }
     
-    public void PreBuild() => _scope.PreBuild();
-    public Task FinalizeAsync() => _scope.FinalizeAsync();
+    public void PreBuild() => DefaultScope.PreBuild();
+    public Task FinalizeAsync() => DefaultScope.FinalizeAsync();
 }

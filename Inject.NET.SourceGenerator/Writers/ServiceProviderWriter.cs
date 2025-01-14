@@ -30,17 +30,38 @@ internal static class ServiceProviderWriter
             sourceCodeWriter.WriteLine($$"""public global::Inject.NET.Interfaces.IServiceProvider Tenant{{tenant.Guid}} { get; private set; } = null!;""");
         }
                 
+        WriteInitializeAsync(sourceCodeWriter, serviceProviderInformation, tenants);
+
+        sourceCodeWriter.WriteLine("}");
+    }
+
+    private static void WriteInitializeAsync(SourceCodeWriter sourceCodeWriter,
+        TenantedServiceProviderInformation serviceProviderInformation, Tenant[] tenants)
+    {
         sourceCodeWriter.WriteLine("public override async ValueTask InitializeAsync()");
         sourceCodeWriter.WriteLine("{");
-        sourceCodeWriter.WriteLine("await base.InitializeAsync();");
+        
+        sourceCodeWriter.WriteLine("await using var scope = CreateScope();");
+        foreach (var serviceModel in serviceProviderInformation.Dependencies.Where(x => x.Key is INamedTypeSymbol { IsUnboundGenericType: false }).Select(x => x.Value[^1]))
+        {
+            if(serviceModel.Lifetime == Lifetime.Singleton)
+            {
+                sourceCodeWriter.WriteLine($"_ = SingletonScope.{PropertyNameHelper.Format(serviceModel)};");
+            }
+            else if(serviceModel.Lifetime == Lifetime.Scoped)
+            {
+                sourceCodeWriter.WriteLine($"_ = scope.{PropertyNameHelper.Format(serviceModel)};");
+            }
+        }
 
         foreach (var tenant in tenants)
         {
             sourceCodeWriter.WriteLine($"Tenant{tenant.Guid} = await ServiceProvider_{tenant.Guid}.BuildAsync(this);");
             sourceCodeWriter.WriteLine($"Register(\"{tenant.TenantId}\", Tenant{tenant.Guid});");
         }
-
-        sourceCodeWriter.WriteLine("}");
+        
+        sourceCodeWriter.WriteLine();
+        sourceCodeWriter.WriteLine("await base.InitializeAsync();");
 
         sourceCodeWriter.WriteLine("}");
     }

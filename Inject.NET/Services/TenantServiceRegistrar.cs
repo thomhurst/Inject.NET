@@ -8,9 +8,9 @@ public abstract class TenantServiceRegistrar<TSelf, TServiceProvider, TSingleton
     where TSelf : TenantServiceRegistrar<TSelf, TServiceProvider, TSingletonScope, TRootServiceProvider, TDefaultSingletonScope, TDefaultScope>
     where TServiceProvider : TenantServiceProvider<TSingletonScope, TRootServiceProvider, TDefaultSingletonScope, TDefaultScope>
     where TSingletonScope : TenantedSingletonScope<TSingletonScope, TRootServiceProvider, TDefaultSingletonScope, TDefaultScope>
-    where TDefaultSingletonScope : SingletonScope
-    where TRootServiceProvider : ServiceProviderRoot<TRootServiceProvider, TDefaultSingletonScope>
-    where TDefaultScope : ServiceScope<TRootServiceProvider, TDefaultSingletonScope>
+    where TDefaultSingletonScope : SingletonScope<TDefaultSingletonScope, TRootServiceProvider, TDefaultScope>
+    where TRootServiceProvider : ServiceProviderRoot<TRootServiceProvider, TDefaultSingletonScope, TDefaultScope>
+    where TDefaultScope : ServiceScope<TRootServiceProvider, TDefaultSingletonScope, TDefaultScope>
 {
     public ServiceFactoryBuilders ServiceFactoryBuilders { get; } = new();
 

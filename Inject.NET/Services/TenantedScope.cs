@@ -1,7 +1,6 @@
 using Inject.NET.Extensions;
 using Inject.NET.Interfaces;
 using Inject.NET.Models;
-using IServiceProvider = Inject.NET.Interfaces.IServiceProvider;
 
 namespace Inject.NET.Services;
 
@@ -10,17 +9,17 @@ public class TenantedScope<TServiceProvider, TSingletonScope, TDefaultSingletonS
     TDefaultScope defaultScope,
     TDefaultSingletonScope defaultSingletonScope,
     TSingletonScope singletonScope,
-    ServiceFactories serviceFactories) : IServiceScope
+    ServiceFactories serviceFactories) : IServiceScope, IScoped
     where TSingletonScope : TenantedSingletonScope<TSingletonScope, TServiceProvider, TDefaultSingletonScope, TDefaultScope> 
-    where TServiceProvider : ServiceProviderRoot<TServiceProvider, TDefaultSingletonScope>
-    where TDefaultScope : ServiceScope<TServiceProvider, TDefaultSingletonScope>
-    where TDefaultSingletonScope : SingletonScope
+    where TServiceProvider : ServiceProviderRoot<TServiceProvider, TDefaultSingletonScope, TDefaultScope>
+    where TDefaultScope : ServiceScope<TServiceProvider, TDefaultSingletonScope, TDefaultScope>
+    where TDefaultSingletonScope : SingletonScope<TDefaultSingletonScope, TServiceProvider, TDefaultScope>
 {
     public TDefaultScope DefaultScope { get; } = defaultScope;
     private static readonly Type ServiceScopeType = typeof(IServiceScope);
     private static readonly Type ServiceProviderType = typeof(IServiceProvider);
     
-    private readonly ServiceScope<TServiceProvider, TDefaultSingletonScope> _scope = new(serviceProviderRoot, defaultSingletonScope, serviceFactories);
+    private readonly ServiceScope<TServiceProvider, TDefaultSingletonScope, TDefaultScope> _scope = new(serviceProviderRoot, defaultSingletonScope, serviceFactories);
 
     public object? GetService(Type type)
     {

@@ -5,13 +5,13 @@ using Inject.NET.Extensions;
 using Inject.NET.Interfaces;
 using Inject.NET.Models;
 using Inject.NET.Pools;
-using IServiceProvider = Inject.NET.Interfaces.IServiceProvider;
 
 namespace Inject.NET.Services;
 
-public class ServiceScope<TServiceProvider, TDefaultSingletonScope> : IServiceScope<TServiceProvider, TDefaultSingletonScope>
-    where TServiceProvider : ServiceProviderRoot<TServiceProvider, TDefaultSingletonScope>, IServiceProvider
-    where TDefaultSingletonScope : SingletonScope
+public class ServiceScope<TServiceProvider, TDefaultSingletonScope, TDefaultScope> : IServiceScope<TServiceProvider, TDefaultSingletonScope, TDefaultScope>, IScoped
+    where TServiceProvider : ServiceProviderRoot<TServiceProvider, TDefaultSingletonScope, TDefaultScope>, IServiceProvider<TDefaultScope>
+    where TDefaultSingletonScope : SingletonScope<TDefaultSingletonScope, TServiceProvider, TDefaultScope>
+    where TDefaultScope : ServiceScope<TServiceProvider, TDefaultSingletonScope, TDefaultScope>
 {
     private static readonly Type ServiceScopeType = typeof(IServiceScope);
     private static readonly Type ServiceProviderType = typeof(IServiceProvider);

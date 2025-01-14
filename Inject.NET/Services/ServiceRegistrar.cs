@@ -1,6 +1,5 @@
 using Inject.NET.Interfaces;
 using Inject.NET.Models;
-using IServiceProvider = Inject.NET.Interfaces.IServiceProvider;
 
 namespace Inject.NET.Services;
 

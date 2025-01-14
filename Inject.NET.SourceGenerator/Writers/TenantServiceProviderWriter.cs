@@ -29,6 +29,33 @@ internal static class TenantServiceProviderWriter
             $"public static ValueTask<{className}> BuildAsync(ServiceProvider_ root) =>");
         sourceCodeWriter.WriteLine($"\tnew ServiceRegistrar{tenant.Guid}().BuildAsync(root);");
 
+        WriteInitializeAsync(sourceCodeWriter, tenant);
+        
+        sourceCodeWriter.WriteLine("}");
+    }
+    
+    private static void WriteInitializeAsync(SourceCodeWriter sourceCodeWriter, Tenant tenant)
+    {
+        sourceCodeWriter.WriteLine("public override async ValueTask InitializeAsync()");
+        sourceCodeWriter.WriteLine("{");
+        
+        sourceCodeWriter.WriteLine("await using var scope = CreateScope();");
+        
+        foreach (var serviceModel in tenant.TenantDependencies.Where(x => x.Key is INamedTypeSymbol { IsUnboundGenericType: false }).Select(x => x.Value[^1]))
+        {
+            if(serviceModel.Lifetime == Lifetime.Singleton)
+            {
+                sourceCodeWriter.WriteLine($"_ = SingletonScope.{PropertyNameHelper.Format(serviceModel)};");
+            }
+            else if(serviceModel.Lifetime == Lifetime.Scoped)
+            {
+                sourceCodeWriter.WriteLine($"_ = scope.{PropertyNameHelper.Format(serviceModel)};");
+            }
+        }
+        
+        sourceCodeWriter.WriteLine();
+        sourceCodeWriter.WriteLine("await base.InitializeAsync();");
+
         sourceCodeWriter.WriteLine("}");
     }
 }

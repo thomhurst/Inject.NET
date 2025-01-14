@@ -9,11 +9,11 @@ internal static class ScopeWriter
         Compilation compilation, TypedServiceProviderModel serviceProviderModel, ServiceProviderInformation serviceProviderInformation)
     {
         sourceCodeWriter.WriteLine(
-            "public class Scope : global::Inject.NET.Services.ServiceScope<ServiceProvider, SingletonScope>");
+            "public class ServiceScope_ : global::Inject.NET.Services.ServiceScope<ServiceProvider_, SingletonScope_>");
         sourceCodeWriter.WriteLine("{");
 
         sourceCodeWriter.WriteLine(
-            "public Scope(ServiceProvider root, SingletonScope singletonScope, ServiceFactories serviceFactories) : base(root, singletonScope, serviceFactories)");
+            "public ServiceScope_(ServiceProvider_ root, SingletonScope_ singletonScope, ServiceFactories serviceFactories) : base(root, singletonScope, serviceFactories)");
         sourceCodeWriter.WriteLine("{");
         sourceCodeWriter.WriteLine("}");
 

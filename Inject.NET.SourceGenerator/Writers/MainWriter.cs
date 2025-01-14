@@ -59,9 +59,7 @@ internal static class MainWriter
 
         var serviceProviderInformation = TypeCollector.Collect(serviceProviderModel, compilation);
         
-        StaticWriter.Write(sourceProductionContext, serviceProviderModel);
-        
-        sourceCodeWriter.WriteLine($"public class {serviceProviderType.Name}{Guid.NewGuid():N}");
+        sourceCodeWriter.WriteLine($"public partial class {serviceProviderType.Name}");
         sourceCodeWriter.WriteLine("{");
         
         ServiceRegistrarWriter.Write(sourceProductionContext, sourceCodeWriter, compilation, serviceProviderModel, rootDependencies);
@@ -76,6 +74,10 @@ internal static class MainWriter
             TenantScopeWriter.Write(sourceProductionContext, sourceCodeWriter, compilation, serviceProviderModel, serviceProviderInformation, tenant);
             TenantServiceProviderWriter.Write(sourceProductionContext, sourceCodeWriter, serviceProviderModel, serviceProviderInformation, tenant);
         }
+        
+        sourceCodeWriter.WriteLine(
+            $"public static ValueTask<ServiceProvider_> BuildAsync() =>");
+        sourceCodeWriter.WriteLine($"\tnew ServiceRegistrar_().BuildAsync();");
         
         sourceCodeWriter.WriteLine("}");
         

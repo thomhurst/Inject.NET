@@ -8,13 +8,13 @@ internal static class TenantSingletonScopeWriter
     public static void Write(SourceProductionContext sourceProductionContext, SourceCodeWriter sourceCodeWriter,
         Compilation compilation, TypedServiceProviderModel serviceProviderModel, ServiceProviderInformation serviceProviderInformation, Tenant tenant)
     {
-        var className = $"SingletonScope{tenant.Guid}";
+        var className = $"SingletonScope_{tenant.Guid}";
 
-        sourceCodeWriter.WriteLine($"public class {className} : global::Inject.NET.Services.TenantedSingletonScope<{serviceProviderModel.Type.Name + serviceProviderModel.Id}.ServiceProvider, {serviceProviderModel.Type.Name + serviceProviderModel.Id}.SingletonScope>");
+        sourceCodeWriter.WriteLine($"public class {className} : global::Inject.NET.Services.TenantedSingletonScope<{className}, ServiceProvider_, SingletonScope_, ServiceScope_>");
         sourceCodeWriter.WriteLine("{");
 
         sourceCodeWriter.WriteLine(
-            $"public {className}({serviceProviderModel.Type.Name + serviceProviderModel.Id}.ServiceProvider{tenant.Guid} tenantServiceProvider, {serviceProviderModel.Type.Name + serviceProviderModel.Id}.ServiceProvider root, ServiceFactories serviceFactories) : base(tenantServiceProvider, root, serviceFactories)");
+            $"public {className}(ServiceProvider_{tenant.Guid} tenantServiceProvider, ServiceProvider_ root, ServiceFactories serviceFactories) : base(tenantServiceProvider, root, serviceFactories)");
         sourceCodeWriter.WriteLine("{");
         sourceCodeWriter.WriteLine("}");
 

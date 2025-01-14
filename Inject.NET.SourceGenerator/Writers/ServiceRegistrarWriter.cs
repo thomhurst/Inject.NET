@@ -10,11 +10,11 @@ internal static class ServiceRegistrarWriter
         Dictionary<ISymbol?, ServiceModel[]> dependencyDictionary)
     {
         sourceCodeWriter.WriteLine(
-            "public class ServiceRegistrar : global::Inject.NET.Services.ServiceRegistrar<ServiceProvider>");
+            "public class ServiceRegistrar_ : global::Inject.NET.Services.ServiceRegistrar<ServiceProvider_>");
                 
         sourceCodeWriter.WriteLine("{");
 
-        sourceCodeWriter.WriteLine("public ServiceRegistrar()");
+        sourceCodeWriter.WriteLine("public ServiceRegistrar_()");
         sourceCodeWriter.WriteLine("{");
 
         WriteRegistration(sourceCodeWriter, serviceProviderModel.Type, dependencyDictionary, string.Empty);
@@ -24,11 +24,11 @@ internal static class ServiceRegistrarWriter
         sourceCodeWriter.WriteLine();
 
         sourceCodeWriter.WriteLine("""
-                                   public override async ValueTask<ServiceProvider> BuildAsync()
+                                   public override async ValueTask<ServiceProvider_> BuildAsync()
                                    {
                                        OnBeforeBuild(this);
                                    
-                                       var serviceProvider = new ServiceProvider(ServiceFactoryBuilders.AsReadOnly());
+                                       var serviceProvider = new ServiceProvider_(ServiceFactoryBuilders.AsReadOnly());
                                        
                                        var vt = serviceProvider.InitializeAsync();
                                    

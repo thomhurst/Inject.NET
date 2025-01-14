@@ -13,15 +13,15 @@ internal static class ServiceProviderWriter
         var serviceProviderType = serviceProviderInformation.ServiceProviderType;
                 
         sourceCodeWriter.WriteLine(
-            $"{serviceProviderType.DeclaredAccessibility.ToString().ToLower(CultureInfo.InvariantCulture)} class ServiceProvider(global::Inject.NET.Models.ServiceFactories serviceFactories) : global::Inject.NET.Services.ServiceProviderRoot<ServiceProvider, SingletonScope>(serviceFactories)");
+            $"{serviceProviderType.DeclaredAccessibility.ToString().ToLower(CultureInfo.InvariantCulture)} class ServiceProvider_(global::Inject.NET.Models.ServiceFactories serviceFactories) : global::Inject.NET.Services.ServiceProviderRoot<ServiceProvider_, SingletonScope_>(serviceFactories)");
         sourceCodeWriter.WriteLine("{");
 
         sourceCodeWriter.WriteLine("[field: AllowNull, MaybeNull]");
         sourceCodeWriter.WriteLine(
-            "public override SingletonScope SingletonScope => field ??= new(this, serviceFactories);");
+            "public override SingletonScope_ SingletonScope => field ??= new(this, serviceFactories);");
 
         sourceCodeWriter.WriteLine(
-            "public override IServiceScope CreateScope() => new Scope(this, SingletonScope, ServiceFactories);");
+            "public override IServiceScope CreateScope() => new ServiceScope_(this, SingletonScope, serviceFactories);");
                 
         foreach (var tenant in tenants)
         {

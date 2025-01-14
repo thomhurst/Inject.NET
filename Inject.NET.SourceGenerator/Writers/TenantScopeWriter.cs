@@ -15,7 +15,7 @@ internal static class TenantScopeWriter
         sourceCodeWriter.WriteLine("{");
 
         sourceCodeWriter.WriteLine(
-            $"public {className}(ServiceProvider_ root, SingletonScope_ singletonScope, ServiceFactories serviceFactories) : base(root, singletonScope, serviceFactories)");
+            $"public {className}(ServiceProvider_ root, ServiceFactories serviceFactories) : base(root, root.SingletonScope, serviceFactories)");
         sourceCodeWriter.WriteLine("{");
         sourceCodeWriter.WriteLine("}");
 

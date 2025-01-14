@@ -23,11 +23,11 @@ internal static class TenantServiceProviderWriter
             $"public override SingletonScope_{tenant.Guid} SingletonScope => field ??= new(this, Root, serviceFactories);");
 
         sourceCodeWriter.WriteLine(
-            $"public override IServiceScope CreateScope() => new ServiceScope{tenant.Guid}(Root, SingletonScope, serviceFactories);");
+            $"public override IServiceScope CreateScope() => new ServiceScope{tenant.Guid}(Root, serviceFactories);");
                 
         sourceCodeWriter.WriteLine(
-            $"public static ValueTask<{className}> BuildAsync() =>");
-        sourceCodeWriter.WriteLine($"\tnew ServiceRegistrar{tenant.Guid}().BuildAsync();");
+            $"public static ValueTask<{className}> BuildAsync(ServiceProvider_ root) =>");
+        sourceCodeWriter.WriteLine($"\tnew ServiceRegistrar{tenant.Guid}().BuildAsync(root);");
 
         sourceCodeWriter.WriteLine("}");
     }

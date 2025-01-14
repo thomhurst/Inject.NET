@@ -36,7 +36,7 @@ internal static class ServiceProviderWriter
 
         foreach (var tenant in tenants)
         {
-            sourceCodeWriter.WriteLine($"Tenant{tenant.Guid} = await new ServiceRegistrar{tenant.Guid}(this, SingletonScope).BuildAsync();");
+            sourceCodeWriter.WriteLine($"Tenant{tenant.Guid} = await ServiceProvider_{tenant.Guid}.BuildAsync(this);");
             sourceCodeWriter.WriteLine($"Register(\"{tenant.TenantId}\", Tenant{tenant.Guid});");
         }
 

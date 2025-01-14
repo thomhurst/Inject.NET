@@ -1,15 +1,15 @@
-using Inject.NET.Delegates;
 using Inject.NET.Models;
 
 namespace Inject.NET.Interfaces;
 
-public interface IServiceRegistrar
+public interface IServiceRegistrar<out TSelf, in TRootServiceProvider, TTenantServiceProvider>
+where TSelf : IServiceRegistrar<TSelf, TRootServiceProvider, TTenantServiceProvider>
+where TRootServiceProvider : IServiceProvider
+where TTenantServiceProvider : IServiceProvider
 {
     ServiceFactoryBuilders ServiceFactoryBuilders { get; }
     
-    IServiceRegistrar Register(ServiceDescriptor descriptor);
+    TSelf Register(ServiceDescriptor descriptor);
     
-    OnBeforeBuild OnBeforeBuild { get; set; }
-    
-    ValueTask<IServiceProvider> BuildAsync(IServiceProvider rootServiceProvider);
+    ValueTask<TTenantServiceProvider> BuildAsync(TRootServiceProvider rootServiceProvider);
 }

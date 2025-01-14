@@ -26,8 +26,6 @@ internal static class ServiceRegistrarWriter
         sourceCodeWriter.WriteLine("""
                                    public override async ValueTask<ServiceProvider_> BuildAsync()
                                    {
-                                       OnBeforeBuild(this);
-                                   
                                        var serviceProvider = new ServiceProvider_(ServiceFactoryBuilders.AsReadOnly());
                                        
                                        var vt = serviceProvider.InitializeAsync();

@@ -25,11 +25,9 @@ internal static class TenantServiceRegistrarWriter
         sourceCodeWriter.WriteLine();
 
         sourceCodeWriter.WriteLine($$"""
-                                     public override async ValueTask<ServiceProvider_{{tenant.Guid}}> BuildAsync()
+                                     public override async ValueTask<ServiceProvider_{{tenant.Guid}}> BuildAsync(ServiceProvider_ rootServiceProvider)
                                      {
-                                         OnBeforeBuild(this);
-                                     
-                                         var serviceProvider = new ServiceProvider_{{tenant.Guid}}(ServiceFactoryBuilders.AsReadOnly());
+                                         var serviceProvider = new ServiceProvider_{{tenant.Guid}}(rootServiceProvider, ServiceFactoryBuilders.AsReadOnly());
                                          
                                          var vt = serviceProvider.InitializeAsync();
                                      

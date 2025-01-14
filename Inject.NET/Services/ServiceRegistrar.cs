@@ -1,4 +1,3 @@
-using Inject.NET.Delegates;
 using Inject.NET.Interfaces;
 using Inject.NET.Models;
 using IServiceProvider = Inject.NET.Interfaces.IServiceProvider;
@@ -15,8 +14,6 @@ public abstract class ServiceRegistrar<TServiceProvider> : ITenantedServiceRegis
 
         return this;
     }
-
-    public OnBeforeTenantBuild<ITenantedServiceRegistrar<TServiceProvider>, TServiceProvider> OnBeforeBuild { get; set; } = _ => { };
-
+    
     public abstract ValueTask<TServiceProvider> BuildAsync();
 }

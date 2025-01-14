@@ -1,4 +1,3 @@
-using System.Reflection;
 using Inject.NET.Interfaces;
 using Inject.NET.Models;
 using IServiceProvider = Inject.NET.Interfaces.IServiceProvider;
@@ -30,7 +29,7 @@ public abstract class TenantServiceProvider<TSingletonScope, TServiceProviderRoo
     
     public abstract TSingletonScope SingletonScope { get; }
 
-    internal async ValueTask InitializeAsync()
+    public async ValueTask InitializeAsync()
     {
         SingletonScope.PreBuild();
 

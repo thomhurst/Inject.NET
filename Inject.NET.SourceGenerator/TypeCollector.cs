@@ -20,7 +20,7 @@ public class TypeCollector
             .ToArray();
         
         var withTenantAttributes = attributes
-            .Where(x => x.AttributeClass?.IsGenericType is true && SymbolEqualityComparer.Default.Equals(withTenantAttributeType, x.AttributeClass))
+            .Where(x => x.AttributeClass?.IsGenericType is true && SymbolEqualityComparer.Default.Equals(withTenantAttributeType, x.AttributeClass.OriginalDefinition))
             .ToArray();
 
         var rootDependencies = DependencyDictionary.Create(compilation, dependencyAttributes);

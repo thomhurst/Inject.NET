@@ -5,19 +5,22 @@ using IServiceProvider = Inject.NET.Interfaces.IServiceProvider;
 
 namespace Inject.NET.Services;
 
-public class TenantedScope<TServiceProvider, TSingletonScope>(
-    TenantServiceProvider<TServiceProvider, TSingletonScope> tenantServiceProvider,
-    ServiceScope<TServiceProvider, TSingletonScope> defaultScope,
+public class TenantedScope<TServiceProvider, TSingletonScope, TDefaultSingletonScope, TDefaultScope>(
+    TServiceProvider serviceProviderRoot,
+    TDefaultScope defaultScope,
+    TDefaultSingletonScope defaultSingletonScope,
     TSingletonScope singletonScope,
     ServiceFactories serviceFactories) : IServiceScope
-    where TSingletonScope : SingletonScope 
-    where TServiceProvider : ServiceProviderRoot<TServiceProvider, TSingletonScope>
+    where TSingletonScope : TenantedSingletonScope<TSingletonScope, TServiceProvider, TDefaultSingletonScope, TDefaultScope> 
+    where TServiceProvider : ServiceProviderRoot<TServiceProvider, TDefaultSingletonScope>
+    where TDefaultScope : ServiceScope<TServiceProvider, TDefaultSingletonScope>
+    where TDefaultSingletonScope : SingletonScope
 {
-    public ServiceScope<TServiceProvider, TSingletonScope> DefaultScope { get; } = defaultScope;
+    public TDefaultScope DefaultScope { get; } = defaultScope;
     private static readonly Type ServiceScopeType = typeof(IServiceScope);
     private static readonly Type ServiceProviderType = typeof(IServiceProvider);
     
-    private readonly ServiceScope<TServiceProvider, TSingletonScope> _scope = new(defaultScope.ServiceProvider, singletonScope, serviceFactories);
+    private readonly ServiceScope<TServiceProvider, TDefaultSingletonScope> _scope = new(serviceProviderRoot, defaultSingletonScope, serviceFactories);
 
     public object? GetService(Type type)
     {
@@ -56,7 +59,7 @@ public class TenantedScope<TServiceProvider, TSingletonScope>(
 
     public IServiceScope SingletonScope { get; } = singletonScope;
 
-    public IServiceProvider ServiceProvider => tenantServiceProvider;
+    public TServiceProvider ServiceProvider => serviceProviderRoot;
 
     public async ValueTask DisposeAsync()
     {

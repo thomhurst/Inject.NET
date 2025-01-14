@@ -9,9 +9,9 @@ using IServiceProvider = Inject.NET.Interfaces.IServiceProvider;
 
 namespace Inject.NET.Services;
 
-public class ServiceScope<TServiceProvider, TSingletonScope> : IServiceScope<TServiceProvider, TSingletonScope>
-    where TServiceProvider : ServiceProviderRoot<TServiceProvider, TSingletonScope>, IServiceProvider
-    where TSingletonScope : SingletonScope
+public class ServiceScope<TServiceProvider, TDefaultSingletonScope> : IServiceScope<TServiceProvider, TDefaultSingletonScope>
+    where TServiceProvider : ServiceProviderRoot<TServiceProvider, TDefaultSingletonScope>, IServiceProvider
+    where TDefaultSingletonScope : SingletonScope
 {
     private static readonly Type ServiceScopeType = typeof(IServiceScope);
     private static readonly Type ServiceProviderType = typeof(IServiceProvider);
@@ -34,7 +34,7 @@ public class ServiceScope<TServiceProvider, TSingletonScope> : IServiceScope<TSe
     private readonly TServiceProvider _root;
     private readonly ServiceFactories _serviceFactories;
 
-    public ServiceScope(TServiceProvider root, TSingletonScope singletonScope, ServiceFactories serviceFactories)
+    public ServiceScope(TServiceProvider root, TDefaultSingletonScope singletonScope, ServiceFactories serviceFactories)
     {
         _root = root;
         _serviceFactories = serviceFactories;
@@ -43,7 +43,7 @@ public class ServiceScope<TServiceProvider, TSingletonScope> : IServiceScope<TSe
         scope = this;
     }
 
-    public TSingletonScope SingletonScope { get; }
+    public TDefaultSingletonScope SingletonScope { get; }
 
     public TServiceProvider ServiceProvider { get; }
 

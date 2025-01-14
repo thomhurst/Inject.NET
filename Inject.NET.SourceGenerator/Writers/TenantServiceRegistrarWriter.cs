@@ -5,48 +5,44 @@ namespace Inject.NET.SourceGenerator.Writers;
 
 internal static class TenantServiceRegistrarWriter
 {
-    public static void Write(SourceProductionContext sourceProductionContext,
+    public static void Write(SourceProductionContext sourceProductionContext, SourceCodeWriter sourceCodeWriter,
         Compilation compilation,
         TypedServiceProviderModel serviceProviderModel, Tenant tenant)
     {
-        NestedServiceWrapperWriter.Wrap(sourceProductionContext, serviceProviderModel,
-            sourceCodeWriter =>
-            {
-                sourceCodeWriter.WriteLine(
-                    $"public class ServiceRegistrar{tenant.Guid} : global::Inject.NET.Services.TenantServiceRegistrar<ServiceRegistrar{tenant.Guid}, ServiceProvider{tenant.Guid}, SingletonScope{tenant.Guid}>");
+        sourceCodeWriter.WriteLine(
+            $"public class ServiceRegistrar{tenant.Guid} : global::Inject.NET.Services.TenantServiceRegistrar<ServiceRegistrar{tenant.Guid}, {serviceProviderModel.Type.Name + serviceProviderModel.Id}.ServiceProvider{tenant.Guid}, {serviceProviderModel.Type.Name + serviceProviderModel.Id}.SingletonScope{tenant.Guid}, {serviceProviderModel.Type.Name + serviceProviderModel.Id}.ServiceProvider>");
 
-                sourceCodeWriter.WriteLine("{");
+        sourceCodeWriter.WriteLine("{");
 
-                sourceCodeWriter.WriteLine($"public ServiceRegistrar{tenant.Guid}()");
-                sourceCodeWriter.WriteLine("{");
+        sourceCodeWriter.WriteLine($"public ServiceRegistrar{tenant.Guid}()");
+        sourceCodeWriter.WriteLine("{");
 
-                WriteRegistration(sourceCodeWriter, serviceProviderModel.Type, tenant.TenantDependencies,
-                    tenant.RootDependencies, string.Empty);
+        WriteRegistration(sourceCodeWriter, serviceProviderModel.Type, tenant.TenantDependencies,
+            tenant.RootDependencies, string.Empty);
 
-                sourceCodeWriter.WriteLine("}");
+        sourceCodeWriter.WriteLine("}");
 
-                sourceCodeWriter.WriteLine();
+        sourceCodeWriter.WriteLine();
 
-                sourceCodeWriter.WriteLine($$"""
-                                             public override async ValueTask<ServiceProvider{{tenant.Guid}}> BuildAsync()
-                                             {
-                                                 OnBeforeBuild(this);
-                                             
-                                                 var serviceProvider = new ServiceProvider{{tenant.Guid}}(ServiceFactoryBuilders.AsReadOnly());
-                                                 
-                                                 var vt = serviceProvider.InitializeAsync();
-                                             
-                                                 if (!vt.IsCompletedSuccessfully)
-                                                 {
-                                                     await vt.ConfigureAwait(false);
-                                                 }
-                                                 
-                                                 return serviceProvider;
-                                             }
-                                             """);
+        sourceCodeWriter.WriteLine($$"""
+                                     public override async ValueTask<{{serviceProviderModel.Type.Name + serviceProviderModel.Id}}.ServiceProvider{{tenant.Guid}}> BuildAsync()
+                                     {
+                                         OnBeforeBuild(this);
+                                     
+                                         var serviceProvider = new {{serviceProviderModel.Type.Name + serviceProviderModel.Id}}.ServiceProvider{{tenant.Guid}}(ServiceFactoryBuilders.AsReadOnly());
+                                         
+                                         var vt = serviceProvider.InitializeAsync();
+                                     
+                                         if (!vt.IsCompletedSuccessfully)
+                                         {
+                                             await vt.ConfigureAwait(false);
+                                         }
+                                         
+                                         return serviceProvider;
+                                     }
+                                     """);
 
-                sourceCodeWriter.WriteLine("}");
-            });
+        sourceCodeWriter.WriteLine("}");
     }
 
     private static void WriteRegistration(SourceCodeWriter sourceCodeWriter,

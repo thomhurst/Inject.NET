@@ -7,12 +7,42 @@ internal static class MainWriter
 {
     public static void GenerateServiceProviderCode(SourceProductionContext sourceProductionContext, TypedServiceProviderModel serviceProviderModel, Compilation compilation)
     {
+        var sourceCodeWriter = new SourceCodeWriter();
+        
+        sourceCodeWriter.WriteLine("using System;");
+        sourceCodeWriter.WriteLine("using System.Diagnostics.CodeAnalysis;");
+        sourceCodeWriter.WriteLine("using System.Linq;");
+        sourceCodeWriter.WriteLine("using Inject.NET.Enums;");
+        sourceCodeWriter.WriteLine("using Inject.NET.Extensions;");
+        sourceCodeWriter.WriteLine("using Inject.NET.Interfaces;");
+        sourceCodeWriter.WriteLine("using Inject.NET.Models;");
+        sourceCodeWriter.WriteLine("using Inject.NET.Services;");
+        sourceCodeWriter.WriteLine();
+
+        var serviceProviderType = serviceProviderModel.Type;
+        
+        if (serviceProviderType.ContainingNamespace is { IsGlobalNamespace: false })
+        {
+            sourceCodeWriter.WriteLine($"namespace {serviceProviderType.ContainingNamespace.ToDisplayString()};");
+            sourceCodeWriter.WriteLine();
+        }
+
+        var nestedClassCount = 0;
+        var parent = serviceProviderType.ContainingType;
+
+        while (parent is not null)
+        {
+            nestedClassCount++;
+            sourceCodeWriter.WriteLine($"public partial class {parent.Name}");
+            sourceCodeWriter.WriteLine("{");
+            parent = parent.ContainingType;
+        }
+        
         var dependencyInjectionAttributeType = compilation.GetTypeByMetadataName("Inject.NET.Attributes.IDependencyInjectionAttribute");
 
         var withTenantAttributeType = compilation.GetTypeByMetadataName("Inject.NET.Attributes.WithTenantAttribute`1");
         
-        var attributes = serviceProviderModel.Type
-            .GetAttributes();
+        var attributes = serviceProviderModel.Type.GetAttributes();
         
         var dependencyAttributes = attributes
             .Where(x => x.AttributeClass?.AllInterfaces.Contains(dependencyInjectionAttributeType,
@@ -20,7 +50,7 @@ internal static class MainWriter
             .ToArray();
         
         var withTenantAttributes = attributes
-            .Where(x => x.AttributeClass?.IsGenericType is true && SymbolEqualityComparer.Default.Equals(withTenantAttributeType, x.AttributeClass))
+            .Where(x => x.AttributeClass?.IsGenericType is true && SymbolEqualityComparer.Default.Equals(withTenantAttributeType, x.AttributeClass.OriginalDefinition))
             .ToArray();
 
         var rootDependencies = DependencyDictionary.Create(compilation, dependencyAttributes);
@@ -31,17 +61,32 @@ internal static class MainWriter
         
         StaticWriter.Write(sourceProductionContext, serviceProviderModel);
         
-        ServiceRegistrarWriter.Write(sourceProductionContext, compilation, serviceProviderModel, rootDependencies);
-        SingletonScopeWriter.Write(sourceProductionContext, compilation, serviceProviderModel, serviceProviderInformation);
-        ScopeWriter.Write(sourceProductionContext, compilation, serviceProviderModel, serviceProviderInformation);
-        ServiceProviderWriter.Write(sourceProductionContext, serviceProviderModel, serviceProviderInformation, tenants);
+        sourceCodeWriter.WriteLine($"public class {serviceProviderType.Name}{Guid.NewGuid():N}");
+        sourceCodeWriter.WriteLine("{");
+        
+        ServiceRegistrarWriter.Write(sourceProductionContext, sourceCodeWriter, compilation, serviceProviderModel, rootDependencies);
+        SingletonScopeWriter.Write(sourceProductionContext, sourceCodeWriter, compilation, serviceProviderModel, serviceProviderInformation);
+        ScopeWriter.Write(sourceProductionContext, sourceCodeWriter, compilation, serviceProviderModel, serviceProviderInformation);
+        ServiceProviderWriter.Write(sourceProductionContext, sourceCodeWriter, serviceProviderModel, serviceProviderInformation, tenants);
         
         foreach (var tenant in tenants)
         {
-            TenantServiceRegistrarWriter.Write(sourceProductionContext, compilation, serviceProviderModel, tenant);
-            TenantSingletonScopeWriter.Write(sourceProductionContext, compilation, serviceProviderModel, serviceProviderInformation, tenant);
-            TenantScopeWriter.Write(sourceProductionContext, compilation, serviceProviderModel, serviceProviderInformation, tenant);
-            TenantServiceProviderWriter.Write(sourceProductionContext, serviceProviderModel, serviceProviderInformation, tenant);
+            TenantServiceRegistrarWriter.Write(sourceProductionContext, sourceCodeWriter, compilation, serviceProviderModel, tenant);
+            TenantSingletonScopeWriter.Write(sourceProductionContext, sourceCodeWriter, compilation, serviceProviderModel, serviceProviderInformation, tenant);
+            TenantScopeWriter.Write(sourceProductionContext, sourceCodeWriter, compilation, serviceProviderModel, serviceProviderInformation, tenant);
+            TenantServiceProviderWriter.Write(sourceProductionContext, sourceCodeWriter, serviceProviderModel, serviceProviderInformation, tenant);
         }
+        
+        sourceCodeWriter.WriteLine("}");
+        
+        for (var i = 0; i < nestedClassCount; i++)
+        {
+            sourceCodeWriter.WriteLine("}");
+        }
+
+        sourceProductionContext.AddSource(
+            $"{serviceProviderType.Name}ServiceProvider_{Guid.NewGuid():N}.g.cs",
+            sourceCodeWriter.ToString()
+        );
     }
 }

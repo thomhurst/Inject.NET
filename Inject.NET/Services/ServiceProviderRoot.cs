@@ -37,7 +37,7 @@ public abstract class ServiceProviderRoot<TSelf, TSingletonScope> : IServiceProv
         {
             await using var tenantScope = serviceProvider.CreateScope();
 
-            foreach (var key in ((TenantServiceProvider<TSelf, TSingletonScope>)serviceProvider).ServiceFactories.Descriptors.Keys.Where(x => x.Type.IsConstructedGenericType))
+            foreach (var key in ((TenantServiceProvider)serviceProvider).ServiceFactories.Descriptors.Keys.Where(x => x.Type.IsConstructedGenericType))
             {
                 tenantScope.GetService(key);
             }

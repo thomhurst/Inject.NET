@@ -5,48 +5,43 @@ namespace Inject.NET.SourceGenerator.Writers;
 
 internal static class ServiceRegistrarWriter
 {
-    public static void Write(SourceProductionContext sourceProductionContext,
+    public static void Write(SourceProductionContext sourceProductionContext, SourceCodeWriter sourceCodeWriter,
         Compilation compilation, TypedServiceProviderModel serviceProviderModel,
         Dictionary<ISymbol?, ServiceModel[]> dependencyDictionary)
     {
-
-        NestedServiceWrapperWriter.Wrap(sourceProductionContext, serviceProviderModel,
-            sourceCodeWriter =>
-            {
-                sourceCodeWriter.WriteLine(
-                    "public class ServiceRegistrar : global::Inject.NET.Services.ServiceRegistrar<ServiceProvider>");
+        sourceCodeWriter.WriteLine(
+            "public class ServiceRegistrar : global::Inject.NET.Services.ServiceRegistrar<ServiceProvider>");
                 
-                sourceCodeWriter.WriteLine("{");
+        sourceCodeWriter.WriteLine("{");
 
-                sourceCodeWriter.WriteLine("public ServiceRegistrar()");
-                sourceCodeWriter.WriteLine("{");
+        sourceCodeWriter.WriteLine("public ServiceRegistrar()");
+        sourceCodeWriter.WriteLine("{");
 
-                WriteRegistration(sourceCodeWriter, serviceProviderModel.Type, dependencyDictionary, string.Empty);
+        WriteRegistration(sourceCodeWriter, serviceProviderModel.Type, dependencyDictionary, string.Empty);
 
-                sourceCodeWriter.WriteLine("}");
+        sourceCodeWriter.WriteLine("}");
 
-                sourceCodeWriter.WriteLine();
+        sourceCodeWriter.WriteLine();
 
-                sourceCodeWriter.WriteLine("""
-                                           public override async ValueTask<ServiceProvider> BuildAsync()
-                                           {
-                                               OnBeforeBuild(this);
-                                           
-                                               var serviceProvider = new ServiceProvider(ServiceFactoryBuilders.AsReadOnly());
-                                               
-                                               var vt = serviceProvider.InitializeAsync();
-                                           
-                                               if (!vt.IsCompletedSuccessfully)
-                                               {
-                                                   await vt.ConfigureAwait(false);
-                                               }
-                                               
-                                               return serviceProvider;
-                                           }
-                                           """);
+        sourceCodeWriter.WriteLine("""
+                                   public override async ValueTask<ServiceProvider> BuildAsync()
+                                   {
+                                       OnBeforeBuild(this);
+                                   
+                                       var serviceProvider = new ServiceProvider(ServiceFactoryBuilders.AsReadOnly());
+                                       
+                                       var vt = serviceProvider.InitializeAsync();
+                                   
+                                       if (!vt.IsCompletedSuccessfully)
+                                       {
+                                           await vt.ConfigureAwait(false);
+                                       }
+                                       
+                                       return serviceProvider;
+                                   }
+                                   """);
 
-                sourceCodeWriter.WriteLine("}");
-            });
+        sourceCodeWriter.WriteLine("}");
     }
 
     private static void WriteRegistration(SourceCodeWriter sourceCodeWriter,

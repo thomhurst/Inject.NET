@@ -5,11 +5,9 @@ namespace Inject.NET.SourceGenerator.Writers;
 
 internal static class SingletonScopeWriter
 {
-    public static void Write(SourceProductionContext sourceProductionContext,
+    public static void Write(SourceProductionContext sourceProductionContext, SourceCodeWriter sourceCodeWriter,
         Compilation compilation, TypedServiceProviderModel serviceProviderModel, ServiceProviderInformation serviceProviderInformation)
     {
-        NestedServiceWrapperWriter.Wrap(sourceProductionContext, serviceProviderModel,
-            sourceCodeWriter =>
             {
                 sourceCodeWriter.WriteLine("public class SingletonScope : global::Inject.NET.Services.SingletonScope");
                 sourceCodeWriter.WriteLine("{");
@@ -53,6 +51,6 @@ internal static class SingletonScopeWriter
                 }
 
                 sourceCodeWriter.WriteLine("}");
-            });
+            }
     }
 }

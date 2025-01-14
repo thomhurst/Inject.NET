@@ -1,4 +1,3 @@
-using System.Collections.Concurrent;
 using Inject.NET.Delegates;
 using Inject.NET.Interfaces;
 using Inject.NET.Models;
@@ -8,8 +7,6 @@ namespace Inject.NET.Services;
 
 public abstract class ServiceRegistrar<TServiceProvider> : ITenantedServiceRegistrar<TServiceProvider> where TServiceProvider : IServiceProvider
 {
-    protected readonly ConcurrentDictionary<string, IServiceRegistrar> Tenants = [];
-
     public ServiceFactoryBuilders ServiceFactoryBuilders { get; } = new();
 
     public ITenantedServiceRegistrar<TServiceProvider> Register(ServiceDescriptor serviceDescriptor)

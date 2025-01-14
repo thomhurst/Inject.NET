@@ -8,7 +8,7 @@ internal static class ServiceProviderWriter
 {
     public static void Write(SourceProductionContext sourceProductionContext,
         TypedServiceProviderModel serviceProviderModel, TenantedServiceProviderInformation serviceProviderInformation,
-        IEnumerable<Tenant> tenants)
+        Tenant[] tenants)
     {
         NestedServiceWrapperWriter.Wrap(sourceProductionContext, serviceProviderModel,
             sourceCodeWriter =>
@@ -16,7 +16,7 @@ internal static class ServiceProviderWriter
                 var serviceProviderType = serviceProviderInformation.ServiceProviderType;
                 
                 sourceCodeWriter.WriteLine(
-                    $"{serviceProviderType.DeclaredAccessibility.ToString().ToLower(CultureInfo.InvariantCulture)} class ServiceProvider(global::Inject.NET.Models.ServiceFactories serviceFactories, global::System.Collections.Generic.IDictionary<string, IServiceRegistrar> tenantRegistrars) : global::Inject.NET.Services.ServiceProviderRoot<ServiceProvider, SingletonScope>(serviceFactories, tenantRegistrars)");
+                    $"{serviceProviderType.DeclaredAccessibility.ToString().ToLower(CultureInfo.InvariantCulture)} class ServiceProvider(global::Inject.NET.Models.ServiceFactories serviceFactories) : global::Inject.NET.Services.ServiceProviderRoot<ServiceProvider, SingletonScope>(serviceFactories)");
                 sourceCodeWriter.WriteLine("{");
 
                 sourceCodeWriter.WriteLine("[field: AllowNull, MaybeNull]");

@@ -34,7 +34,7 @@ internal static class MainWriter
         ServiceRegistrarWriter.Write(sourceProductionContext, compilation, serviceProviderModel, rootDependencies);
         SingletonScopeWriter.Write(sourceProductionContext, compilation, serviceProviderModel, serviceProviderInformation);
         ScopeWriter.Write(sourceProductionContext, compilation, serviceProviderModel, serviceProviderInformation);
-        ServiceProviderWriter.Write(sourceProductionContext, serviceProviderModel, serviceProviderInformation, []);
+        ServiceProviderWriter.Write(sourceProductionContext, serviceProviderModel, serviceProviderInformation, tenants);
         
         foreach (var tenant in tenants)
         {

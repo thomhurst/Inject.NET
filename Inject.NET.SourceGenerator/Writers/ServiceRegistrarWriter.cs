@@ -32,7 +32,7 @@ internal static class ServiceRegistrarWriter
                                            {
                                                OnBeforeBuild(this);
                                            
-                                               var serviceProvider = new ServiceProvider(ServiceFactoryBuilders.AsReadOnly(), Tenants);
+                                               var serviceProvider = new ServiceProvider(ServiceFactoryBuilders.AsReadOnly());
                                                
                                                var vt = serviceProvider.InitializeAsync();
                                            

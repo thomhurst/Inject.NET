@@ -16,7 +16,7 @@ internal static class ServiceProviderWriter
                 var serviceProviderType = serviceProviderInformation.ServiceProviderType;
                 
                 sourceCodeWriter.WriteLine(
-                    $"{serviceProviderType.DeclaredAccessibility.ToString().ToLower(CultureInfo.InvariantCulture)} class ServiceProvider(global::Inject.NET.Models.ServiceFactories serviceFactories, global::System.Collections.Generic.IDictionary<string, IServiceRegistrar> tenantRegistrars) : global::Inject.NET.Services.ServiceProviderRoot<SingletonScope>(serviceFactories, tenantRegistrars)");
+                    $"{serviceProviderType.DeclaredAccessibility.ToString().ToLower(CultureInfo.InvariantCulture)} class ServiceProvider(global::Inject.NET.Models.ServiceFactories serviceFactories, global::System.Collections.Generic.IDictionary<string, IServiceRegistrar> tenantRegistrars) : global::Inject.NET.Services.ServiceProviderRoot<ServiceProvider, SingletonScope>(serviceFactories, tenantRegistrars)");
                 sourceCodeWriter.WriteLine("{");
 
                 sourceCodeWriter.WriteLine("[field: AllowNull, MaybeNull]");
@@ -40,7 +40,8 @@ internal static class ServiceProviderWriter
 
                 foreach (var tenant in tenants)
                 {
-                    sourceCodeWriter.WriteLine($"Tenant{tenant.Guid} = new TenantServiceProvider<SingletonScope>(this, SingletonScope);");
+                    sourceCodeWriter.WriteLine($"Tenant{tenant.Guid} = new TenantServiceProvider<ServiceProvider, SingletonScope>(this, SingletonScope);");
+                    sourceCodeWriter.WriteLine($"Register(\"{tenant.TenantId}\", Tenant{tenant.Guid});");
                 }
 
                 sourceCodeWriter.WriteLine("}");

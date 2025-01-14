@@ -18,7 +18,7 @@ internal static class TenantServiceProviderWriter
                 var className = $"ServiceProvider{tenant.Guid}";
                 
                 sourceCodeWriter.WriteLine(
-                    $"{serviceProviderType.DeclaredAccessibility.ToString().ToLower(CultureInfo.InvariantCulture)} partial class {className}(ServiceProviderRoot<SingletonScope> rootServiceProvider, ServiceFactories serviceFactories) : global::Inject.NET.Services.TenantServiceProvider<SingletonScope>(rootServiceProvider, serviceFactories)");
+                    $"{serviceProviderType.DeclaredAccessibility.ToString().ToLower(CultureInfo.InvariantCulture)} partial class {className}(ServiceProvider rootServiceProvider, ServiceFactories serviceFactories) : global::Inject.NET.Services.TenantServiceProvider<ServiceProvider, SingletonScope>(rootServiceProvider, serviceFactories)");
                 sourceCodeWriter.WriteLine("{");
                 
                 sourceCodeWriter.WriteLine("[field: AllowNull, MaybeNull]");

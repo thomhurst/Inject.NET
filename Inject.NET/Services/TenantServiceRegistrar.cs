@@ -7,8 +7,8 @@ namespace Inject.NET.Services;
 
 public abstract class TenantServiceRegistrar<TSelf, TServiceProvider, TSingletonScope> : ServiceRegistrar<TServiceProvider>
     where TSelf : TenantServiceRegistrar<TSelf, TServiceProvider, TSingletonScope>
-    where TServiceProvider : IServiceProvider 
-    where TSingletonScope : IServiceScope
+    where TServiceProvider : ServiceProviderRoot<TServiceProvider, TSingletonScope> 
+    where TSingletonScope : SingletonScope
 {
     public new OnBeforeTenantBuild<TSelf, TServiceProvider> OnBeforeBuild { get; set; } = _ => { };
     public override ValueTask<TServiceProvider> BuildAsync()
@@ -20,9 +20,9 @@ public abstract class TenantServiceRegistrar<TSelf, TServiceProvider, TSingleton
     {
         OnBeforeBuild((TSelf)this);
 
-        var serviceProviderRoot = (ServiceProviderRoot<TSingletonScope>)rootServiceProvider;
+        var serviceProviderRoot = (TServiceProvider)rootServiceProvider;
         
-        var serviceProvider = new TenantServiceProvider<TSingletonScope>(serviceProviderRoot, ServiceFactoryBuilders.AsReadOnly());
+        var serviceProvider = new TenantServiceProvider<TServiceProvider, TSingletonScope>(serviceProviderRoot, ServiceFactoryBuilders.AsReadOnly());
         
         var vt = serviceProvider.InitializeAsync();
 

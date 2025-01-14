@@ -6,13 +6,14 @@ using IServiceProvider = Inject.NET.Interfaces.IServiceProvider;
 
 namespace Inject.NET.Services;
 
-public abstract class ServiceProviderRoot<TSingletonScope> : IServiceProviderRoot
-    where TSingletonScope : IServiceScope
+public abstract class ServiceProviderRoot<TSelf, TSingletonScope> : IServiceProviderRoot
+    where TSelf : ServiceProviderRoot<TSelf, TSingletonScope>
+    where TSingletonScope : SingletonScope
 {
     protected readonly ServiceFactories ServiceFactories;
     private readonly IDictionary<string, IServiceRegistrar> _tenantRegistrars;
 
-    private FrozenDictionary<string, IServiceProvider> _tenants = null!;
+    private Dictionary<string, IServiceProvider> _tenants = [];
     
     public abstract TSingletonScope SingletonScope { get; }
 
@@ -24,37 +25,22 @@ public abstract class ServiceProviderRoot<TSingletonScope> : IServiceProviderRoo
 
     public virtual async ValueTask InitializeAsync()
     {
-        await BuildTenants();
-        
-        foreach (var (_, serviceProvider) in _tenants)
-        {
-            await using var tenantScope = serviceProvider.CreateScope();
-
-            foreach (var key in ((TenantServiceProvider<TSingletonScope>)serviceProvider).ServiceFactories.Descriptors.Keys.Where(x => x.Type.IsConstructedGenericType))
-            {
-                tenantScope.GetService(key);
-            }
-        }
-        
         await using var scope = CreateScope();
         
         foreach (var key in ServiceFactories.Descriptors.Keys.Where(x => x.Type.IsConstructedGenericType))
         {
             scope.GetService(key);
         }
-    }
-
-    private async Task BuildTenants()
-    {
-        List<(string Id, IServiceProvider ServiceProvider)> tenants = [];
-
-        foreach (var (key, value) in _tenantRegistrars)
+        
+        foreach (var (_, serviceProvider) in _tenants)
         {
-            var serviceProvider = await value.BuildAsync(this);
-            tenants.Add((key, serviceProvider));
-        }
+            await using var tenantScope = serviceProvider.CreateScope();
 
-        _tenants = tenants.ToFrozenDictionary(x => x.Id, x => x.ServiceProvider);
+            foreach (var key in ((TenantServiceProvider<TSelf, TSingletonScope>)serviceProvider).ServiceFactories.Descriptors.Keys.Where(x => x.Type.IsConstructedGenericType))
+            {
+                tenantScope.GetService(key);
+            }
+        }
     }
     
     internal bool TryGetSingletons(ServiceKey serviceKey, out IReadOnlyList<object> singletons)

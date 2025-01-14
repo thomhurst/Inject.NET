@@ -26,8 +26,8 @@ public partial class AssortmentTests
     [Singleton<Interface1, Class1>]
     [Singleton<Interface2, Class2>]
     [Singleton<Interface3, Class3>]
-    [Transient<Interface4, Class4>]
-    [Scoped<Interface5, Class5>]
+    [Scoped<Interface4, Class4>]
+    [Transient<Interface5, Class5>]
     [Transient(typeof(IGeneric<>), typeof(Generic<>))]
     [Transient<Wrapper>]
     public partial class AssortmentServiceProvider;

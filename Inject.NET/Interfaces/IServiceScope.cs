@@ -6,7 +6,12 @@ public interface IServiceScope : IAsyncDisposable, IDisposable, System.IServiceP
 {
     object? GetService(ServiceKey serviceKey);
     IReadOnlyList<object> GetServices(ServiceKey serviceKey);
-    
-    IServiceScope SingletonScope { get; }
-    IServiceProvider ServiceProvider { get; }
+}
+
+public interface IServiceScope<out TServiceProvider, out TSingletonScope> : IServiceScope
+    where TServiceProvider : IServiceProvider
+    where TSingletonScope : IServiceScope
+{
+    TSingletonScope SingletonScope { get; }
+    TServiceProvider ServiceProvider { get; }
 }

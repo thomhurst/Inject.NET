@@ -1,22 +1,31 @@
+using System.Reflection;
 using Inject.NET.Interfaces;
 using Inject.NET.Models;
 using IServiceProvider = Inject.NET.Interfaces.IServiceProvider;
 
 namespace Inject.NET.Services;
 
-public class TenantServiceProvider<TSingletonScope> : IServiceProvider
-    where TSingletonScope : IServiceScope
+public abstract class TenantServiceProvider : IServiceProvider
 {
-    public readonly TenantedSingletonScope<TSingletonScope> SingletonScope;
-    public readonly ServiceProviderRoot<TSingletonScope> RootServiceProviderRoot;
+    internal abstract ServiceFactories ServiceFactories { get; }
     
-    internal readonly ServiceFactories ServiceFactories;
+    public abstract ValueTask DisposeAsync();
+    public abstract IServiceScope CreateScope();
+}
 
-    public TenantServiceProvider(ServiceProviderRoot<TSingletonScope> rootServiceProviderRoot, ServiceFactories serviceFactories)
+public class TenantServiceProvider<TServiceProvider, TSingletonScope> : TenantServiceProvider
+    where TServiceProvider : ServiceProviderRoot<TServiceProvider, TSingletonScope>
+    where TSingletonScope : SingletonScope, IServiceScope
+{
+    public readonly TSingletonScope SingletonScope;
+    public readonly TServiceProvider RootServiceProviderRoot;
+
+    public TenantServiceProvider(TServiceProvider rootServiceProviderRoot, ServiceFactories serviceFactories)
     {
         RootServiceProviderRoot = rootServiceProviderRoot;
         ServiceFactories = serviceFactories;
-        SingletonScope = new(this, rootServiceProviderRoot, serviceFactories);
+        // TODO - Improve?
+        SingletonScope = (TSingletonScope)typeof(TSingletonScope).GetConstructors(BindingFlags.Default | BindingFlags.Instance).First().Invoke([this, rootServiceProviderRoot, serviceFactories]);
     }
 
     internal async ValueTask InitializeAsync()
@@ -32,14 +41,16 @@ public class TenantServiceProvider<TSingletonScope> : IServiceProvider
         
         await SingletonScope.FinalizeAsync();
     }
-    
-    public async ValueTask DisposeAsync()
+
+    internal override ServiceFactories ServiceFactories { get; }
+
+    public override async ValueTask DisposeAsync()
     {
         await SingletonScope.DisposeAsync();
     }
 
-    public virtual IServiceScope CreateScope()
+    public override IServiceScope CreateScope()
     {
-        return new TenantedScope<TSingletonScope>(this, (ServiceScope<TSingletonScope>)RootServiceProviderRoot.CreateScope(), SingletonScope, ServiceFactories);
+        return new TenantedScope<TServiceProvider, TSingletonScope>(this, (ServiceScope<TServiceProvider, TSingletonScope>)RootServiceProviderRoot.CreateScope(), SingletonScope, ServiceFactories);
     }
 }

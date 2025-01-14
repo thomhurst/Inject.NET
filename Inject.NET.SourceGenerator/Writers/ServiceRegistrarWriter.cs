@@ -9,7 +9,6 @@ internal static class ServiceRegistrarWriter
         Compilation compilation, TypedServiceProviderModel serviceProviderModel,
         Dictionary<ISymbol?, ServiceModel[]> dependencyDictionary)
     {
-        var withTenantAttributeType = compilation.GetTypeByMetadataName("Inject.NET.Attributes.WithTenantAttribute`1");
 
         NestedServiceWrapperWriter.Wrap(sourceProductionContext, serviceProviderModel,
             sourceCodeWriter =>
@@ -23,19 +22,6 @@ internal static class ServiceRegistrarWriter
                 sourceCodeWriter.WriteLine("{");
 
                 WriteRegistration(sourceCodeWriter, serviceProviderModel.Type, dependencyDictionary, string.Empty);
-
-                var withTenantAttributes = serviceProviderModel.Type.GetAttributes().Where(x =>
-                    SymbolEqualityComparer.Default.Equals(x.AttributeClass?.OriginalDefinition,
-                        withTenantAttributeType));
-
-                foreach (var withTenantAttribute in withTenantAttributes)
-                {
-                    var tenantId = withTenantAttribute.ConstructorArguments[0].Value!.ToString();
-                    var tenantDefinitionClass = (INamedTypeSymbol)withTenantAttribute.AttributeClass!.TypeArguments[0];
-
-                    WriteWithTenant(sourceCodeWriter, serviceProviderModel.Type, compilation, tenantId,
-                        tenantDefinitionClass, dependencyDictionary);
-                }
 
                 sourceCodeWriter.WriteLine("}");
 
@@ -61,73 +47,6 @@ internal static class ServiceRegistrarWriter
 
                 sourceCodeWriter.WriteLine("}");
             });
-    }
-
-    private static void WriteWithTenant(SourceCodeWriter sourceCodeWriter, INamedTypeSymbol serviceProviderType, Compilation compilation, string tenantId,
-        INamedTypeSymbol tenantDefinitionClass, Dictionary<ISymbol?, ServiceModel[]> rootDependencyDictionary)
-    {
-        var dependencyInjectionAttributeType = compilation.GetTypeByMetadataName("Inject.NET.Attributes.IDependencyInjectionAttribute");
-
-        var dependencyAttributes = tenantDefinitionClass.GetAttributes()
-            .Where(x => x.AttributeClass?.AllInterfaces.Contains(dependencyInjectionAttributeType,
-                SymbolEqualityComparer.Default) == true)
-            .ToArray();
-
-        var dependencyDictionary = DependencyDictionary.Create(compilation, dependencyAttributes);
-        
-        sourceCodeWriter.WriteLine("{");
-        
-        sourceCodeWriter.WriteLine($"var tenant = GetOrCreateTenant(\"{tenantId}\");");
-        
-        WriteRegistration(sourceCodeWriter, serviceProviderType, dependencyDictionary, "tenant.");
-        
-        WriteTenantOverrides(sourceCodeWriter, serviceProviderType, rootDependencyDictionary, dependencyDictionary);
-        
-        sourceCodeWriter.WriteLine("}");
-    }
-
-    private static void WriteTenantOverrides(SourceCodeWriter sourceCodeWriter,
-        INamedTypeSymbol serviceProviderType,
-        Dictionary<ISymbol?, ServiceModel[]> rootDependencyDictionary,
-        Dictionary<ISymbol?, ServiceModel[]> dependencyDictionary)
-    {
-        var list = new List<(ISymbol?, ServiceModel)>();
-
-        // If an object in the root dictionary has got parameters that have been overridden
-        // We need to construct a new object for that tenant with the right instance
-        foreach (var (key, serviceModels) in rootDependencyDictionary)
-        {
-            foreach (var serviceModel in serviceModels)
-            {
-                var parameters = serviceModel.GetAllNestedParameters(rootDependencyDictionary);
-
-                foreach (var parameter in parameters)
-                {
-                    if (dependencyDictionary.TryGetValue(parameter.ServiceType, out _))
-                    {
-                        list.Add((key, serviceModel));
-                    }
-                }
-            }
-        }
-
-        var dictionaryToOverride = list
-            .GroupBy(x => x.Item1, SymbolEqualityComparer.Default)
-            .ToDictionary(x => x.Key,
-                x => x.Select(y => y.Item2).ToArray(),
-                SymbolEqualityComparer.Default);
-
-        var mergedDictionaries = rootDependencyDictionary
-            .Concat(dictionaryToOverride)
-            .Concat(dependencyDictionary)
-                .GroupBy(x => x.Key, SymbolEqualityComparer.Default)
-                .ToDictionary(x => x.Key,
-                    x => x.SelectMany(y => y.Value).ToArray(), SymbolEqualityComparer.Default);
-        
-        foreach (var (_, serviceModel) in list)
-        {
-            WriteRegistration(sourceCodeWriter, serviceProviderType, mergedDictionaries, "tenant.", serviceModel);
-        }
     }
 
     private static void WriteRegistration(SourceCodeWriter sourceCodeWriter,

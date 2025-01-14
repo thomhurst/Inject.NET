@@ -14,11 +14,11 @@ internal static class TenantScopeWriter
                 var className = $"Scope{tenant.Guid}";
                 
                 sourceCodeWriter.WriteLine(
-                    $"public class {className} : global::Inject.NET.Services.ServiceScope<SingletonScope>");
+                    $"public class {className} : global::Inject.NET.Services.ServiceScope<ServiceProvider, SingletonScope>");
                 sourceCodeWriter.WriteLine("{");
 
                 sourceCodeWriter.WriteLine(
-                    $"public {className}(ServiceProviderRoot<SingletonScope> root, SingletonScope singletonScope, ServiceFactories serviceFactories) : base(root, singletonScope, serviceFactories)");
+                    $"public {className}(ServiceProvider root, SingletonScope singletonScope, ServiceFactories serviceFactories) : base(root, singletonScope, serviceFactories)");
                 sourceCodeWriter.WriteLine("{");
                 sourceCodeWriter.WriteLine("}");
 

@@ -9,8 +9,9 @@ using IServiceProvider = Inject.NET.Interfaces.IServiceProvider;
 
 namespace Inject.NET.Services;
 
-public class ServiceScope<TSingletonScope> : IServiceScope
-    where TSingletonScope : IServiceScope
+public class ServiceScope<TServiceProvider, TSingletonScope> : IServiceScope<TServiceProvider, TSingletonScope>
+    where TServiceProvider : ServiceProviderRoot<TServiceProvider, TSingletonScope>, IServiceProvider
+    where TSingletonScope : SingletonScope
 {
     private static readonly Type ServiceScopeType = typeof(IServiceScope);
     private static readonly Type ServiceProviderType = typeof(IServiceProvider);
@@ -30,10 +31,10 @@ public class ServiceScope<TSingletonScope> : IServiceScope
     private Dictionary<ServiceKey, List<object>>? _cachedEnumerables;
     
     private List<object>? _forDisposal;
-    private readonly ServiceProviderRoot<TSingletonScope> _root;
+    private readonly TServiceProvider _root;
     private readonly ServiceFactories _serviceFactories;
 
-    public ServiceScope(ServiceProviderRoot<TSingletonScope> root, IServiceScope singletonScope, ServiceFactories serviceFactories)
+    public ServiceScope(TServiceProvider root, TSingletonScope singletonScope, ServiceFactories serviceFactories)
     {
         _root = root;
         _serviceFactories = serviceFactories;
@@ -42,9 +43,9 @@ public class ServiceScope<TSingletonScope> : IServiceScope
         scope = this;
     }
 
-    public IServiceScope SingletonScope { get; }
+    public TSingletonScope SingletonScope { get; }
 
-    public IServiceProvider ServiceProvider { get; }
+    public TServiceProvider ServiceProvider { get; }
 
     public T Register<T>(ServiceKey key, T obj)
     {
@@ -235,7 +236,7 @@ public class ServiceScope<TSingletonScope> : IServiceScope
                 
                 if (!vt.IsCompleted)
                 {
-                    return Await(--i, vt, forDisposal, this);
+                    return Await(--i, vt, forDisposal);
                 }
             }
             else if (obj is IDisposable disposable)
@@ -248,7 +249,7 @@ public class ServiceScope<TSingletonScope> : IServiceScope
         
         return default;
         
-        static async ValueTask Await(int i, ValueTask vt, List<object> toDispose, ServiceScope<TSingletonScope> serviceScope)
+        static async ValueTask Await(int i, ValueTask vt, List<object> toDispose)
         {
             await vt.ConfigureAwait(false);
 

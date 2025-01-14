@@ -15,7 +15,7 @@ internal static class SingletonScopeWriter
                 sourceCodeWriter.WriteLine("{");
 
                 sourceCodeWriter.WriteLine(
-                    "public SingletonScope(ServiceProviderRoot<SingletonScope> root, ServiceFactories serviceFactories) : base(root, serviceFactories)");
+                    "public SingletonScope(ServiceProvider root, ServiceFactories serviceFactories) : base(root, serviceFactories)");
                 sourceCodeWriter.WriteLine("{");
                 sourceCodeWriter.WriteLine("}");
 

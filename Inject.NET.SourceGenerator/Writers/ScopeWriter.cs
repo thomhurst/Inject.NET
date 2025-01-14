@@ -12,11 +12,11 @@ internal static class ScopeWriter
             sourceCodeWriter =>
             {
                 sourceCodeWriter.WriteLine(
-                    "public class Scope : global::Inject.NET.Services.ServiceScope<SingletonScope>");
+                    "public class Scope : global::Inject.NET.Services.ServiceScope<ServiceProvider, SingletonScope>");
                 sourceCodeWriter.WriteLine("{");
 
                 sourceCodeWriter.WriteLine(
-                    "public Scope(ServiceProviderRoot<SingletonScope> root, SingletonScope singletonScope, ServiceFactories serviceFactories) : base(root, singletonScope, serviceFactories)");
+                    "public Scope(ServiceProvider root, SingletonScope singletonScope, ServiceFactories serviceFactories) : base(root, singletonScope, serviceFactories)");
                 sourceCodeWriter.WriteLine("{");
                 sourceCodeWriter.WriteLine("}");
 

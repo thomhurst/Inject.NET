@@ -126,9 +126,7 @@ public class SingletonScope(IServiceProviderRoot root, ServiceFactories serviceF
 
         return [];
     }
-
-    IServiceScope IServiceScope.SingletonScope => this;
-
+    
     private IEnumerable<ServiceDescriptor> SingletonFactories(ServiceKey serviceKey)
     {
         return serviceFactories.Descriptors.Where(x => x.Key == serviceKey)

@@ -5,6 +5,8 @@ namespace Inject.NET.SourceGenerator.Models;
 public class TypedServiceProviderModel
 {
     public required INamedTypeSymbol Type { get; init; }
+    
+    public string Id { get; } = Guid.NewGuid().ToString("N");
 
     public override bool Equals(object? obj)
     {

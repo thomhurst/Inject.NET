@@ -1,3 +1,4 @@
+using Inject.NET.SourceGenerator.Models;
 using Microsoft.CodeAnalysis;
 
 namespace Inject.NET.SourceGenerator.Writers;
@@ -5,16 +6,16 @@ namespace Inject.NET.SourceGenerator.Writers;
 internal static class SingletonScopeWriter
 {
     public static void Write(SourceProductionContext sourceProductionContext,
-        Compilation compilation, ServiceProviderInformation serviceProviderInformation, Tenant? tenant = null)
+        Compilation compilation, TypedServiceProviderModel serviceProviderModel, ServiceProviderInformation serviceProviderInformation)
     {
-        NestedServiceWrapperWriter.Wrap(sourceProductionContext, serviceProviderInformation.ServiceProviderType,
+        NestedServiceWrapperWriter.Wrap(sourceProductionContext, serviceProviderModel,
             sourceCodeWriter =>
             {
-                sourceCodeWriter.WriteLine($"public class SingletonScope : SingletonScope");
+                sourceCodeWriter.WriteLine("public class SingletonScope : global::Inject.NET.Services.SingletonScope");
                 sourceCodeWriter.WriteLine("{");
 
                 sourceCodeWriter.WriteLine(
-                    $"public SingletonScope(ServiceProviderRoot<SingletonScope> root, ServiceFactories serviceFactories) : base(root, serviceFactories)");
+                    "public SingletonScope(ServiceProviderRoot<SingletonScope> root, ServiceFactories serviceFactories) : base(root, serviceFactories)");
                 sourceCodeWriter.WriteLine("{");
                 sourceCodeWriter.WriteLine("}");
 

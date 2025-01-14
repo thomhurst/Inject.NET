@@ -10,7 +10,7 @@ internal static class TenantServiceProviderWriter
         TypedServiceProviderModel serviceProviderModel, TenantedServiceProviderInformation serviceProviderInformation,
         Tenant tenant)
     {
-        NestedServiceWrapperWriter.Wrap(sourceProductionContext, serviceProviderInformation.ServiceProviderType,
+        NestedServiceWrapperWriter.Wrap(sourceProductionContext, serviceProviderModel,
             sourceCodeWriter =>
             {
                 var serviceProviderType = serviceProviderInformation.ServiceProviderType;
@@ -18,12 +18,12 @@ internal static class TenantServiceProviderWriter
                 var className = $"ServiceProvider{tenant.Guid}";
                 
                 sourceCodeWriter.WriteLine(
-                    $"{serviceProviderType.DeclaredAccessibility.ToString().ToLower(CultureInfo.InvariantCulture)} partial class {className}(ServiceProviderRoot<SingletonScope> rootServiceProvider, ServiceFactories serviceFactories) : TenantServiceProvider<SingletonScope>(rootServiceProvider, serviceFactories)");
+                    $"{serviceProviderType.DeclaredAccessibility.ToString().ToLower(CultureInfo.InvariantCulture)} partial class {className}(ServiceProviderRoot<SingletonScope> rootServiceProvider, ServiceFactories serviceFactories) : global::Inject.NET.Services.TenantServiceProvider<SingletonScope>(rootServiceProvider, serviceFactories)");
                 sourceCodeWriter.WriteLine("{");
                 
                 sourceCodeWriter.WriteLine("[field: AllowNull, MaybeNull]");
                 sourceCodeWriter.WriteLine(
-                    $$"""public override SingletonScope SingletonScope => field ??= new(this, root, serviceFactories);""");
+                    """public override SingletonScope SingletonScope => field ??= new(this, root, serviceFactories);""");
 
                 sourceCodeWriter.WriteLine(
                     $"public override IServiceScope CreateScope() => new Scope{tenant.Guid}(this, SingletonScope, ServiceFactories);");

@@ -29,16 +29,18 @@ internal static class MainWriter
 
         var serviceProviderInformation = TypeCollector.Collect(serviceProviderModel, compilation);
         
+        StaticWriter.Write(sourceProductionContext, serviceProviderModel);
+        
         ServiceRegistrarWriter.Write(sourceProductionContext, compilation, serviceProviderModel, rootDependencies);
-        SingletonScopeWriter.Write(sourceProductionContext, compilation, serviceProviderInformation);
-        ScopeWriter.Write(sourceProductionContext, compilation, serviceProviderInformation);
+        SingletonScopeWriter.Write(sourceProductionContext, compilation, serviceProviderModel, serviceProviderInformation);
+        ScopeWriter.Write(sourceProductionContext, compilation, serviceProviderModel, serviceProviderInformation);
         ServiceProviderWriter.Write(sourceProductionContext, serviceProviderModel, serviceProviderInformation, []);
         
         foreach (var tenant in tenants)
         {
             TenantServiceRegistrarWriter.Write(sourceProductionContext, compilation, serviceProviderModel, tenant);
-            TenantSingletonScopeWriter.Write(sourceProductionContext, compilation, serviceProviderInformation, tenant);
-            TenantScopeWriter.Write(sourceProductionContext, compilation, serviceProviderInformation, tenant);
+            TenantSingletonScopeWriter.Write(sourceProductionContext, compilation, serviceProviderModel, serviceProviderInformation, tenant);
+            TenantScopeWriter.Write(sourceProductionContext, compilation, serviceProviderModel, serviceProviderInformation, tenant);
             TenantServiceProviderWriter.Write(sourceProductionContext, serviceProviderModel, serviceProviderInformation, tenant);
         }
     }

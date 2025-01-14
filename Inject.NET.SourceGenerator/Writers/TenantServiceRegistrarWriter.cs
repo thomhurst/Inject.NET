@@ -9,11 +9,11 @@ internal static class TenantServiceRegistrarWriter
         Compilation compilation,
         TypedServiceProviderModel serviceProviderModel, Tenant tenant)
     {
-        NestedServiceWrapperWriter.Wrap(sourceProductionContext, serviceProviderModel.Type,
+        NestedServiceWrapperWriter.Wrap(sourceProductionContext, serviceProviderModel,
             sourceCodeWriter =>
             {
                 sourceCodeWriter.WriteLine(
-                    $"public class ServiceRegistrar{tenant.Guid} : TenantServiceRegistrar<ServiceRegistrar{tenant.Guid}, ServiceProvider{tenant.Guid}, SingletonScope{tenant.Guid}>");
+                    $"public class ServiceRegistrar{tenant.Guid} : global::Inject.NET.Services.TenantServiceRegistrar<ServiceRegistrar{tenant.Guid}, ServiceProvider{tenant.Guid}, SingletonScope{tenant.Guid}>");
 
                 sourceCodeWriter.WriteLine("{");
 

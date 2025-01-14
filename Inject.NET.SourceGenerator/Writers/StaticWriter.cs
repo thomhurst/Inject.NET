@@ -1,11 +1,11 @@
-using Inject.NET.SourceGenerator.Models;
+﻿using Inject.NET.SourceGenerator.Models;
 using Microsoft.CodeAnalysis;
 
 namespace Inject.NET.SourceGenerator.Writers;
 
-internal static class NestedServiceWrapperWriter
+internal static class StaticWriter
 {
-    public static void Wrap(SourceProductionContext sourceProductionContext, TypedServiceProviderModel typedServiceProviderModel, Action<SourceCodeWriter> toWrite)
+    public static void Write(SourceProductionContext sourceProductionContext, TypedServiceProviderModel typedServiceProviderModel)
     {
         var sourceCodeWriter = new SourceCodeWriter();
         
@@ -38,10 +38,12 @@ internal static class NestedServiceWrapperWriter
             parent = parent.ContainingType;
         }
 
-        sourceCodeWriter.WriteLine($"public partial class {serviceProviderType.Name}{typedServiceProviderModel.Id}");
+        sourceCodeWriter.WriteLine($"public partial class {serviceProviderType.Name}");
         sourceCodeWriter.WriteLine("{");
         
-        toWrite(sourceCodeWriter);
+        sourceCodeWriter.WriteLine(
+            $"public static ValueTask<{serviceProviderType.Name}{typedServiceProviderModel.Id}.ServiceProvider> BuildAsync() =>");
+        sourceCodeWriter.WriteLine($"\tnew {serviceProviderType.Name}{typedServiceProviderModel.Id}.ServiceRegistrar().BuildAsync();");
         
         sourceCodeWriter.WriteLine("}");
         

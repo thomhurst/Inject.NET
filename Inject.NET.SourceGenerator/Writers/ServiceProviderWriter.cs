@@ -10,26 +10,21 @@ internal static class ServiceProviderWriter
         TypedServiceProviderModel serviceProviderModel, TenantedServiceProviderInformation serviceProviderInformation,
         IEnumerable<Tenant> tenants)
     {
-        NestedServiceWrapperWriter.Wrap(sourceProductionContext, serviceProviderInformation.ServiceProviderType,
+        NestedServiceWrapperWriter.Wrap(sourceProductionContext, serviceProviderModel,
             sourceCodeWriter =>
             {
                 var serviceProviderType = serviceProviderInformation.ServiceProviderType;
                 
                 sourceCodeWriter.WriteLine(
-                    $"{serviceProviderType.DeclaredAccessibility.ToString().ToLower(CultureInfo.InvariantCulture)} partial class {serviceProviderType.Name} : global::Inject.NET.Services.ServiceProviderRoot<{serviceProviderModel.Type.GloballyQualified()}SingletonScope>");
+                    $"{serviceProviderType.DeclaredAccessibility.ToString().ToLower(CultureInfo.InvariantCulture)} class ServiceProvider(global::Inject.NET.Models.ServiceFactories serviceFactories, global::System.Collections.Generic.IDictionary<string, IServiceRegistrar> tenantRegistrars) : global::Inject.NET.Services.ServiceProviderRoot<SingletonScope>(serviceFactories, tenantRegistrars)");
                 sourceCodeWriter.WriteLine("{");
 
                 sourceCodeWriter.WriteLine("[field: AllowNull, MaybeNull]");
                 sourceCodeWriter.WriteLine(
-                    $$"""public override {{serviceProviderModel.Type.GloballyQualified()}}SingletonScope SingletonScope => field ??= new(this, serviceFactories);""");
+                    """public override SingletonScope SingletonScope => field ??= new(this, serviceFactories);""");
 
                 sourceCodeWriter.WriteLine(
-                    $"public override IServiceScope CreateScope() => new {serviceProviderModel.Type.GloballyQualified()}Scope(this, SingletonScope, ServiceFactories);");
-
-                sourceCodeWriter.WriteLine(
-                    $"public {serviceProviderType.Name}(Inject.NET.Models.ServiceFactories serviceFactories, global::System.Collections.Generic.IDictionary<string, IServiceRegistrar> tenantRegistrars) : base(serviceFactories, tenantRegistrars)");
-                sourceCodeWriter.WriteLine("{");
-                sourceCodeWriter.WriteLine("}");
+                    "public override IServiceScope CreateScope() => new Scope(this, SingletonScope, ServiceFactories);");
                 
                 foreach (var tenant in tenants)
                 {
@@ -45,13 +40,10 @@ internal static class ServiceProviderWriter
 
                 foreach (var tenant in tenants)
                 {
-                    sourceCodeWriter.WriteLine($"Tenant{tenant.Guid} = new TenantServiceProvider<{serviceProviderModel.Type.GloballyQualified()}SingletonScope>(this, SingletonScope);");
+                    sourceCodeWriter.WriteLine($"Tenant{tenant.Guid} = new TenantServiceProvider<SingletonScope>(this, SingletonScope);");
                 }
 
                 sourceCodeWriter.WriteLine("}");
-                sourceCodeWriter.WriteLine(
-                    $"public static ValueTask<{serviceProviderModel.Type.GloballyQualified()}> BuildAsync() =>");
-                sourceCodeWriter.WriteLine($"\tnew {serviceProviderType.Name}ServiceRegistrar().BuildAsync();");
 
                 sourceCodeWriter.WriteLine("}");
             });

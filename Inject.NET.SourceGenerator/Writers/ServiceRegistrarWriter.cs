@@ -11,15 +11,15 @@ internal static class ServiceRegistrarWriter
     {
         var withTenantAttributeType = compilation.GetTypeByMetadataName("Inject.NET.Attributes.WithTenantAttribute`1");
 
-        NestedServiceWrapperWriter.Wrap(sourceProductionContext, serviceProviderModel.Type,
+        NestedServiceWrapperWriter.Wrap(sourceProductionContext, serviceProviderModel,
             sourceCodeWriter =>
             {
                 sourceCodeWriter.WriteLine(
-                    $"public class ServiceRegistrar : ServiceRegistrar<{serviceProviderModel.Type.GloballyQualified()}, {serviceProviderModel.Type.GloballyQualified()}SingletonScope>");
+                    "public class ServiceRegistrar : global::Inject.NET.Services.ServiceRegistrar<ServiceProvider>");
                 
                 sourceCodeWriter.WriteLine("{");
 
-                sourceCodeWriter.WriteLine($"public ServiceRegistrar()");
+                sourceCodeWriter.WriteLine("public ServiceRegistrar()");
                 sourceCodeWriter.WriteLine("{");
 
                 WriteRegistration(sourceCodeWriter, serviceProviderModel.Type, dependencyDictionary, string.Empty);
@@ -41,23 +41,23 @@ internal static class ServiceRegistrarWriter
 
                 sourceCodeWriter.WriteLine();
 
-                sourceCodeWriter.WriteLine($$"""
-                                             public override async ValueTask<{{serviceProviderModel.Type.GloballyQualified()}}> BuildAsync()
-                                             {
-                                                 OnBeforeBuild(this);
-                                             
-                                                 var serviceProvider = new {{serviceProviderModel.Type.GloballyQualified()}}(ServiceFactoryBuilders.AsReadOnly(), Tenants);
-                                                 
-                                                 var vt = serviceProvider.InitializeAsync();
-                                             
-                                                 if (!vt.IsCompletedSuccessfully)
-                                                 {
-                                                     await vt.ConfigureAwait(false);
-                                                 }
-                                                 
-                                                 return serviceProvider;
-                                             }
-                                             """);
+                sourceCodeWriter.WriteLine("""
+                                           public override async ValueTask<ServiceProvider> BuildAsync()
+                                           {
+                                               OnBeforeBuild(this);
+                                           
+                                               var serviceProvider = new ServiceProvider(ServiceFactoryBuilders.AsReadOnly(), Tenants);
+                                               
+                                               var vt = serviceProvider.InitializeAsync();
+                                           
+                                               if (!vt.IsCompletedSuccessfully)
+                                               {
+                                                   await vt.ConfigureAwait(false);
+                                               }
+                                               
+                                               return serviceProvider;
+                                           }
+                                           """);
 
                 sourceCodeWriter.WriteLine("}");
             });

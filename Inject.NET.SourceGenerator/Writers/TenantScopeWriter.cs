@@ -13,21 +13,24 @@ internal static class TenantScopeWriter
         sourceCodeWriter.WriteLine(
             $"public class {className} : global::Inject.NET.Services.ServiceScope<{className}, ServiceProvider_{tenant.Guid}, SingletonScope_{tenant.Guid}, ServiceScope_, SingletonScope_, ServiceProvider_>");
         sourceCodeWriter.WriteLine("{");
+        
+        var scopedModels = GetScopedModels(tenant.TenantDependencies).ToArray();
 
         sourceCodeWriter.WriteLine(
             $"public {className}(ServiceProvider_{tenant.Guid} serviceProvider, ServiceFactories serviceFactories, ServiceScope_ parentScope) : base(serviceProvider, serviceFactories, parentScope)");
         sourceCodeWriter.WriteLine("{");
+        
+        foreach (var serviceModel in scopedModels)
+        {
+            var propertyName = PropertyNameHelper.Format(serviceModel);
+            
+            sourceCodeWriter.WriteLine($"Register({serviceModel.GetKey()}, () => {propertyName});");
+        }
+        
         sourceCodeWriter.WriteLine("}");
 
-        foreach (var (_, serviceModels) in serviceProviderInformation.Dependencies)
+        foreach (var serviceModel in scopedModels)
         {
-            var serviceModel = serviceModels.Last();
-
-            if (serviceModel.Lifetime != Lifetime.Scoped || serviceModel.IsOpenGeneric)
-            {
-                continue;
-            }
-
             sourceCodeWriter.WriteLine();
             sourceCodeWriter.WriteLine("[field: AllowNull, MaybeNull]");
             var propertyName = PropertyNameHelper.Format(serviceModel);
@@ -48,9 +51,24 @@ internal static class TenantScopeWriter
 
             var propertyName = PropertyNameHelper.Format(serviceModel);
             sourceCodeWriter.WriteLine(
-                $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => ServiceProvider.SingletonScope.{propertyName};");
+                $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => ServiceProvider.Singletons.{propertyName};");
         }
 
         sourceCodeWriter.WriteLine("}");
+    }
+    
+    private static IEnumerable<ServiceModel> GetScopedModels(Dictionary<ISymbol?, ServiceModel[]> dependencies)
+    {
+        foreach (var (_, serviceModels) in dependencies)
+        {
+            var serviceModel = serviceModels.Last();
+
+            if (serviceModel.Lifetime != Lifetime.Scoped || serviceModel.IsOpenGeneric)
+            {
+                continue;
+            }
+
+            yield return serviceModel;
+        }
     }
 }

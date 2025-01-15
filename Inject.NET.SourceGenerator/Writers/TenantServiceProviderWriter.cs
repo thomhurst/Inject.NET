@@ -20,7 +20,7 @@ internal static class TenantServiceProviderWriter
                 
         sourceCodeWriter.WriteLine("[field: AllowNull, MaybeNull]");
         sourceCodeWriter.WriteLine(
-            $"public override SingletonScope_{tenant.Guid} SingletonScope => field ??= new(this, serviceFactories, parent.SingletonScope);");
+            $"public override SingletonScope_{tenant.Guid} Singletons => field ??= new(this, serviceFactories, parent.Singletons);");
 
         sourceCodeWriter.WriteLine(
             $"public override ServiceScope_{tenant.Guid} CreateTypedScope() => new ServiceScope_{tenant.Guid}(this, serviceFactories, parent.CreateTypedScope());");
@@ -45,7 +45,7 @@ internal static class TenantServiceProviderWriter
         {
             if(serviceModel.Lifetime == Lifetime.Singleton)
             {
-                sourceCodeWriter.WriteLine($"_ = SingletonScope.{PropertyNameHelper.Format(serviceModel)};");
+                sourceCodeWriter.WriteLine($"_ = Singletons.{PropertyNameHelper.Format(serviceModel)};");
             }
             else if(serviceModel.Lifetime == Lifetime.Scoped)
             {

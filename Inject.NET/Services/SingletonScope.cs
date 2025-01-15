@@ -16,15 +16,19 @@ where TScope : ServiceScope<TScope, TServiceProvider, TSelf, TParentServiceScope
 where TParentSingletonScope : IServiceScope
 where TParentServiceScope : IServiceScope
 {
+    public TSelf Singletons => (TSelf)this;
+    public TParentSingletonScope? ParentScope { get; } = parentScope;
+    
     private static readonly Type ServiceScopeType = typeof(IServiceScope);
     private static readonly Type ServiceProviderType = typeof(IServiceProvider);
     
-    private Dictionary<ServiceKey, object>? _registered;
-    private Dictionary<ServiceKey, List<object>>? _registeredEnumerables;
+    private Dictionary<ServiceKey, object>? _cachedObjects;
+    private Dictionary<ServiceKey, List<object>>? _cachedEnumerables;
 
     private readonly ConcurrentDictionary<ServiceKey, List<object>> _singletonsBuilder = [];
     
-    private ConcurrentDictionary<ServiceKey, IReadOnlyList<object>> _singletonEnumerables = [];
+    private Dictionary<ServiceKey, Func<object>>? _registeredFactories;
+    private Dictionary<ServiceKey, List<Func<object>>>? _registeredEnumerableFactories;
     
     private bool _isBuilt;
     
@@ -40,20 +44,29 @@ where TParentServiceScope : IServiceScope
     
     public T Register<T>(ServiceKey key, T value)
     {
-        (_registered ??= DictionaryPool<ServiceKey, object>.Shared.Get()).Add(key, value!);
+        (_cachedObjects ??= DictionaryPool<ServiceKey, object>.Shared.Get()).Add(key, value!);
         
-        (_registeredEnumerables ??= DictionaryPool<ServiceKey, List<object>>.Shared.Get())
+        (_cachedEnumerables ??= DictionaryPool<ServiceKey, List<object>>.Shared.Get())
             .GetOrAdd(key, _ => [])
             .Add(value!);
 
         return value;
     }
+    
+    public void Register<T>(ServiceKey key, Func<object> value)
+    {
+        (_registeredFactories ??= DictionaryPool<ServiceKey, Func<object>>.Shared.Get()).Add(key, value!);
+        
+        (_registeredEnumerableFactories ??= DictionaryPool<ServiceKey, List<Func<object>>>.Shared.Get())
+            .GetOrAdd(key, _ => [])
+            .Add(value);
+    }
 
     internal async Task FinalizeAsync()
     {
-        if(_registeredEnumerables is not null)
+        if(_cachedEnumerables is not null)
         {
-            foreach (var singletonAsyncInitialization in _registeredEnumerables.SelectMany(s => s.Value)
+            foreach (var singletonAsyncInitialization in _cachedEnumerables.SelectMany(s => s.Value)
                          .OfType<ISingletonAsyncInitialization>()
                          .OrderBy(x => x.Order))
             {
@@ -88,9 +101,14 @@ where TParentServiceScope : IServiceScope
 
     public object? GetService(ServiceKey serviceKey, IServiceScope originatingScope)
     {
-        if (_registered?.TryGetValue(serviceKey, out var singleton) == true)
+        if (_cachedObjects?.TryGetValue(serviceKey, out var singleton) == true)
         {
             return singleton;
+        }
+
+        if (_registeredFactories?.TryGetValue(serviceKey, out var factory) == true)
+        {
+            return (_cachedObjects ??= DictionaryPool<ServiceKey, object>.Shared.Get())[serviceKey] = factory();
         }
         
         if (serviceKey.Type == ServiceScopeType)
@@ -107,7 +125,7 @@ where TParentServiceScope : IServiceScope
 
         if (services.Count == 0)
         {
-            return parentScope?.GetService(serviceKey, originatingScope);
+            return ParentScope?.GetService(serviceKey, originatingScope);
         }
         
         return services[^1];
@@ -115,14 +133,14 @@ where TParentServiceScope : IServiceScope
 
     public IReadOnlyList<object> GetServices(ServiceKey serviceKey, IServiceScope originatingScope)
     {
-        if (_singletonEnumerables.TryGetValue(serviceKey, out var list))
+        if (_cachedEnumerables?.TryGetValue(serviceKey, out var singletons) == true)
         {
-            return list;
+            return _cachedEnumerables[serviceKey] = singletons;
         }
         
-        if (_registeredEnumerables?.TryGetValue(serviceKey, out var singletons) == true)
+        if (_registeredEnumerableFactories?.TryGetValue(serviceKey, out var factory) == true)
         {
-            return _singletonEnumerables[serviceKey] = singletons;
+            return (_cachedEnumerables ??= DictionaryPool<ServiceKey, List<object>>.Shared.Get())[serviceKey] = factory.Select(x => x()).ToList();
         }
 
         if (!_isBuilt)
@@ -134,7 +152,7 @@ where TParentServiceScope : IServiceScope
 
             if (!serviceFactories.Descriptors.TryGetValue(serviceKey, out var descriptors))
             {
-                return parentScope?.GetServices(serviceKey, originatingScope) ?? Array.Empty<object>();
+                return ParentScope?.GetServices(serviceKey, originatingScope) ?? Array.Empty<object>();
             }
 
             return _singletonsBuilder[serviceKey] =
@@ -159,7 +177,7 @@ where TParentServiceScope : IServiceScope
     
     public async ValueTask DisposeAsync()
     {
-        foreach (var item in _singletonEnumerables)
+        foreach (var item in _cachedEnumerables ?? Enumerable.Empty<KeyValuePair<ServiceKey, List<object>?>>())
         {
             foreach (var obj in item.Value)
             {
@@ -170,7 +188,7 @@ where TParentServiceScope : IServiceScope
 
     public void Dispose()
     {
-        foreach (var item in _singletonEnumerables)
+        foreach (var item in _cachedEnumerables ?? Enumerable.Empty<KeyValuePair<ServiceKey, List<object>>>())
         {
             foreach (var obj in item.Value)
             {

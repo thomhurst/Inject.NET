@@ -43,17 +43,17 @@ public partial class TenantTests
             .IsEqualTo("Tenant2Child");
     }
 
-    [Transient<Parent>]
-    [Transient<IChild, DefaultChild>]
+    [Scoped<Parent>]
+    [Scoped<IChild, DefaultChild>]
     [WithTenant<Tenant1>("tenant1")]
     [WithTenant<Tenant2>("tenant2")]
     [ServiceProvider]
     public partial class ServiceProvider;
 
-    [Transient<IChild, Tenant1Child>]
+    [Scoped<IChild, Tenant1Child>]
     public class Tenant1;
     
-    [Transient<IChild, Tenant2Child>]
+    [Scoped<IChild, Tenant2Child>]
     public class Tenant2;
     
     public class Parent(IChild child)

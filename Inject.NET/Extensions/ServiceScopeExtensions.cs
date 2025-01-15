@@ -12,6 +12,12 @@ public static class ServiceScopeExtensions
                ThrowMissingDependencyError<T>(scope);
     }
     
+    public static object GetRequiredService(this IServiceScope scope, Type type)
+    {
+        return scope.GetService(type) ??
+               ThrowMissingDependencyError<object>(scope);
+    }
+    
     public static T GetRequiredService<T>(this IServiceScope scope, string key) where T : class
     {
         return scope.GetService(new ServiceKey(typeof(T), key)) as T ??

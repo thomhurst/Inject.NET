@@ -16,7 +16,7 @@ public abstract class ServiceProvider<TSelf, TSingletonScope, TScope, TParentSer
 
     protected readonly Dictionary<string, IServiceProvider> Tenants = [];
     
-    public abstract TSingletonScope SingletonScope { get; }
+    public abstract TSingletonScope Singletons { get; }
 
     public ServiceProvider(ServiceFactories serviceFactories, TParentServiceProvider? parentServiceProvider)
     {
@@ -53,7 +53,7 @@ public abstract class ServiceProvider<TSelf, TSingletonScope, TScope, TParentSer
     
     internal bool TryGetSingletons(ServiceKey serviceKey, out IReadOnlyList<object> singletons)
     {
-        var foundSingletons = SingletonScope.GetServices(serviceKey).ToArray();
+        var foundSingletons = Singletons.GetServices(serviceKey).ToArray();
         
         if (foundSingletons.Length > 0)
         {
@@ -82,7 +82,7 @@ public abstract class ServiceProvider<TSelf, TSingletonScope, TScope, TParentSer
             }
         }
 
-        await SingletonScope.DisposeAsync();
+        await Singletons.DisposeAsync();
     }
 
     public object? GetService(Type serviceType)

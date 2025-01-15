@@ -13,20 +13,23 @@ internal static class TenantSingletonScopeWriter
         sourceCodeWriter.WriteLine($"public class {className} : global::Inject.NET.Services.SingletonScope<{className}, ServiceProvider_{tenant.Guid}, ServiceScope_{tenant.Guid}, SingletonScope_, ServiceScope_, ServiceProvider_>");
         sourceCodeWriter.WriteLine("{");
 
+        var singletonModels = GetSingletonModels(tenant.TenantDependencies).ToArray();
+        
         sourceCodeWriter.WriteLine(
             $"public {className}(ServiceProvider_{tenant.Guid} serviceProvider, ServiceFactories serviceFactories, SingletonScope_ parentScope) : base(serviceProvider, serviceFactories, parentScope)");
         sourceCodeWriter.WriteLine("{");
+        
+        foreach (var serviceModel in singletonModels)
+        {
+            var propertyName = PropertyNameHelper.Format(serviceModel);
+            
+            sourceCodeWriter.WriteLine($"Register({serviceModel.GetKey()}, () => {propertyName});");
+        }
+        
         sourceCodeWriter.WriteLine("}");
         
-        foreach (var (_, serviceModels) in tenant.TenantDependencies)
+        foreach (var serviceModel in singletonModels)
         {
-            var serviceModel = serviceModels.Last();
-
-            if (serviceModel.Lifetime != Lifetime.Singleton || serviceModel.IsOpenGeneric)
-            {
-                continue;
-            }
-
             sourceCodeWriter.WriteLine();
             sourceCodeWriter.WriteLine("[field: AllowNull, MaybeNull]");
             var propertyName = PropertyNameHelper.Format(serviceModel);
@@ -48,9 +51,24 @@ internal static class TenantSingletonScopeWriter
 
             var propertyName = PropertyNameHelper.Format(serviceModel);
             sourceCodeWriter.WriteLine(
-                $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => ServiceProvider.SingletonScope.{propertyName};");
+                $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => ServiceProvider.Singletons.{propertyName};");
         }
 
         sourceCodeWriter.WriteLine("}");
+    }
+    
+    private static IEnumerable<ServiceModel> GetSingletonModels(Dictionary<ISymbol?, ServiceModel[]> dependencies)
+    {
+        foreach (var (_, serviceModels) in dependencies)
+        {
+            var serviceModel = serviceModels.Last();
+
+            if (serviceModel.Lifetime != Lifetime.Singleton || serviceModel.IsOpenGeneric)
+            {
+                continue;
+            }
+
+            yield return serviceModel;
+        }
     }
 }

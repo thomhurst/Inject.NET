@@ -65,19 +65,38 @@ internal static class TenantServiceRegistrarWriter
         sourceCodeWriter.WriteLine($"{prefix}Register(new global::Inject.NET.Models.ServiceDescriptor");
         sourceCodeWriter.WriteLine("{");
         sourceCodeWriter.WriteLine($"ServiceType = typeof({serviceModel.ServiceType.GloballyQualified()}),");
-        sourceCodeWriter.WriteLine($"ImplementationType = typeof({serviceModel.ImplementationType.GloballyQualified()}),");
+        sourceCodeWriter.WriteLine(
+            $"ImplementationType = typeof({serviceModel.ImplementationType.GloballyQualified()}),");
         sourceCodeWriter.WriteLine($"Lifetime = Inject.NET.Enums.Lifetime.{serviceModel.Lifetime.ToString()},");
-                
-        if(serviceModel.Key is not null)
+
+        if (serviceModel.Key is not null)
         {
             sourceCodeWriter.WriteLine($"Key = \"{serviceModel.Key}\",");
         }
-                
+
         sourceCodeWriter.WriteLine("Factory = (scope, type, key) =>");
-        
-        sourceCodeWriter.WriteLine(ObjectConstructionHelper.ConstructNewObject(serviceProviderType, tenantDependencies, rootDependencies, serviceModel, serviceModel.Lifetime));
-                
+
+        if (serviceModel.IsOpenGeneric)
+        {
+            sourceCodeWriter.WriteLine("scope.GetRequiredService(type)");
+        }
+        else
+        {
+            var lastTypeInDictionary = tenantDependencies[serviceModel.ServiceType][^1];
+
+            sourceCodeWriter.WriteLine(
+                $"new {lastTypeInDictionary.ImplementationType.GloballyQualified()}({string.Join(", ", BuildParameters(serviceModel))})");
+        }
+
         sourceCodeWriter.WriteLine("});");
         sourceCodeWriter.WriteLine();
+    }
+    
+    private static IEnumerable<string> BuildParameters(ServiceModel serviceModel)
+    {
+        foreach (var serviceModelParameter in serviceModel.Parameters)
+        {
+            yield return $"scope.GetRequiredService<{serviceModelParameter.Type.GloballyQualified()}>()";
+        }
     }
 }

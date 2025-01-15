@@ -10,10 +10,20 @@ internal static class SingletonScopeWriter
     {
         sourceCodeWriter.WriteLine("public class SingletonScope_ : global::Inject.NET.Services.SingletonScope<SingletonScope_, ServiceProvider_, ServiceScope_, SingletonScope_, ServiceScope_, ServiceProvider_>");
         sourceCodeWriter.WriteLine("{");
+        
+        var singletonModels = GetSingletonModels(serviceProviderInformation.Dependencies).ToArray();
 
         sourceCodeWriter.WriteLine(
             "public SingletonScope_(ServiceProvider_ serviceProvider, ServiceFactories serviceFactories) : base(serviceProvider, serviceFactories, null)");
         sourceCodeWriter.WriteLine("{");
+        
+        foreach (var serviceModel in singletonModels)
+        {
+            var propertyName = PropertyNameHelper.Format(serviceModel);
+            
+            sourceCodeWriter.WriteLine($"Register({serviceModel.GetKey()}, () => {propertyName});");
+        }
+        
         sourceCodeWriter.WriteLine("}");
 
         foreach (var (_, serviceModels) in serviceProviderInformation.Dependencies)
@@ -46,9 +56,24 @@ internal static class SingletonScopeWriter
 
             var propertyName = PropertyNameHelper.Format(serviceModel);
             sourceCodeWriter.WriteLine(
-                $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => ServiceProvider.SingletonScope.{propertyName};");
+                $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => ServiceProvider.Singletons.{propertyName};");
         }
 
         sourceCodeWriter.WriteLine("}");
+    }
+    
+    private static IEnumerable<ServiceModel> GetSingletonModels(Dictionary<ISymbol?, ServiceModel[]> dependencies)
+    {
+        foreach (var (_, serviceModels) in dependencies)
+        {
+            var serviceModel = serviceModels.Last();
+
+            if (serviceModel.Lifetime != Lifetime.Singleton || serviceModel.IsOpenGeneric)
+            {
+                continue;
+            }
+
+            yield return serviceModel;
+        }
     }
 }

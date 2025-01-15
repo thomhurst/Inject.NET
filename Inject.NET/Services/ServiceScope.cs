@@ -25,8 +25,8 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
     private int _disposed;
 #endif
     
-    private Dictionary<ServiceKey, object>? _registered;
-    private Dictionary<ServiceKey, List<object>>? _registeredEnumerables;
+    private Dictionary<ServiceKey, Func<object>>? _registeredFactories;
+    private Dictionary<ServiceKey, List<Func<object>>>? _registeredEnumerableFactories;
     
     private Dictionary<ServiceKey, object>? _cachedObjects;
     private Dictionary<ServiceKey, List<object>>? _cachedEnumerables;
@@ -41,23 +41,32 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
         _root = serviceProvider;
         _serviceFactories = serviceFactories;
         _parentScope = parentScope;
-        SingletonScope = serviceProvider.SingletonScope;
+        Singletons = serviceProvider.Singletons;
         ServiceProvider = serviceProvider;
     }
 
-    public TSingletonScope SingletonScope { get; }
+    public TSingletonScope Singletons { get; }
 
     public TServiceProvider ServiceProvider { get; }
 
     public T Register<T>(ServiceKey key, T obj)
     {
-        (_registered ??= DictionaryPool<ServiceKey, object>.Shared.Get()).Add(key, obj!);
+        (_cachedObjects ??= DictionaryPool<ServiceKey, object>.Shared.Get()).Add(key, obj!);
         
-        (_registeredEnumerables ??= DictionaryPool<ServiceKey, List<object>>.Shared.Get())
+        (_cachedEnumerables ??= DictionaryPool<ServiceKey, List<object>>.Shared.Get())
             .GetOrAdd(key, _ => [])
             .Add(obj!);
 
         return obj;
+    }
+    
+    public void Register<T>(ServiceKey key, Func<object> value)
+    {
+        (_registeredFactories ??= DictionaryPool<ServiceKey, Func<object>>.Shared.Get()).Add(key, value!);
+        
+        (_registeredEnumerableFactories ??= DictionaryPool<ServiceKey, List<Func<object>>>.Shared.Get())
+            .GetOrAdd(key, _ => [])
+            .Add(value);
     }
     
     public object? GetService(Type type)
@@ -80,14 +89,14 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
     [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
     public object? GetService(ServiceKey serviceKey, IServiceScope originatingScope)
     {
-        if (_registered?.TryGetValue(serviceKey, out var value) == true)
-        {
-            return value;
-        }
-        
         if (_cachedObjects?.TryGetValue(serviceKey, out var cachedObject) == true)
         {
             return cachedObject;
+        }
+        
+        if (_registeredFactories?.TryGetValue(serviceKey, out var factory) == true)
+        {
+            return (_cachedObjects ??= DictionaryPool<ServiceKey, object>.Shared.Get())[serviceKey] = factory();
         }
         
         if (serviceKey.Type == ServiceScopeType)
@@ -123,7 +132,7 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
 
         if (descriptor.Lifetime == Lifetime.Singleton)
         {
-            return SingletonScope.GetService(serviceKey);
+            return Singletons.GetService(serviceKey);
         }
 
         var obj = descriptor.Factory(originatingScope, serviceKey.Type, descriptor.Key);
@@ -152,6 +161,11 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
         if (_cachedEnumerables?.TryGetValue(serviceKey, out var cachedObjects) == true)
         {
             return cachedObjects;
+        }
+        
+        if (_registeredEnumerableFactories?.TryGetValue(serviceKey, out var factory) == true)
+        {
+            return (_cachedEnumerables ??= DictionaryPool<ServiceKey, List<object>>.Shared.Get())[serviceKey] = factory.Select(x => x()).ToList();
         }
 
         if (!_serviceFactories.Descriptors.TryGetValue(serviceKey, out var factories))

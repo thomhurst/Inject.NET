@@ -25,14 +25,29 @@ internal static class TypeHelper
                 $"global::Inject.NET.ThrowHelpers.Throw<{serviceModel.ServiceType.GloballyQualified()}>(\"No dependency found for {serviceModel.ServiceType.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)}\")";
         }
         
-        if (!dependencies.ContainsKey(serviceModel.ServiceType))
+        if (!dependencies.Keys.Contains(serviceModel.ServiceType, SymbolEqualityComparer.Default))
         {
             switch (serviceModel.Lifetime)
             {
                 case Lifetime.Singleton:
-                    return $"ServiceProvider.SingletonScope.{PropertyNameHelper.Format(serviceModel)}";
+                    return $"Singletons.ParentScope.{PropertyNameHelper.Format(serviceModel)}";
                 case Lifetime.Scoped:
-                    return $"DefaultScope.{PropertyNameHelper.Format(serviceModel)}";
+                    return $"_parentScope.{PropertyNameHelper.Format(serviceModel)}";
+                case Lifetime.Transient:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        if(serviceModel.Lifetime != Lifetime.Transient)
+        {
+            switch (serviceModel.Lifetime)
+            {
+                case Lifetime.Singleton:
+                    return $"Singletons.{PropertyNameHelper.Format(serviceModel)}";
+                case Lifetime.Scoped:
+                    return PropertyNameHelper.Format(serviceModel);
                 case Lifetime.Transient:
                     break;
                 default:

@@ -69,10 +69,28 @@ internal static class ServiceRegistrarWriter
         }
                 
         sourceCodeWriter.WriteLine("Factory = (scope, type, key) =>");
-                
-        sourceCodeWriter.WriteLine(ObjectConstructionHelper.ConstructNewObject(serviceProviderType, dependencyDictionary, [], serviceModel, serviceModel.Lifetime));
-                
+
+        if (serviceModel.IsOpenGeneric)
+        {
+            sourceCodeWriter.WriteLine("scope.GetRequiredService(type)");
+        }
+        else
+        {
+            var lastTypeInDictionary = dependencyDictionary[serviceModel.ServiceType][^1];
+
+            sourceCodeWriter.WriteLine(
+                $"new {lastTypeInDictionary.ImplementationType.GloballyQualified()}({string.Join(", ", BuildParameters(serviceModel))})");
+        }
+
         sourceCodeWriter.WriteLine("});");
         sourceCodeWriter.WriteLine();
+    }
+    
+    private static IEnumerable<string> BuildParameters(ServiceModel serviceModel)
+    {
+        foreach (var serviceModelParameter in serviceModel.Parameters)
+        {
+            yield return $"scope.GetRequiredService<{serviceModelParameter.Type.GloballyQualified()}>()";
+        }
     }
 }

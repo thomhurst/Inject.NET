@@ -16,6 +16,6 @@ public interface IServiceScope<TSelf, out TServiceProvider, out TSingletonScope>
     where TSingletonScope : IServiceScope
     where TSelf : IServiceScope<TSelf, TServiceProvider, TSingletonScope>
 {
-    TSingletonScope SingletonScope { get; }
+    TSingletonScope Singletons { get; }
     TServiceProvider ServiceProvider { get; }
 }

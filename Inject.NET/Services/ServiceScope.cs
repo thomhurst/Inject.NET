@@ -8,10 +8,12 @@ using Inject.NET.Pools;
 
 namespace Inject.NET.Services;
 
-public class ServiceScope<TServiceProvider, TDefaultSingletonScope, TDefaultScope> : IServiceScope<TServiceProvider, TDefaultSingletonScope, TDefaultScope>, IScoped
-    where TServiceProvider : ServiceProviderRoot<TServiceProvider, TDefaultSingletonScope, TDefaultScope>, IServiceProvider<TDefaultScope>
-    where TDefaultSingletonScope : SingletonScope<TDefaultSingletonScope, TServiceProvider, TDefaultScope>
-    where TDefaultScope : ServiceScope<TServiceProvider, TDefaultSingletonScope, TDefaultScope>
+public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope, TParentSingletonScope, TParentServiceProvider> : IServiceScope<TSelf, TServiceProvider, TSingletonScope>, IScoped
+    where TServiceProvider : ServiceProvider<TServiceProvider, TSingletonScope, TSelf, TParentServiceProvider, TParentSingletonScope, TParentScope>, IServiceProvider<TSelf>
+    where TSingletonScope : SingletonScope<TSingletonScope, TServiceProvider, TSelf, TParentSingletonScope, TParentScope, TParentServiceProvider>
+    where TSelf : ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope, TParentSingletonScope, TParentServiceProvider>
+    where TParentScope : IServiceScope
+    where TParentSingletonScope : IServiceScope
 {
     private static readonly Type ServiceScopeType = typeof(IServiceScope);
     private static readonly Type ServiceProviderType = typeof(IServiceProvider);
@@ -33,17 +35,19 @@ public class ServiceScope<TServiceProvider, TDefaultSingletonScope, TDefaultScop
     private List<object>? _forDisposal;
     private readonly TServiceProvider _root;
     private readonly ServiceFactories _serviceFactories;
+    private readonly TParentScope? _parentScope;
 
-    public ServiceScope(TServiceProvider root, TDefaultSingletonScope singletonScope, ServiceFactories serviceFactories)
+    public ServiceScope(TServiceProvider serviceProvider, TSingletonScope singletonScope, ServiceFactories serviceFactories, TParentScope? parentScope)
     {
-        _root = root;
+        _root = serviceProvider;
         _serviceFactories = serviceFactories;
+        _parentScope = parentScope;
         SingletonScope = singletonScope;
-        ServiceProvider = root;
+        ServiceProvider = serviceProvider;
         scope = this;
     }
 
-    public TDefaultSingletonScope SingletonScope { get; }
+    public TSingletonScope SingletonScope { get; }
 
     public TServiceProvider ServiceProvider { get; }
 
@@ -60,17 +64,29 @@ public class ServiceScope<TServiceProvider, TDefaultSingletonScope, TDefaultScop
     
     public object? GetService(Type type)
     {
+        var serviceKey = new ServiceKey(type);
+        
         if (type.IsIEnumerable())
         {
-            return GetServices(new ServiceKey(type));
+            if (GetServices(serviceKey, this) is { Count: > 0 } services)
+            {
+                return services;
+            }
+            
+            return _parentScope?.GetServices(serviceKey) ?? Array.Empty<object>();
         }
         
-        return GetService(new ServiceKey(type));
+        return GetService(serviceKey);
     }
 
     public object? GetService(ServiceKey serviceKey)
     {
-        return GetService(serviceKey, this);
+        if (GetService(serviceKey, this) is { } service)
+        {
+            return service;
+        }
+
+        return _parentScope?.GetService(serviceKey);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]

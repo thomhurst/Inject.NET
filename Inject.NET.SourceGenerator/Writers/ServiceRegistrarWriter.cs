@@ -10,7 +10,7 @@ internal static class ServiceRegistrarWriter
         Dictionary<ISymbol?, ServiceModel[]> dependencyDictionary)
     {
         sourceCodeWriter.WriteLine(
-            "public class ServiceRegistrar_ : global::Inject.NET.Services.ServiceRegistrar<ServiceProvider_>");
+            "public class ServiceRegistrar_ : global::Inject.NET.Services.ServiceRegistrar<ServiceProvider_, ServiceProvider_>");
                 
         sourceCodeWriter.WriteLine("{");
 
@@ -24,7 +24,7 @@ internal static class ServiceRegistrarWriter
         sourceCodeWriter.WriteLine();
 
         sourceCodeWriter.WriteLine("""
-                                   public override async ValueTask<ServiceProvider_> BuildAsync()
+                                   public override async ValueTask<ServiceProvider_> BuildAsync(ServiceProvider_? parent)
                                    {
                                        var serviceProvider = new ServiceProvider_(ServiceFactoryBuilders.AsReadOnly());
                                        

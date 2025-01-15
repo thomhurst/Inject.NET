@@ -3,19 +3,23 @@ using Inject.NET.Models;
 
 namespace Inject.NET.Services;
 
-public abstract class ServiceProviderRoot<TSelf, TSingletonScope, TScope> : IServiceProviderRoot<TScope>
-    where TSelf : ServiceProviderRoot<TSelf, TSingletonScope, TScope>
-    where TSingletonScope : SingletonScope<TSingletonScope, TSelf, TScope>
-    where TScope : ServiceScope<TSelf, TSingletonScope, TScope>
+public abstract class ServiceProvider<TSelf, TSingletonScope, TScope, TParentServiceProvider, TParentSingletonScope, TParentServiceScope> : IServiceProviderRoot<TScope>
+    where TSelf : ServiceProvider<TSelf, TSingletonScope, TScope, TParentServiceProvider, TParentSingletonScope, TParentServiceScope>
+    where TSingletonScope : SingletonScope<TSingletonScope, TSelf, TScope, TParentSingletonScope, TParentServiceScope, TParentServiceProvider>
+    where TScope : ServiceScope<TScope, TSelf, TSingletonScope, TParentServiceScope, TParentSingletonScope, TParentServiceProvider>
+    where TParentServiceScope : IServiceScope
+    where TParentSingletonScope : IServiceScope
 {
+    public TParentServiceProvider? ParentServiceProvider { get; }
     protected readonly ServiceFactories ServiceFactories;
 
     protected readonly Dictionary<string, IServiceProvider> Tenants = [];
     
     public abstract TSingletonScope SingletonScope { get; }
 
-    public ServiceProviderRoot(ServiceFactories serviceFactories)
+    public ServiceProvider(ServiceFactories serviceFactories, TParentServiceProvider? parentServiceProvider)
     {
+        ParentServiceProvider = parentServiceProvider;
         ServiceFactories = serviceFactories;
     }
 
@@ -33,17 +37,17 @@ public abstract class ServiceProviderRoot<TSelf, TSingletonScope, TScope> : ISer
             scope.GetService(key);
         }
         
-        foreach (var (_, serviceProvider) in Tenants)
-        {
-            var tenantServiceProvider = (TenantServiceProvider<TScope>)serviceProvider;
-            
-            await using var tenantScope = tenantServiceProvider.CreateScope();
-
-            foreach (var key in tenantServiceProvider.ServiceFactories.Descriptors.Keys.Where(x => x.Type.IsConstructedGenericType))
-            {
-                tenantScope.GetService(key);
-            }
-        }
+        // foreach (var (_, serviceProvider) in Tenants)
+        // {
+        //     var tenantServiceProvider = serviceProvider;
+        //     
+        //     await using var tenantScope = tenantServiceProvider.CreateScope();
+        //
+        //     foreach (var key in tenantServiceProvider.ServiceFactories.Descriptors.Keys.Where(x => x.Type.IsConstructedGenericType))
+        //     {
+        //         tenantScope.GetService(key);
+        //     }
+        // }
     }
     
     internal bool TryGetSingletons(ServiceKey serviceKey, out IReadOnlyList<object> singletons)
@@ -60,9 +64,9 @@ public abstract class ServiceProviderRoot<TSelf, TSingletonScope, TScope> : ISer
         return false;
     }
     
-    public IServiceProvider GetTenant(string tenantId)
+    public IServiceProvider<TTenantScope> GetTenant<TTenantScope>(string tenantId) where TTenantScope : IServiceScope
     {
-        return Tenants[tenantId];
+        return (IServiceProvider<TTenantScope>)Tenants[tenantId];
     }
 
     public abstract TScope CreateScope();

@@ -8,10 +8,10 @@ public interface IServiceScope : IAsyncDisposable, IDisposable, IServiceProvider
     IReadOnlyList<object> GetServices(ServiceKey serviceKey);
 }
 
-public interface IServiceScope<out TServiceProvider, out TSingletonScope, TScope> : IServiceScope
-    where TServiceProvider : IServiceProvider<TScope>
+public interface IServiceScope<TSelf, out TServiceProvider, out TSingletonScope> : IServiceScope
+    where TServiceProvider : IServiceProvider<TSelf>
     where TSingletonScope : IServiceScope
-    where TScope : IServiceScope
+    where TSelf : IServiceScope<TSelf, TServiceProvider, TSingletonScope>
 {
     TSingletonScope SingletonScope { get; }
     TServiceProvider ServiceProvider { get; }

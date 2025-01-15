@@ -3,16 +3,16 @@ using Inject.NET.Models;
 
 namespace Inject.NET.Services;
 
-public abstract class ServiceRegistrar<TServiceProvider> : ITenantedServiceRegistrar<TServiceProvider> where TServiceProvider : IServiceProvider
+public abstract class ServiceRegistrar<TServiceProvider, TParentServiceProvider> : ITenantedServiceRegistrar<TServiceProvider, TParentServiceProvider> where TServiceProvider : IServiceProvider
 {
     public ServiceFactoryBuilders ServiceFactoryBuilders { get; } = new();
 
-    public ITenantedServiceRegistrar<TServiceProvider> Register(ServiceDescriptor serviceDescriptor)
+    public ITenantedServiceRegistrar<TServiceProvider, TParentServiceProvider> Register(ServiceDescriptor serviceDescriptor)
     {
         ServiceFactoryBuilders.Add(serviceDescriptor);
 
         return this;
     }
     
-    public abstract ValueTask<TServiceProvider> BuildAsync();
+    public abstract ValueTask<TServiceProvider> BuildAsync(TParentServiceProvider? parentServiceProvider);
 }

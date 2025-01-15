@@ -30,7 +30,7 @@ internal static class TypeHelper
             switch (serviceModel.Lifetime)
             {
                 case Lifetime.Singleton:
-                    return $"Root.SingletonScope.{PropertyNameHelper.Format(serviceModel)}";
+                    return $"ServiceProvider.SingletonScope.{PropertyNameHelper.Format(serviceModel)}";
                 case Lifetime.Scoped:
                     return $"DefaultScope.{PropertyNameHelper.Format(serviceModel)}";
                 case Lifetime.Transient:

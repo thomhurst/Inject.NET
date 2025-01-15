@@ -15,19 +15,19 @@ internal static class TenantServiceProviderWriter
         var className = $"ServiceProvider_{tenant.Guid}";
                 
         sourceCodeWriter.WriteLine(
-            $"{serviceProviderType.DeclaredAccessibility.ToString().ToLower(CultureInfo.InvariantCulture)} partial class {className}(ServiceProvider_ rootServiceProvider, ServiceFactories serviceFactories) : global::Inject.NET.Services.TenantServiceProvider<SingletonScope_{tenant.Guid}, ServiceProvider_, SingletonScope_, ServiceScope_>(rootServiceProvider, serviceFactories)");
+            $"{serviceProviderType.DeclaredAccessibility.ToString().ToLower(CultureInfo.InvariantCulture)} partial class {className}(ServiceFactories serviceFactories, ServiceProvider_ parent) : global::Inject.NET.Services.ServiceProvider<{className}, SingletonScope_{tenant.Guid}, ServiceScope_{tenant.Guid}, ServiceProvider_, SingletonScope_, ServiceScope_>(serviceFactories, parent)");
         sourceCodeWriter.WriteLine("{");
                 
         sourceCodeWriter.WriteLine("[field: AllowNull, MaybeNull]");
         sourceCodeWriter.WriteLine(
-            $"public override SingletonScope_{tenant.Guid} SingletonScope => field ??= new(this, Root, serviceFactories);");
+            $"public override SingletonScope_{tenant.Guid} SingletonScope => field ??= new(this, ServiceProvider, serviceFactories);");
 
         sourceCodeWriter.WriteLine(
-            $"public override IServiceScope CreateScope() => new ServiceScope{tenant.Guid}(Root, serviceFactories);");
+            $"public override ServiceScope_{tenant.Guid} CreateScope() => new ServiceScope_{tenant.Guid}(ServiceProvider, serviceFactories, ParentServiceProvider);");
                 
         sourceCodeWriter.WriteLine(
-            $"public static ValueTask<{className}> BuildAsync(ServiceProvider_ root) =>");
-        sourceCodeWriter.WriteLine($"\tnew ServiceRegistrar{tenant.Guid}().BuildAsync(root);");
+            $"public static ValueTask<{className}> BuildAsync(ServiceProvider_ serviceProvider) =>");
+        sourceCodeWriter.WriteLine($"\tnew ServiceRegistrar{tenant.Guid}().BuildAsync(serviceProvider);");
 
         WriteInitializeAsync(sourceCodeWriter, tenant);
         

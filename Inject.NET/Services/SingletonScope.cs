@@ -8,10 +8,12 @@ using Inject.NET.Pools;
 
 namespace Inject.NET.Services;
 
-public class SingletonScope<TSelf, TServiceProviderRoot, TScope>(TServiceProviderRoot root, ServiceFactories serviceFactories) : IServiceScope, ISingleton
-where TServiceProviderRoot : ServiceProviderRoot<TServiceProviderRoot, TSelf, TScope>
-where TSelf : SingletonScope<TSelf, TServiceProviderRoot, TScope>
-where TScope : ServiceScope<TServiceProviderRoot, TSelf, TScope>
+public class SingletonScope<TSelf, TServiceProvider, TScope, TParentSingletonScope, TParentServiceScope, TParentServiceProvider>(TServiceProvider serviceProvider, ServiceFactories serviceFactories, TParentSingletonScope? parentScope) : IServiceScope, ISingleton
+where TServiceProvider : ServiceProvider<TServiceProvider, TSelf, TScope, TParentServiceProvider, TParentSingletonScope, TParentServiceScope>
+where TSelf : SingletonScope<TSelf, TServiceProvider, TScope, TParentSingletonScope, TParentServiceScope, TParentServiceProvider>
+where TScope : ServiceScope<TScope, TServiceProvider, TSelf, TParentServiceScope, TParentSingletonScope, TParentServiceProvider>
+where TParentSingletonScope : IServiceScope
+where TParentServiceScope : IServiceScope
 {
     private static readonly Type ServiceScopeType = typeof(IServiceScope);
     private static readonly Type ServiceProviderType = typeof(IServiceProvider);
@@ -25,7 +27,7 @@ where TScope : ServiceScope<TServiceProviderRoot, TSelf, TScope>
     
     private bool _isBuilt;
     
-    public TServiceProviderRoot ServiceProvider { get; } = root;
+    public TServiceProvider ServiceProvider { get; } = serviceProvider;
 
     public void PreBuild()
     {
@@ -63,12 +65,24 @@ where TScope : ServiceScope<TServiceProviderRoot, TSelf, TScope>
 
     public object? GetService(Type type)
     {
+        var serviceKey = new ServiceKey(type);
+        
         if (type.IsIEnumerable())
         {
-            return GetServices(new ServiceKey(type));
+            if (GetServices(serviceKey) is { Count: > 0 } services)
+            {
+                return services;
+            }
+            
+            return parentScope?.GetServices(serviceKey) ?? Array.Empty<object>();
         }
         
-        return GetService(new ServiceKey(type));
+        if (GetService(serviceKey) is { } service)
+        {
+            return service;
+        }
+
+        return parentScope?.GetService(serviceKey);
     }
 
     public object? GetService(ServiceKey serviceKey)

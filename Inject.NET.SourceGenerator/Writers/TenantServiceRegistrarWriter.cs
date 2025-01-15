@@ -10,7 +10,7 @@ internal static class TenantServiceRegistrarWriter
         TypedServiceProviderModel serviceProviderModel, Tenant tenant)
     {
         sourceCodeWriter.WriteLine(
-            $"public class ServiceRegistrar{tenant.Guid} : global::Inject.NET.Services.TenantServiceRegistrar<ServiceRegistrar{tenant.Guid}, ServiceProvider_{tenant.Guid}, SingletonScope_{tenant.Guid}, ServiceProvider_, SingletonScope_, ServiceScope_>");
+            $"public class ServiceRegistrar{tenant.Guid} : global::Inject.NET.Services.ServiceRegistrar<ServiceProvider_{tenant.Guid}, ServiceProvider_>");
 
         sourceCodeWriter.WriteLine("{");
 
@@ -25,9 +25,9 @@ internal static class TenantServiceRegistrarWriter
         sourceCodeWriter.WriteLine();
 
         sourceCodeWriter.WriteLine($$"""
-                                     public override async ValueTask<ServiceProvider_{{tenant.Guid}}> BuildAsync(ServiceProvider_ rootServiceProvider)
+                                     public override async ValueTask<ServiceProvider_{{tenant.Guid}}> BuildAsync(ServiceProvider_ parentServiceProvider)
                                      {
-                                         var serviceProvider = new ServiceProvider_{{tenant.Guid}}(rootServiceProvider, ServiceFactoryBuilders.AsReadOnly());
+                                         var serviceProvider = new ServiceProvider_{{tenant.Guid}}(ServiceFactoryBuilders.AsReadOnly(), parentServiceProvider);
                                          
                                          var vt = serviceProvider.InitializeAsync();
                                      

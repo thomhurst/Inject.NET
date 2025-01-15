@@ -2,5 +2,5 @@
 
 public interface IServiceProviderRoot<out TScope> : IServiceProvider<TScope> where TScope : IServiceScope
 {
-    IServiceProvider GetTenant(string tenantId);
+    IServiceProvider<TTenantScope> GetTenant<TTenantScope>(string tenantId) where TTenantScope : IServiceScope;
 }

@@ -20,7 +20,7 @@ public partial class InjectDotNetBenchmark
     [Transient<Interface5, Class5>]
     public partial class MyServiceProvider;
     
-    private IServiceProviderRoot _serviceProviderRoot = null!;
+    private MyServiceProvider.ServiceProvider_ _serviceProviderRoot = null!;
 
     [GlobalSetup]
     public async Task GlobalSetup()

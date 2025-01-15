@@ -13,7 +13,7 @@ internal static class ServiceProviderWriter
         var serviceProviderType = serviceProviderInformation.ServiceProviderType;
                 
         sourceCodeWriter.WriteLine(
-            $"{serviceProviderType.DeclaredAccessibility.ToString().ToLower(CultureInfo.InvariantCulture)} class ServiceProvider_(global::Inject.NET.Models.ServiceFactories serviceFactories) : global::Inject.NET.Services.ServiceProviderRoot<ServiceProvider_, SingletonScope_>(serviceFactories)");
+            $"{serviceProviderType.DeclaredAccessibility.ToString().ToLower(CultureInfo.InvariantCulture)} class ServiceProvider_(global::Inject.NET.Models.ServiceFactories serviceFactories) : global::Inject.NET.Services.ServiceProvider<ServiceProvider_, SingletonScope_, ServiceScope_, ServiceProvider_, SingletonScope_, ServiceScope_>(serviceFactories, null)");
         sourceCodeWriter.WriteLine("{");
 
         sourceCodeWriter.WriteLine("[field: AllowNull, MaybeNull]");
@@ -21,13 +21,13 @@ internal static class ServiceProviderWriter
             "public override SingletonScope_ SingletonScope => field ??= new(this, serviceFactories);");
 
         sourceCodeWriter.WriteLine(
-            "public override IServiceScope CreateScope() => new ServiceScope_(this, SingletonScope, serviceFactories);");
+            "public override ServiceScope_ CreateScope() => new ServiceScope_(this, SingletonScope, serviceFactories);");
                 
         foreach (var tenant in tenants)
         {
             sourceCodeWriter.WriteLine("[field: AllowNull, MaybeNull]");
             
-            sourceCodeWriter.WriteLine($$"""public global::Inject.NET.Interfaces.IServiceProvider Tenant{{tenant.Guid}} { get; private set; } = null!;""");
+            sourceCodeWriter.WriteLine($$"""public ServiceProvider_{{tenant.Guid}} Tenant{{tenant.Guid}} { get; private set; } = null!;""");
         }
                 
         WriteInitializeAsync(sourceCodeWriter, serviceProviderInformation, tenants);

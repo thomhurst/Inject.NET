@@ -10,14 +10,14 @@ internal static class TenantSingletonScopeWriter
     {
         var className = $"SingletonScope_{tenant.Guid}";
 
-        sourceCodeWriter.WriteLine($"public class {className} : global::Inject.NET.Services.TenantedSingletonScope<{className}, ServiceProvider_, SingletonScope_, ServiceScope_>");
+        sourceCodeWriter.WriteLine($"public class {className} : global::Inject.NET.Services.SingletonScope<{className}, ServiceProvider_{tenant.Guid}, ServiceScope_{tenant.Guid}, SingletonScope_, ServiceScope_, ServiceProvider_>");
         sourceCodeWriter.WriteLine("{");
 
         sourceCodeWriter.WriteLine(
-            $"public {className}(ServiceProvider_{tenant.Guid} tenantServiceProvider, ServiceProvider_ root, ServiceFactories serviceFactories) : base(tenantServiceProvider, root, serviceFactories)");
+            $"public {className}(ServiceProvider_{tenant.Guid} tenantServiceProvider, ServiceProvider_{tenant.Guid} serviceProvider, ServiceFactories serviceFactories, SingletonScope_ parentScope) : base(tenantServiceProvider, serviceProvider, serviceFactories, parentScope)");
         sourceCodeWriter.WriteLine("{");
         sourceCodeWriter.WriteLine("}");
-
+        
         foreach (var (_, serviceModels) in tenant.TenantDependencies)
         {
             var serviceModel = serviceModels.Last();
@@ -48,7 +48,7 @@ internal static class TenantSingletonScopeWriter
 
             var propertyName = PropertyNameHelper.Format(serviceModel);
             sourceCodeWriter.WriteLine(
-                $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => Root.SingletonScope.{propertyName};");
+                $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => ServiceProvider.SingletonScope.{propertyName};");
         }
 
         sourceCodeWriter.WriteLine("}");

@@ -15,9 +15,9 @@ internal static class GenericTypeHelper
         {
             var semanticModel = compilation.GetSemanticModel(syntaxTree);
             
-            var root = syntaxTree.GetRoot();
+            var serviceProvider = syntaxTree.GetRoot();
 
-            var typeNodes = root.DescendantNodes().OfType<TypeSyntax>();
+            var typeNodes = serviceProvider.DescendantNodes().OfType<TypeSyntax>();
 
             foreach (var typeNode in typeNodes)
             {

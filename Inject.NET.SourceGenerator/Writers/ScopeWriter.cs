@@ -9,11 +9,11 @@ internal static class ScopeWriter
         Compilation compilation, TypedServiceProviderModel serviceProviderModel, ServiceProviderInformation serviceProviderInformation)
     {
         sourceCodeWriter.WriteLine(
-            "public class ServiceScope_ : global::Inject.NET.Services.ServiceScope<ServiceProvider_, SingletonScope_>");
+            "public class ServiceScope_ : global::Inject.NET.Services.ServiceScope<ServiceScope_, ServiceProvider_, SingletonScope_, ServiceScope_, SingletonScope_, ServiceProvider_>");
         sourceCodeWriter.WriteLine("{");
 
         sourceCodeWriter.WriteLine(
-            "public ServiceScope_(ServiceProvider_ root, SingletonScope_ singletonScope, ServiceFactories serviceFactories) : base(root, singletonScope, serviceFactories)");
+            "public ServiceScope_(ServiceProvider_ serviceProvider, SingletonScope_ singletonScope, ServiceFactories serviceFactories) : base(serviceProvider, singletonScope, serviceFactories, null)");
         sourceCodeWriter.WriteLine("{");
         sourceCodeWriter.WriteLine("}");
 
@@ -46,7 +46,7 @@ internal static class ScopeWriter
 
             var propertyName = PropertyNameHelper.Format(serviceModel);
             sourceCodeWriter.WriteLine(
-                $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => Root.SingletonScope.{propertyName};");
+                $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => ServiceProvider.SingletonScope.{propertyName};");
         }
 
         sourceCodeWriter.WriteLine("}");

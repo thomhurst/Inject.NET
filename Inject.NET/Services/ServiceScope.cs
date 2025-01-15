@@ -37,12 +37,12 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
     private readonly ServiceFactories _serviceFactories;
     private readonly TParentScope? _parentScope;
 
-    public ServiceScope(TServiceProvider serviceProvider, TSingletonScope singletonScope, ServiceFactories serviceFactories, TParentScope? parentScope)
+    public ServiceScope(TServiceProvider serviceProvider, ServiceFactories serviceFactories, TParentScope? parentScope)
     {
         _root = serviceProvider;
         _serviceFactories = serviceFactories;
         _parentScope = parentScope;
-        SingletonScope = singletonScope;
+        SingletonScope = serviceProvider.SingletonScope;
         ServiceProvider = serviceProvider;
         scope = this;
     }

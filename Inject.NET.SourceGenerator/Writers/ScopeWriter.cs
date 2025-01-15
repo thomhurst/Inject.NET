@@ -13,7 +13,7 @@ internal static class ScopeWriter
         sourceCodeWriter.WriteLine("{");
 
         sourceCodeWriter.WriteLine(
-            "public ServiceScope_(ServiceProvider_ serviceProvider, SingletonScope_ singletonScope, ServiceFactories serviceFactories) : base(serviceProvider, singletonScope, serviceFactories, null)");
+            "public ServiceScope_(ServiceProvider_ serviceProvider, ServiceFactories serviceFactories) : base(serviceProvider, serviceFactories, null)");
         sourceCodeWriter.WriteLine("{");
         sourceCodeWriter.WriteLine("}");
 

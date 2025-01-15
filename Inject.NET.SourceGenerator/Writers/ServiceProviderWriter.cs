@@ -21,7 +21,7 @@ internal static class ServiceProviderWriter
             "public override SingletonScope_ SingletonScope => field ??= new(this, serviceFactories);");
 
         sourceCodeWriter.WriteLine(
-            "public override ServiceScope_ CreateScope() => new ServiceScope_(this, SingletonScope, serviceFactories);");
+            "public override ServiceScope_ CreateScope() => new ServiceScope_(this, serviceFactories);");
                 
         foreach (var tenant in tenants)
         {

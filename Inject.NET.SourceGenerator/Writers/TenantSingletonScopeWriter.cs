@@ -14,7 +14,7 @@ internal static class TenantSingletonScopeWriter
         sourceCodeWriter.WriteLine("{");
 
         sourceCodeWriter.WriteLine(
-            $"public {className}(ServiceProvider_{tenant.Guid} tenantServiceProvider, ServiceProvider_{tenant.Guid} serviceProvider, ServiceFactories serviceFactories, SingletonScope_ parentScope) : base(tenantServiceProvider, serviceProvider, serviceFactories, parentScope)");
+            $"public {className}(ServiceProvider_{tenant.Guid} serviceProvider, ServiceFactories serviceFactories, SingletonScope_ parentScope) : base(serviceProvider, serviceFactories, parentScope)");
         sourceCodeWriter.WriteLine("{");
         sourceCodeWriter.WriteLine("}");
         

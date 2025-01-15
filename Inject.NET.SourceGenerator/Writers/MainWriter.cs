@@ -77,7 +77,7 @@ internal static class MainWriter
         
         sourceCodeWriter.WriteLine(
             $"public static ValueTask<ServiceProvider_> BuildAsync() =>");
-        sourceCodeWriter.WriteLine($"\tnew ServiceRegistrar_().BuildAsync();");
+        sourceCodeWriter.WriteLine($"\tnew ServiceRegistrar_().BuildAsync(null);");
         
         sourceCodeWriter.WriteLine("}");
         

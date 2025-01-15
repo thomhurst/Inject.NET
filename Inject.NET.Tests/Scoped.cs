@@ -19,7 +19,7 @@ public partial class Scoped
     }
     
     [Test]
-    public async Task SameInstanceWhenResolvingMultipleTimes_FromDifferentScopes()
+    public async Task DifferentInstanceWhenResolvingMultipleTimes_FromDifferentScopes()
     {
         await using var serviceProvider = await ScopedServiceProvider.BuildAsync();
 
@@ -36,11 +36,12 @@ public partial class Scoped
 
         var c = scope3.GetRequiredService<ScopedClass>();
         
-        await Assert.That(a.Id).IsEqualTo(b.Id).And.IsEqualTo(c.Id);
+        await Assert.That(a.Id).IsNotEqualTo(b.Id).And.IsNotEqualTo(c.Id);
+        await Assert.That(b.Id).IsNotEqualTo(c.Id);
     }
     
     [Test]
-    public async Task SameInstanceWhenResolvingMultipleTimes_IncludingTenantedScope()
+    public async Task DifferentInstanceWhenResolvingMultipleTimes_IncludingTenantedScope()
     {
         await using var serviceProvider = await ScopedServiceProvider.BuildAsync();
 
@@ -50,7 +51,7 @@ public partial class Scoped
         var a = scope.GetRequiredService<ScopedClass>();
         var b = scope2.GetRequiredService<ScopedClass>();
         
-        await Assert.That(a.Id).IsEqualTo(b.Id);
+        await Assert.That(a.Id).IsNotEqualTo(b.Id);
     }
     
     [Test]
@@ -81,7 +82,7 @@ public partial class Scoped
     }
     
     [Test]
-    public async Task Tenanted_SameInstanceWhenResolvingMultipleTimes_FromDifferentScopes()
+    public async Task Tenanted_DifferentInstanceWhenResolvingMultipleTimes_FromDifferentScopes()
     {
         await using var serviceProvider = await ScopedServiceProvider.BuildAsync();
 
@@ -98,7 +99,8 @@ public partial class Scoped
 
         var c = scope3.GetRequiredService<ScopedClass>();
         
-        await Assert.That(a.Id).IsEqualTo(b.Id).And.IsEqualTo(c.Id);
+        await Assert.That(a.Id).IsNotEqualTo(b.Id).And.IsNotEqualTo(c.Id);
+        await Assert.That(b.Id).IsNotEqualTo(c.Id);
     }
     
     public class ScopedClass

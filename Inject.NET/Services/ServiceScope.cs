@@ -18,9 +18,7 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
 {
     private static readonly Type ServiceScopeType = typeof(IServiceScope);
     private static readonly Type ServiceProviderType = typeof(IServiceProvider);
-    
-    public IServiceScope scope { get; }
-    
+
 #if NET9_0_OR_GREATER
     private bool _disposed;
 #else
@@ -45,7 +43,6 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
         _parentScope = parentScope;
         SingletonScope = serviceProvider.SingletonScope;
         ServiceProvider = serviceProvider;
-        scope = this;
     }
 
     public TSingletonScope SingletonScope { get; }
@@ -69,12 +66,7 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
         
         if (type.IsIEnumerable())
         {
-            if (GetServices(serviceKey, this) is { Count: > 0 } services)
-            {
-                return services;
-            }
-            
-            return _parentScope?.GetServices(serviceKey) ?? Array.Empty<object>();
+            return GetServices(serviceKey);
         }
         
         return GetService(serviceKey);
@@ -82,16 +74,11 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
 
     public object? GetService(ServiceKey serviceKey)
     {
-        if (GetService(serviceKey, this) is { } service)
-        {
-            return service;
-        }
-
-        return _parentScope?.GetService(serviceKey);
+        return GetService(serviceKey, this);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-    public object? GetService(ServiceKey serviceKey, IServiceScope requestingScope)
+    public object? GetService(ServiceKey serviceKey, IServiceScope originatingScope)
     {
         if (_registered?.TryGetValue(serviceKey, out var value) == true)
         {
@@ -127,7 +114,7 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
                     !_serviceFactories.Descriptor.TryGetValue(
                         serviceKey with { Type = serviceKey.Type.GetGenericTypeDefinition() }, out descriptor))
                 {
-                    return null;
+                    return _parentScope?.GetService(serviceKey, originatingScope);
                 }
 
                 _serviceFactories.LateBoundGenericDescriptor[serviceKey] = descriptor;
@@ -139,7 +126,7 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
             return SingletonScope.GetService(serviceKey);
         }
 
-        var obj = descriptor.Factory(requestingScope, serviceKey.Type, descriptor.Key);
+        var obj = descriptor.Factory(originatingScope, serviceKey.Type, descriptor.Key);
             
         if(descriptor.Lifetime != Lifetime.Transient)
         {
@@ -160,7 +147,7 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
     }
     
     [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-    public IReadOnlyList<object> GetServices(ServiceKey serviceKey, IServiceScope scope)
+    public IReadOnlyList<object> GetServices(ServiceKey serviceKey, IServiceScope originatingScope)
     {
         if (_cachedEnumerables?.TryGetValue(serviceKey, out var cachedObjects) == true)
         {
@@ -169,7 +156,7 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
 
         if (!_serviceFactories.Descriptors.TryGetValue(serviceKey, out var factories))
         {
-            return Array.Empty<object>();
+            return _parentScope?.GetServices(serviceKey, originatingScope) ?? Array.Empty<object>();
         }
         
         if (!_root.TryGetSingletons(serviceKey, out var singletons))
@@ -179,7 +166,7 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
 
         var cachedEnumerables = _cachedEnumerables ??= DictionaryPool<ServiceKey, List<object>>.Shared.Get();
 
-        return cachedEnumerables[serviceKey] = [..ConstructItems(factories, singletons, scope, serviceKey, cachedEnumerables)];
+        return cachedEnumerables[serviceKey] = [..ConstructItems(factories, singletons, this, serviceKey, cachedEnumerables)];
     }
 
     private IEnumerable<object> ConstructItems(FrozenSet<ServiceDescriptor> factories,

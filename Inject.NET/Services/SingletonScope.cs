@@ -70,23 +70,23 @@ where TParentServiceScope : IServiceScope
         
         if (type.IsIEnumerable())
         {
-            if (GetServices(serviceKey) is { Count: > 0 } services)
-            {
-                return services;
-            }
-            
-            return parentScope?.GetServices(serviceKey) ?? Array.Empty<object>();
-        }
-        
-        if (GetService(serviceKey) is { } service)
-        {
-            return service;
+            return GetServices(serviceKey);
         }
 
-        return parentScope?.GetService(serviceKey);
+        return GetService(serviceKey);
     }
 
     public object? GetService(ServiceKey serviceKey)
+    {
+        return GetService(serviceKey, this);
+    }
+
+    public IReadOnlyList<object> GetServices(ServiceKey serviceKey)
+    {
+        return GetServices(serviceKey, this);
+    }
+
+    public object? GetService(ServiceKey serviceKey, IServiceScope originatingScope)
     {
         if (_registered?.TryGetValue(serviceKey, out var singleton) == true)
         {
@@ -107,13 +107,13 @@ where TParentServiceScope : IServiceScope
 
         if (services.Count == 0)
         {
-            return null;
+            return parentScope?.GetService(serviceKey, originatingScope);
         }
         
         return services[^1];
     }
 
-    public IReadOnlyList<object> GetServices(ServiceKey serviceKey)
+    public IReadOnlyList<object> GetServices(ServiceKey serviceKey, IServiceScope originatingScope)
     {
         if (_singletonEnumerables.TryGetValue(serviceKey, out var list))
         {
@@ -132,21 +132,20 @@ where TParentServiceScope : IServiceScope
                 return cache;
             }
 
+            if (!serviceFactories.Descriptors.TryGetValue(serviceKey, out var descriptors))
+            {
+                return parentScope?.GetServices(serviceKey, originatingScope) ?? Array.Empty<object>();
+            }
+
             return _singletonsBuilder[serviceKey] =
             [
-                ..SingletonFactories(serviceKey)
-                    .Select(descriptor => descriptor.Factory(this, serviceKey.Type, descriptor.Key))
+                ..descriptors
+                    .Where(x => x.Lifetime == Lifetime.Singleton)
+                    .Select(descriptor => descriptor.Factory(originatingScope, serviceKey.Type, descriptor.Key))
             ];
         }
 
         return [];
-    }
-    
-    private IEnumerable<ServiceDescriptor> SingletonFactories(ServiceKey serviceKey)
-    {
-        return serviceFactories.Descriptors.Where(x => x.Key == serviceKey)
-            .SelectMany(x => x.Value)
-            .Where(x => x.Lifetime == Lifetime.Singleton);
     }
 
     private IEnumerable<ServiceKey> GetSingletonKeys()

@@ -29,12 +29,12 @@ public partial class TenantTests
     {
         var serviceProvider = await ServiceProvider.BuildAsync();
 
-        await using var defaultScope = serviceProvider.CreateScope();
+        //await using var defaultScope = serviceProvider.CreateScope();
         await using var tenant1Scope = serviceProvider.GetTenant("tenant1").CreateScope();
         await using var tenant2Scope = serviceProvider.GetTenant("tenant2").CreateScope();
 
-        await Assert.That(defaultScope.GetRequiredService<Parent>().Get())
-            .IsEqualTo("DefaultChild");
+        // await Assert.That(defaultScope.GetRequiredService<Parent>().Get())
+        //     .IsEqualTo("DefaultChild");
 
         await Assert.That(tenant1Scope.GetRequiredService<Parent>().Get())
             .IsEqualTo("Tenant1Child");

@@ -23,7 +23,7 @@ internal static class TenantServiceProviderWriter
             $"public override SingletonScope_{tenant.Guid} SingletonScope => field ??= new(this, serviceFactories, parent.SingletonScope);");
 
         sourceCodeWriter.WriteLine(
-            $"public override ServiceScope_{tenant.Guid} CreateScope() => new ServiceScope_{tenant.Guid}(this, serviceFactories, parent.CreateScope());");
+            $"public override ServiceScope_{tenant.Guid} CreateTypedScope() => new ServiceScope_{tenant.Guid}(this, serviceFactories, parent.CreateTypedScope());");
                 
         sourceCodeWriter.WriteLine(
             $"public static ValueTask<{className}> BuildAsync(ServiceProvider_ serviceProvider) =>");
@@ -39,7 +39,7 @@ internal static class TenantServiceProviderWriter
         sourceCodeWriter.WriteLine("public override async ValueTask InitializeAsync()");
         sourceCodeWriter.WriteLine("{");
         
-        sourceCodeWriter.WriteLine("await using var scope = CreateScope();");
+        sourceCodeWriter.WriteLine("await using var scope = CreateTypedScope();");
         
         foreach (var serviceModel in tenant.TenantDependencies.Where(x => x.Key is INamedTypeSymbol { IsUnboundGenericType: false }).Select(x => x.Value[^1]))
         {

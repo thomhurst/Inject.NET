@@ -1,5 +1,6 @@
 using Inject.NET.Interfaces;
 using Inject.NET.Models;
+using IServiceProvider = Inject.NET.Interfaces.IServiceProvider;
 
 namespace Inject.NET.Services;
 
@@ -64,12 +65,12 @@ public abstract class ServiceProvider<TSelf, TSingletonScope, TScope, TParentSer
         return false;
     }
     
-    public IServiceProvider<TTenantScope> GetTenant<TTenantScope>(string tenantId) where TTenantScope : IServiceScope
+    public IServiceProvider GetTenant(string tenantId)
     {
-        return (IServiceProvider<TTenantScope>)Tenants[tenantId];
+        return Tenants[tenantId];
     }
 
-    public abstract TScope CreateScope();
+    public abstract TScope CreateTypedScope();
 
     public async ValueTask DisposeAsync()
     {
@@ -87,5 +88,10 @@ public abstract class ServiceProvider<TSelf, TSingletonScope, TScope, TParentSer
     public object? GetService(Type serviceType)
     {
         return CreateScope().GetService(new ServiceKey(serviceType));
+    }
+
+    public IServiceScope CreateScope()
+    {
+        return CreateTypedScope();
     }
 }

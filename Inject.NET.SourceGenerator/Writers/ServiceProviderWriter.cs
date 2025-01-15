@@ -21,7 +21,7 @@ internal static class ServiceProviderWriter
             "public override SingletonScope_ SingletonScope => field ??= new(this, serviceFactories);");
 
         sourceCodeWriter.WriteLine(
-            "public override ServiceScope_ CreateScope() => new ServiceScope_(this, serviceFactories);");
+            "public override ServiceScope_ CreateTypedScope() => new ServiceScope_(this, serviceFactories);");
                 
         foreach (var tenant in tenants)
         {
@@ -41,7 +41,7 @@ internal static class ServiceProviderWriter
         sourceCodeWriter.WriteLine("public override async ValueTask InitializeAsync()");
         sourceCodeWriter.WriteLine("{");
         
-        sourceCodeWriter.WriteLine("await using var scope = CreateScope();");
+        sourceCodeWriter.WriteLine("await using var scope = CreateTypedScope();");
         foreach (var serviceModel in serviceProviderInformation.Dependencies.Where(x => x.Key is INamedTypeSymbol { IsUnboundGenericType: false }).Select(x => x.Value[^1]))
         {
             if(serviceModel.Lifetime == Lifetime.Singleton)

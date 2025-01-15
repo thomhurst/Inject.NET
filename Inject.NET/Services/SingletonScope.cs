@@ -5,6 +5,7 @@ using Inject.NET.Helpers;
 using Inject.NET.Interfaces;
 using Inject.NET.Models;
 using Inject.NET.Pools;
+using IServiceProvider = Inject.NET.Interfaces.IServiceProvider;
 
 namespace Inject.NET.Services;
 

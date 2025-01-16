@@ -3,7 +3,6 @@ using BenchmarkDotNet.Jobs;
 using Benchmarks.Models;
 using Inject.NET.Attributes;
 using Inject.NET.Extensions;
-using Inject.NET.Interfaces;
 
 namespace Benchmarks.Benchmarks.DirectOpenGeneric;
 

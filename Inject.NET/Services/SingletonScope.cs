@@ -4,8 +4,6 @@ using Inject.NET.Extensions;
 using Inject.NET.Helpers;
 using Inject.NET.Interfaces;
 using Inject.NET.Models;
-using Inject.NET.Pools;
-using IServiceProvider = Inject.NET.Interfaces.IServiceProvider;
 
 namespace Inject.NET.Services;
 
@@ -41,9 +39,9 @@ where TParentServiceScope : IServiceScope
     
     public T Register<T>(ServiceKey key, T value)
     {
-        (_cachedObjects ??= DictionaryPool<ServiceKey, object>.Shared.Get())[key] = value!;
+        (_cachedObjects ??= Pools.Objects.Get())[key] = value!;
         
-        (_cachedEnumerables ??= DictionaryPool<ServiceKey, List<object>>.Shared.Get())
+        (_cachedEnumerables ??= Pools.Enumerables.Get())
             .GetOrAdd(key, _ => [])
             .Add(value!);
 
@@ -52,9 +50,9 @@ where TParentServiceScope : IServiceScope
     
     public void Register(ServiceKey key, Func<object> value)
     {
-        (_registeredFactories ??= DictionaryPool<ServiceKey, Func<object>>.Shared.Get())[key] = value;
+        (_registeredFactories ??= Pools.Funcs.Get())[key] = value;
         
-        (_registeredEnumerableFactories ??= DictionaryPool<ServiceKey, List<Func<object>>>.Shared.Get())
+        (_registeredEnumerableFactories ??= Pools.EnumerableFuncs.Get())
             .GetOrAdd(key, _ => [])
             .Add(value);
     }
@@ -105,7 +103,7 @@ where TParentServiceScope : IServiceScope
 
         if (_registeredFactories?.TryGetValue(serviceKey, out var factory) == true)
         {
-            return (_cachedObjects ??= DictionaryPool<ServiceKey, object>.Shared.Get())[serviceKey] = factory();
+            return (_cachedObjects ??= Pools.Objects.Get())[serviceKey] = factory();
         }
         
         if (serviceKey.Type == Types.ServiceScope)
@@ -137,7 +135,7 @@ where TParentServiceScope : IServiceScope
         
         if (_registeredEnumerableFactories?.TryGetValue(serviceKey, out var factory) == true)
         {
-            return (_cachedEnumerables ??= DictionaryPool<ServiceKey, List<object>>.Shared.Get())[serviceKey] = factory.Select(x => x()).ToList();
+            return (_cachedEnumerables ??= Pools.Enumerables.Get())[serviceKey] = factory.Select(x => x()).ToList();
         }
 
         if (!_isBuilt)

@@ -1,6 +1,5 @@
 using Inject.NET.Interfaces;
 using Inject.NET.Models;
-using Inject.NET.Services;
 
 namespace Inject.NET.Extensions;
 

@@ -3,7 +3,7 @@ using Inject.NET.Extensions;
 
 var serviceProvider = await MyServiceProvider.BuildAsync();
 
-for (var i = 0; i < 1_000; i++)
+for (var i = 0; i < 1_000_000; i++)
 {
     await using var scope = serviceProvider.CreateScope();
     
@@ -11,17 +11,12 @@ for (var i = 0; i < 1_000; i++)
 }
 
 [ServiceProvider]
-[Scoped<Interface1, Class1>]
-[Scoped<Interface2, Class2>]
-[Scoped<Interface3, Class3>]
+[Singleton<Interface1, Class1>]
+[Singleton<Interface2, Class2>]
+[Singleton<Interface3, Class3>]
 [Scoped<Interface4, Class4>]
-[Scoped<Interface5, Class5>]
-[WithTenant<Tenant>("Tenant")]
-public partial class MyServiceProvider
-{
-    [Scoped<Interface1, Class1>]
-    public record Tenant;
-}
+[Transient<Interface5, Class5>]
+public partial class MyServiceProvider;
 
 public interface Interface1;
 public interface Interface2;

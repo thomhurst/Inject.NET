@@ -1,12 +1,9 @@
 using System.Collections.Frozen;
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using Inject.NET.Enums;
 using Inject.NET.Extensions;
 using Inject.NET.Interfaces;
 using Inject.NET.Models;
-using Inject.NET.Pools;
-using IServiceProvider = Inject.NET.Interfaces.IServiceProvider;
 
 namespace Inject.NET.Services;
 
@@ -50,9 +47,9 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
 
     public T Register<T>(ServiceKey key, T obj) where T : notnull
     {
-        (_cachedObjects ??= DictionaryPool<ServiceKey, object>.Shared.Get())[key] = obj;
+        (_cachedObjects ??= Pools.Objects.Get())[key] = obj;
         
-        (_cachedEnumerables ??= DictionaryPool<ServiceKey, List<object>>.Shared.Get())
+        (_cachedEnumerables ??= Pools.Enumerables.Get())
             .GetOrAdd(key, _ => [])
             .Add(obj!);
 
@@ -61,9 +58,9 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
     
     public void Register(ServiceKey key, Func<object> value)
     {
-        (_registeredFactories ??= DictionaryPool<ServiceKey, Func<object>>.Shared.Get())[key] = value;
+        (_registeredFactories ??= Pools.Funcs.Get())[key] = value;
         
-        (_registeredEnumerableFactories ??= DictionaryPool<ServiceKey, List<Func<object>>>.Shared.Get())
+        (_registeredEnumerableFactories ??= Pools.EnumerableFuncs.Get())
             .GetOrAdd(key, _ => [])
             .Add(value);
     }
@@ -99,10 +96,10 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
             
             if(value is IAsyncDisposable or IDisposable)
             {
-                (_forDisposal ??= ListPool<object>.Shared.Get()).Add(value);
+                (_forDisposal ??= Pools.DisposalTracker.Get()).Add(value);
             }
             
-            return (_cachedObjects ??= DictionaryPool<ServiceKey, object>.Shared.Get())[serviceKey] = value;
+            return (_cachedObjects ??= Pools.Objects.Get())[serviceKey] = value;
         }
         
         if (serviceKey.Type == Types.ServiceScope)
@@ -145,12 +142,12 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
             
         if(descriptor.Lifetime != Lifetime.Transient)
         {
-            (_cachedObjects ??= DictionaryPool<ServiceKey, object>.Shared.Get())[serviceKey] = obj;
+            (_cachedObjects ??= Pools.Objects.Get())[serviceKey] = obj;
         }
 
         if(obj is IAsyncDisposable or IDisposable)
         {
-            (_forDisposal ??= ListPool<object>.Shared.Get()).Add(obj);
+            (_forDisposal ??= Pools.DisposalTracker.Get()).Add(obj);
         }
 
         return obj;
@@ -171,7 +168,7 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
         
         if (_registeredEnumerableFactories?.TryGetValue(serviceKey, out var factory) == true)
         {
-            return (_cachedEnumerables ??= DictionaryPool<ServiceKey, List<object>>.Shared.Get())[serviceKey] = factory.Select(x => x()).ToList();
+            return (_cachedEnumerables ??= Pools.Enumerables.Get())[serviceKey] = factory.Select(x => x()).ToList();
         }
 
         if (!_serviceFactories.Descriptors.TryGetValue(serviceKey, out var factories))
@@ -184,7 +181,7 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
             singletons = Array.Empty<object>();
         }
 
-        var cachedEnumerables = _cachedEnumerables ??= DictionaryPool<ServiceKey, List<object>>.Shared.Get();
+        var cachedEnumerables = _cachedEnumerables ??= Pools.Enumerables.Get();
 
         return cachedEnumerables[serviceKey] = [..ConstructItems(factories, singletons, this, serviceKey, cachedEnumerables)];
     }
@@ -210,7 +207,7 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
                 
                 if(item is IAsyncDisposable or IDisposable)
                 {
-                    (_forDisposal ??= ListPool<object>.Shared.Get()).Add(item);
+                    (_forDisposal ??= Pools.DisposalTracker.Get()).Add(item);
                 }
             }
             
@@ -242,12 +239,26 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
         }
 #endif
 
-        DictionaryPool<ServiceKey, object>.Shared.Return(_cachedObjects);
-        DictionaryPool<ServiceKey, List<object>>.Shared.Return(_cachedEnumerables);
-        
-        DictionaryPool<ServiceKey, Func<object>>.Shared.Return(_registeredFactories);
-        DictionaryPool<ServiceKey, List<Func<object>>>.Shared.Return(_registeredEnumerableFactories);
-        
+        if(_cachedObjects != null)
+        {
+            Pools.Objects.Return(_cachedObjects);
+        }
+
+        if (_cachedEnumerables != null)
+        {
+            Pools.Enumerables.Return(_cachedEnumerables);
+        }
+
+        if(_registeredFactories != null)
+        {
+            Pools.Funcs.Return(_registeredFactories);
+        }
+
+        if(_registeredEnumerableFactories != null)
+        {
+            Pools.EnumerableFuncs.Return(_registeredEnumerableFactories);
+        }
+
         if (Interlocked.Exchange(ref _forDisposal, null) is not {} forDisposal)
         {
             return default;
@@ -272,7 +283,7 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
             }
         }
         
-        ListPool<object>.Shared.Return(forDisposal);
+        Pools.DisposalTracker.Return(forDisposal);
         
         return default;
         
@@ -293,17 +304,31 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
                 }
             }
             
-            ListPool<object>.Shared.Return(toDispose); 
+            Pools.DisposalTracker.Return(toDispose); 
         }
     }
 
     public void Dispose()
     {
-        DictionaryPool<ServiceKey, object>.Shared.Return(_cachedObjects);
-        DictionaryPool<ServiceKey, List<object>>.Shared.Return(_cachedEnumerables);
-        
-        DictionaryPool<ServiceKey, object>.Shared.Return(_cachedObjects);
-        DictionaryPool<ServiceKey, List<object>>.Shared.Return(_cachedEnumerables);
+        if(_cachedObjects != null)
+        {
+            Pools.Objects.Return(_cachedObjects);
+        }
+
+        if (_cachedEnumerables != null)
+        {
+            Pools.Enumerables.Return(_cachedEnumerables);
+        }
+
+        if(_registeredFactories != null)
+        {
+            Pools.Funcs.Return(_registeredFactories);
+        }
+
+        if(_registeredEnumerableFactories != null)
+        {
+            Pools.EnumerableFuncs.Return(_registeredEnumerableFactories);
+        }
         
         if (Interlocked.Exchange(ref _forDisposal, null) is not {} forDisposal)
         {
@@ -324,6 +349,6 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
             }
         }
         
-        ListPool<object>.Shared.Return(forDisposal);
+        Pools.DisposalTracker.Return(forDisposal);
     }
 }

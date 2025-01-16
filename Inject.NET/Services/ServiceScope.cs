@@ -62,7 +62,6 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
     
     public void Register(ServiceKey key, Func<object> value)
     {
-        Console.WriteLine($"Registering {key.Type}");
         (_registeredFactories ??= DictionaryPool<ServiceKey, Func<object>>.Shared.Get())[key] = value;
         
         (_registeredEnumerableFactories ??= DictionaryPool<ServiceKey, List<Func<object>>>.Shared.Get())

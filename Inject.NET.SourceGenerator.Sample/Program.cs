@@ -1,6 +1,5 @@
 ﻿using Inject.NET.Attributes;
 using Inject.NET.Extensions;
-using Inject.NET.SourceGenerator.Sample.ServiceProviders;
 
 var serviceProvider = await MyServiceProvider.BuildAsync();
 
@@ -12,15 +11,15 @@ for (var i = 0; i < 1_000; i++)
 }
 
 [ServiceProvider]
-[Singleton<Interface1, Class1>]
-[Singleton<Interface2, Class2>]
-[Singleton<Interface3, Class3>]
-[Singleton<Interface4, Class4>]
-[Singleton<Interface5, Class5>]
+[Scoped<Interface1, Class1>]
+[Scoped<Interface2, Class2>]
+[Scoped<Interface3, Class3>]
+[Scoped<Interface4, Class4>]
+[Scoped<Interface5, Class5>]
 [WithTenant<Tenant>("Tenant")]
 public partial class MyServiceProvider
 {
-    [Singleton<Interface1, Class1>]
+    [Scoped<Interface1, Class1>]
     public record Tenant;
 }
 

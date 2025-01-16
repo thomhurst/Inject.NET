@@ -95,7 +95,14 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
         
         if (_registeredFactories?.TryGetValue(serviceKey, out var factory) == true)
         {
-            return (_cachedObjects ??= DictionaryPool<ServiceKey, object>.Shared.Get())[serviceKey] = factory();
+            var value = factory();
+            
+            if(value is IAsyncDisposable or IDisposable)
+            {
+                (_forDisposal ??= ListPool<object>.Shared.Get()).Add(value);
+            }
+            
+            return (_cachedObjects ??= DictionaryPool<ServiceKey, object>.Shared.Get())[serviceKey] = value;
         }
         
         if (serviceKey.Type == Types.ServiceScope)
@@ -238,6 +245,9 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
         DictionaryPool<ServiceKey, object>.Shared.Return(_cachedObjects);
         DictionaryPool<ServiceKey, List<object>>.Shared.Return(_cachedEnumerables);
         
+        DictionaryPool<ServiceKey, Func<object>>.Shared.Return(_registeredFactories);
+        DictionaryPool<ServiceKey, List<Func<object>>>.Shared.Return(_registeredEnumerableFactories);
+        
         if (Interlocked.Exchange(ref _forDisposal, null) is not {} forDisposal)
         {
             return default;
@@ -289,6 +299,9 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
 
     public void Dispose()
     {
+        DictionaryPool<ServiceKey, object>.Shared.Return(_cachedObjects);
+        DictionaryPool<ServiceKey, List<object>>.Shared.Return(_cachedEnumerables);
+        
         DictionaryPool<ServiceKey, object>.Shared.Return(_cachedObjects);
         DictionaryPool<ServiceKey, List<object>>.Shared.Return(_cachedEnumerables);
         

@@ -1,3 +1,4 @@
+using Inject.NET.SourceGenerator.Helpers;
 using Inject.NET.SourceGenerator.Models;
 using Microsoft.CodeAnalysis;
 
@@ -58,6 +59,25 @@ internal static class MainWriter
         var tenants = TenantHelper.ConstructTenants(compilation, withTenantAttributes, rootDependencies);
 
         var serviceProviderInformation = TypeCollector.Collect(serviceProviderModel, compilation);
+        
+        foreach (var (_, value) in serviceProviderInformation.RootDependencies)
+        {
+            foreach (var serviceModel in value)
+            {
+                sourceProductionContext.CheckConflicts(serviceModel, serviceProviderInformation.Dependencies, serviceProviderInformation.ParentDependencies);
+            }
+        }
+        
+        foreach (var (_, value) in serviceProviderInformation.TenantDependencies)
+        {
+            foreach (var (_, value2) in value.Dependencies)
+            {
+                foreach (var serviceModel in value2)
+                {
+                    sourceProductionContext.CheckConflicts(serviceModel, value.Dependencies, value.ParentDependencies);
+                }
+            }
+        }
         
         sourceCodeWriter.WriteLine($"public partial class {serviceProviderType.Name}");
         sourceCodeWriter.WriteLine("{");

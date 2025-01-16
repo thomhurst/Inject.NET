@@ -44,7 +44,7 @@ where TParentServiceScope : IServiceScope
     
     public T Register<T>(ServiceKey key, T value)
     {
-        (_cachedObjects ??= DictionaryPool<ServiceKey, object>.Shared.Get()).Add(key, value!);
+        (_cachedObjects ??= DictionaryPool<ServiceKey, object>.Shared.Get())[key] = value!;
         
         (_cachedEnumerables ??= DictionaryPool<ServiceKey, List<object>>.Shared.Get())
             .GetOrAdd(key, _ => [])
@@ -53,9 +53,9 @@ where TParentServiceScope : IServiceScope
         return value;
     }
     
-    public void Register<T>(ServiceKey key, Func<object> value)
+    public void Register(ServiceKey key, Func<object> value)
     {
-        (_registeredFactories ??= DictionaryPool<ServiceKey, Func<object>>.Shared.Get()).Add(key, value!);
+        (_registeredFactories ??= DictionaryPool<ServiceKey, Func<object>>.Shared.Get())[key] = value;
         
         (_registeredEnumerableFactories ??= DictionaryPool<ServiceKey, List<Func<object>>>.Shared.Get())
             .GetOrAdd(key, _ => [])

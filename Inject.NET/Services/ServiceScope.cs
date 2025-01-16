@@ -51,7 +51,7 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
 
     public T Register<T>(ServiceKey key, T obj)
     {
-        (_cachedObjects ??= DictionaryPool<ServiceKey, object>.Shared.Get()).Add(key, obj!);
+        (_cachedObjects ??= DictionaryPool<ServiceKey, object>.Shared.Get())[key] = obj!;
         
         (_cachedEnumerables ??= DictionaryPool<ServiceKey, List<object>>.Shared.Get())
             .GetOrAdd(key, _ => [])
@@ -60,9 +60,10 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
         return obj;
     }
     
-    public void Register<T>(ServiceKey key, Func<object> value)
+    public void Register(ServiceKey key, Func<object> value)
     {
-        (_registeredFactories ??= DictionaryPool<ServiceKey, Func<object>>.Shared.Get()).Add(key, value!);
+        Console.WriteLine($"Registering {key.Type}");
+        (_registeredFactories ??= DictionaryPool<ServiceKey, Func<object>>.Shared.Get())[key] = value;
         
         (_registeredEnumerableFactories ??= DictionaryPool<ServiceKey, List<Func<object>>>.Shared.Get())
             .GetOrAdd(key, _ => [])

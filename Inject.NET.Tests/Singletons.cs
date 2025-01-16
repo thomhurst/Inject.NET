@@ -103,7 +103,7 @@ public partial class Singletons
     
     public class SingletonClass
     {
-        public Guid Id { get; } = Guid.NewGuid();
+        public string Id { get; } = Guid.NewGuid().ToString("N");
     }
 
     [ServiceProvider]

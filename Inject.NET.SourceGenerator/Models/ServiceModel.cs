@@ -18,7 +18,9 @@ public record ServiceModel
 
     public IEnumerable<ServiceModel> GetAllNestedParameters(Dictionary<ISymbol?, ServiceModel[]> dependencyDictionary)
     {
-        foreach (var serviceModel in Parameters.SelectMany(x => dependencyDictionary[x.Type]))
+        foreach (var serviceModel in Parameters
+                     .Where(x => dependencyDictionary.Keys.Contains(x.Type, SymbolEqualityComparer.Default))
+                     .SelectMany(x => dependencyDictionary[x.Type]))
         {
             yield return serviceModel;
 

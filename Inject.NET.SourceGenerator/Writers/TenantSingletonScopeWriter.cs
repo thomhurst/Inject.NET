@@ -35,7 +35,7 @@ internal static class TenantSingletonScopeWriter
             var propertyName = PropertyNameHelper.Format(serviceModel);
                     
             sourceCodeWriter.WriteLine(
-                $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => field ??= Register({serviceModel.GetKey()}, {TypeHelper.GetOrConstructType(serviceProviderInformation.ServiceProviderType, tenant.TenantDependencies, tenant.RootDependencies, serviceModel, Lifetime.Singleton)});");
+                $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => field ??= Register({serviceModel.GetKey()}, {ObjectConstructionHelper.ConstructNewObject(serviceProviderInformation.ServiceProviderType, tenant.TenantDependencies, tenant.RootDependencies, serviceModel, Lifetime.Singleton)});");
         }
 
         foreach (var (_, serviceModels) in serviceProviderInformation.ParentDependencies

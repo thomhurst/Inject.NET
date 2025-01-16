@@ -17,7 +17,12 @@ for (var i = 0; i < 1_000; i++)
 [Singleton<Interface3, Class3>]
 [Singleton<Interface4, Class4>]
 [Singleton<Interface5, Class5>]
-public partial class MyServiceProvider;
+[WithTenant<Tenant>("Tenant")]
+public partial class MyServiceProvider
+{
+    [Singleton<Interface1, Class1>]
+    public record Tenant;
+}
 
 public interface Interface1;
 public interface Interface2;

@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Inject.NET.SourceGenerator.Models;
 using Microsoft.CodeAnalysis;
 
@@ -8,69 +5,28 @@ namespace Inject.NET.SourceGenerator.Writers;
 
 internal static class ServiceRegistrarWriter
 {
-    public static void GenerateServiceRegistrarCode(SourceProductionContext sourceProductionContext,
+    public static void Write(SourceProductionContext sourceProductionContext, SourceCodeWriter sourceCodeWriter,
         Compilation compilation, TypedServiceProviderModel serviceProviderModel,
         Dictionary<ISymbol?, ServiceModel[]> dependencyDictionary)
     {
-        var withTenantAttributeType = compilation.GetTypeByMetadataName("Inject.NET.Attributes.WithTenantAttribute`1");
-        
-        var sourceCodeWriter = new SourceCodeWriter();
-        
-        sourceCodeWriter.WriteLine("using System;");
-        sourceCodeWriter.WriteLine("using System.Linq;");
-        sourceCodeWriter.WriteLine("using System.Threading.Tasks;");
-        sourceCodeWriter.WriteLine("using Inject.NET.Enums;");
-        sourceCodeWriter.WriteLine("using Inject.NET.Extensions;");
-        sourceCodeWriter.WriteLine("using Inject.NET.Services;");
-        sourceCodeWriter.WriteLine();
-
-        if (serviceProviderModel.Type.ContainingNamespace is { IsGlobalNamespace: false })
-        {
-            sourceCodeWriter.WriteLine($"namespace {serviceProviderModel.Type.ContainingNamespace.ToDisplayString()};");
-            sourceCodeWriter.WriteLine();
-        }
-        
-        var nestedClassCount = 0;
-        var parent = serviceProviderModel.Type.ContainingType;
-
-        while (parent is not null)
-        {
-            nestedClassCount++;
-            sourceCodeWriter.WriteLine($"public partial class {parent.Name}");
-            sourceCodeWriter.WriteLine("{");
-            parent = parent.ContainingType;
-        }
-
         sourceCodeWriter.WriteLine(
-            $"public class {serviceProviderModel.Type.Name}ServiceRegistrar : ServiceRegistrar<{serviceProviderModel.Type.GloballyQualified()}>");
+            "public class ServiceRegistrar_ : global::Inject.NET.Services.ServiceRegistrar<ServiceProvider_, ServiceProvider_>");
+                
         sourceCodeWriter.WriteLine("{");
-        
-        sourceCodeWriter.WriteLine($"public {serviceProviderModel.Type.Name}ServiceRegistrar()");
+
+        sourceCodeWriter.WriteLine("public ServiceRegistrar_()");
         sourceCodeWriter.WriteLine("{");
 
         WriteRegistration(sourceCodeWriter, serviceProviderModel.Type, dependencyDictionary, string.Empty);
 
-        var withTenantAttributes = serviceProviderModel.Type.GetAttributes().Where(x =>
-            SymbolEqualityComparer.Default.Equals(x.AttributeClass?.OriginalDefinition, withTenantAttributeType));
-        
-        foreach (var withTenantAttribute in withTenantAttributes)
-        {
-            var tenantId = withTenantAttribute.ConstructorArguments[0].Value!.ToString();
-            var tenantDefinitionClass = (INamedTypeSymbol) withTenantAttribute.AttributeClass!.TypeArguments[0];
-            
-            WriteWithTenant(sourceCodeWriter, serviceProviderModel.Type, compilation, tenantId, tenantDefinitionClass, dependencyDictionary);
-        }
-        
         sourceCodeWriter.WriteLine("}");
 
         sourceCodeWriter.WriteLine();
-        
-        sourceCodeWriter.WriteLine($$"""
-                                   public override async ValueTask<{{serviceProviderModel.Type.GloballyQualified()}}> BuildAsync()
+
+        sourceCodeWriter.WriteLine("""
+                                   public override async ValueTask<ServiceProvider_> BuildAsync(ServiceProvider_ parent)
                                    {
-                                       OnBeforeBuild(this);
-                                   
-                                       var serviceProvider = new {{serviceProviderModel.Type.GloballyQualified()}}(ServiceFactoryBuilders.AsReadOnly(), Tenants);
+                                       var serviceProvider = new ServiceProvider_(ServiceFactoryBuilders.AsReadOnly());
                                        
                                        var vt = serviceProvider.InitializeAsync();
                                    
@@ -84,80 +40,6 @@ internal static class ServiceRegistrarWriter
                                    """);
 
         sourceCodeWriter.WriteLine("}");
-        
-        for (var i = 0; i < nestedClassCount; i++)
-        {
-            sourceCodeWriter.WriteLine("}");
-        }
-        
-        sourceProductionContext.AddSource($"{serviceProviderModel.Type.Name}ServiceRegistrar_{Guid.NewGuid():N}.g.cs", sourceCodeWriter.ToString());
-    }
-
-    private static void WriteWithTenant(SourceCodeWriter sourceCodeWriter, INamedTypeSymbol serviceProviderType, Compilation compilation, string tenantId,
-        INamedTypeSymbol tenantDefinitionClass, Dictionary<ISymbol?, ServiceModel[]> rootDependencyDictionary)
-    {
-        var dependencyInjectionAttributeType = compilation.GetTypeByMetadataName("Inject.NET.Attributes.IDependencyInjectionAttribute");
-
-        var dependencyAttributes = tenantDefinitionClass.GetAttributes()
-            .Where(x => x.AttributeClass?.AllInterfaces.Contains(dependencyInjectionAttributeType,
-                SymbolEqualityComparer.Default) == true)
-            .ToArray();
-
-        var dependencyDictionary = DependencyDictionary.Create(compilation, dependencyAttributes);
-        
-        sourceCodeWriter.WriteLine("{");
-        
-        sourceCodeWriter.WriteLine($"var tenant = GetOrCreateTenant(\"{tenantId}\");");
-        
-        WriteRegistration(sourceCodeWriter, serviceProviderType, dependencyDictionary, "tenant.");
-        
-        WriteTenantOverrides(sourceCodeWriter, serviceProviderType, rootDependencyDictionary, dependencyDictionary);
-        
-        sourceCodeWriter.WriteLine("}");
-    }
-
-    private static void WriteTenantOverrides(SourceCodeWriter sourceCodeWriter,
-        INamedTypeSymbol serviceProviderType,
-        Dictionary<ISymbol?, ServiceModel[]> rootDependencyDictionary,
-        Dictionary<ISymbol?, ServiceModel[]> dependencyDictionary)
-    {
-        var list = new List<(ISymbol?, ServiceModel)>();
-
-        // If an object in the root dictionary has got parameters that have been overridden
-        // We need to construct a new object for that tenant with the right instance
-        foreach (var (key, serviceModels) in rootDependencyDictionary)
-        {
-            foreach (var serviceModel in serviceModels)
-            {
-                var parameters = serviceModel.GetAllNestedParameters(rootDependencyDictionary);
-
-                foreach (var parameter in parameters)
-                {
-                    if (dependencyDictionary.TryGetValue(parameter.ServiceType, out _))
-                    {
-                        list.Add((key, serviceModel));
-                    }
-                }
-            }
-        }
-
-        var dictionaryToOverride = list
-            .GroupBy(x => x.Item1, SymbolEqualityComparer.Default)
-            .ToDictionary(x => x.Key,
-                x => x.Select(y => y.Item2).ToArray(),
-                SymbolEqualityComparer.Default);
-
-        var mergedDictionaries = rootDependencyDictionary
-            .Concat(dictionaryToOverride)
-            .Concat(dependencyDictionary)
-                .GroupBy(x => x.Key, SymbolEqualityComparer.Default)
-                .ToDictionary(x => x.Key,
-                    x => x.SelectMany(y => y.Value).ToArray(), SymbolEqualityComparer.Default);
-        
-        foreach (var (_, serviceModel) in list)
-        {
-            WriteRegistration(sourceCodeWriter, serviceProviderType, mergedDictionaries, "tenant.", serviceModel);
-        }
     }
 
     private static void WriteRegistration(SourceCodeWriter sourceCodeWriter,
@@ -187,10 +69,28 @@ internal static class ServiceRegistrarWriter
         }
                 
         sourceCodeWriter.WriteLine("Factory = (scope, type, key) =>");
-                
-        sourceCodeWriter.WriteLine(ObjectConstructionHelper.ConstructNewObject(serviceProviderType, dependencyDictionary, serviceModel));
-                
+
+        if (serviceModel.IsOpenGeneric)
+        {
+            sourceCodeWriter.WriteLine("scope.GetRequiredService(type)");
+        }
+        else
+        {
+            var lastTypeInDictionary = dependencyDictionary[serviceModel.ServiceType][^1];
+
+            sourceCodeWriter.WriteLine(
+                $"new {lastTypeInDictionary.ImplementationType.GloballyQualified()}({string.Join(", ", BuildParameters(serviceModel))})");
+        }
+
         sourceCodeWriter.WriteLine("});");
         sourceCodeWriter.WriteLine();
+    }
+    
+    private static IEnumerable<string> BuildParameters(ServiceModel serviceModel)
+    {
+        foreach (var serviceModelParameter in serviceModel.Parameters)
+        {
+            yield return $"scope.GetRequiredService<{serviceModelParameter.Type.GloballyQualified()}>()";
+        }
     }
 }

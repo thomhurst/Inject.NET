@@ -1,6 +1,8 @@
 ﻿namespace Inject.NET.Pools;
 
-public class DictionaryPool<TKey, TValue> where TKey : notnull
+public class DictionaryPool<TKey, TValue> 
+    where TKey : notnull 
+    where TValue : notnull
 {
     public static DictionaryPool<TKey, TValue> Shared { get; } = new();
 

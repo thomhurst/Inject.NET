@@ -2,9 +2,9 @@
 using Inject.NET.Extensions;
 using Inject.NET.SourceGenerator.Sample.ServiceProviders;
 
-var serviceProvider = await SingletonGeneric2.BuildAsync();
+var serviceProvider = await MyServiceProvider.BuildAsync();
 
-for (var i = 0; i < 10_000_000; i++)
+for (var i = 0; i < 1_000; i++)
 {
     await using var scope = serviceProvider.CreateScope();
     
@@ -15,9 +15,14 @@ for (var i = 0; i < 10_000_000; i++)
 [Singleton<Interface1, Class1>]
 [Singleton<Interface2, Class2>]
 [Singleton<Interface3, Class3>]
-[Transient<Interface4, Class4>]
-[Scoped<Interface5, Class5>]
-public partial class MyServiceProvider;
+[Singleton<Interface4, Class4>]
+[Singleton<Interface5, Class5>]
+[WithTenant<Tenant>("Tenant")]
+public partial class MyServiceProvider
+{
+    [Singleton<Interface1, Class1>]
+    public record Tenant;
+}
 
 public interface Interface1;
 public interface Interface2;

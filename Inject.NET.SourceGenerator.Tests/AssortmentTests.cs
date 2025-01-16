@@ -7,5 +7,5 @@ public class AssortmentTests : TestsBase<DependenciesSourceGenerator>
             "Inject.NET.SourceGenerator.Sample",
             "ServiceProviders",
             $"{TestContext.Current!.TestDetails.TestName}.cs"),
-        async generatedFiles => { await Assert.That(generatedFiles.Length).IsEqualTo(2); });
+        async generatedFiles => { await Assert.That(generatedFiles.Length).IsEqualTo(1); });
 }

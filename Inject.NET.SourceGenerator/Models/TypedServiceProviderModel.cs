@@ -5,7 +5,7 @@ namespace Inject.NET.SourceGenerator.Models;
 public class TypedServiceProviderModel
 {
     public required INamedTypeSymbol Type { get; init; }
-
+    
     public override bool Equals(object? obj)
     {
         return Equals(obj as TypedServiceProviderModel);

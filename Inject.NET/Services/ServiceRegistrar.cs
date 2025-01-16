@@ -1,29 +1,19 @@
-using System.Collections.Concurrent;
-using Inject.NET.Delegates;
 using Inject.NET.Interfaces;
 using Inject.NET.Models;
+using IServiceProvider = Inject.NET.Interfaces.IServiceProvider;
 
 namespace Inject.NET.Services;
 
-public abstract class ServiceRegistrar<TServiceProviderRoot> : ITenantedServiceRegistrar<TServiceProviderRoot> where TServiceProviderRoot : IServiceProviderRoot
+public abstract class ServiceRegistrar<TServiceProvider, TParentServiceProvider> : ITenantedServiceRegistrar<TServiceProvider, TParentServiceProvider> where TServiceProvider : IServiceProvider
 {
-    protected readonly ConcurrentDictionary<string, IServiceRegistrar> Tenants = [];
-
     public ServiceFactoryBuilders ServiceFactoryBuilders { get; } = new();
 
-    public ITenantedServiceRegistrar<TServiceProviderRoot> Register(ServiceDescriptor serviceDescriptor)
+    public ITenantedServiceRegistrar<TServiceProvider, TParentServiceProvider> Register(ServiceDescriptor serviceDescriptor)
     {
         ServiceFactoryBuilders.Add(serviceDescriptor);
 
         return this;
     }
-
-    public OnBeforeTenantBuild<ITenantedServiceRegistrar<TServiceProviderRoot>, TServiceProviderRoot> OnBeforeBuild { get; set; } = _ => { };
-
-    public abstract ValueTask<TServiceProviderRoot> BuildAsync();
-
-    public IServiceRegistrar GetOrCreateTenant(string tenantId)
-    {
-        return Tenants.GetOrAdd(tenantId, new TenantServiceRegistrar());
-    }
+    
+    public abstract ValueTask<TServiceProvider> BuildAsync(TParentServiceProvider? parentServiceProvider);
 }

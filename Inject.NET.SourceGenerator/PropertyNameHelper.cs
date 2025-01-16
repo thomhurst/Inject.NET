@@ -16,6 +16,7 @@ public class PropertyNameHelper
         return type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)
             .Replace('<', '_')
             .Replace('>', '_')
-            .Replace(".", "__");
+            .Replace(".", "__")
+            .Replace("?", string.Empty);
     }
 }

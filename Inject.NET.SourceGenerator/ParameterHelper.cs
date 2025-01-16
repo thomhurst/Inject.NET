@@ -1,6 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using Inject.NET.SourceGenerator.Models;
+﻿using Inject.NET.SourceGenerator.Models;
+using Microsoft.CodeAnalysis;
 using INamedTypeSymbol = Microsoft.CodeAnalysis.INamedTypeSymbol;
 using ISymbol = Microsoft.CodeAnalysis.ISymbol;
 using ITypeParameterSymbol = Microsoft.CodeAnalysis.ITypeParameterSymbol;
@@ -10,22 +9,25 @@ namespace Inject.NET.SourceGenerator;
 
 internal static class ParameterHelper
 {
-    public static IEnumerable<string> BuildParameters(INamedTypeSymbol serviceProviderType, Dictionary<ISymbol?,ServiceModel[]> dependencyDictionary, ServiceModel serviceModel)
+    public static IEnumerable<string> BuildParameters(INamedTypeSymbol serviceProviderType,
+        Dictionary<ISymbol?, ServiceModel[]> dependencies,
+        Dictionary<ISymbol?, ServiceModel[]> parentDependencies, ServiceModel serviceModel, Lifetime currentLifetime)
     {
         foreach (var parameter in serviceModel.Parameters)
         {
-            if (WriteParameter(serviceProviderType, dependencyDictionary, parameter, serviceModel) is { } written)
+            if (WriteParameter(serviceProviderType, dependencies, parentDependencies, parameter, serviceModel, currentLifetime) is { } written)
             {
                 yield return written;
             }
         }
     }
 
-    public static string? WriteParameter(
-        INamedTypeSymbol serviceProviderType,
+    public static string? WriteParameter(INamedTypeSymbol serviceProviderType,
         Dictionary<ISymbol?, ServiceModel[]> dependencyDictionary,
-        Parameter parameter, 
-        ServiceModel serviceModel)
+        Dictionary<ISymbol?, ServiceModel[]> parentDependencies,
+        Parameter parameter,
+        ServiceModel serviceModel,
+        Lifetime currentLifetime)
     {
         ServiceModel[]? models = null;
         
@@ -54,6 +56,12 @@ internal static class ParameterHelper
             if (parameter.Type is not INamedTypeSymbol { IsGenericType: true } genericType
                 || !dependencyDictionary.TryGetValue(genericType.ConstructUnboundGenericType(), out models))
             {
+                if (parentDependencies.Keys.Contains(parameter.Type, SymbolEqualityComparer.Default))
+                {
+                    return WriteParameter(serviceProviderType, parentDependencies, [], parameter, serviceModel,
+                        currentLifetime);
+                } 
+                    
                 if (parameter.IsOptional)
                 {
                     return null;
@@ -75,6 +83,6 @@ internal static class ParameterHelper
 
         var lastModel = models.Last();
         
-        return TypeHelper.WriteType(serviceProviderType, dependencyDictionary, lastModel, parameter);
+        return TypeHelper.GetOrConstructType(serviceProviderType, dependencyDictionary, parentDependencies, lastModel, currentLifetime);
     }
 }

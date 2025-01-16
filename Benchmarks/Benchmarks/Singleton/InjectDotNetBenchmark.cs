@@ -16,7 +16,7 @@ public partial class InjectDotNetBenchmark
     [Singleton<Class1>]
     public partial class MyServiceProvider;
     
-    private IServiceProviderRoot _serviceProviderRoot = null!;
+    private MyServiceProvider.ServiceProvider_ _serviceProviderRoot = null!;
 
     [GlobalSetup]
     public async Task GlobalSetup()

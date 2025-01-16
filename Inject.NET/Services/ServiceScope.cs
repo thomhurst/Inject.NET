@@ -1,4 +1,5 @@
 using System.Collections.Frozen;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using Inject.NET.Enums;
 using Inject.NET.Extensions;
@@ -9,59 +10,74 @@ using IServiceProvider = Inject.NET.Interfaces.IServiceProvider;
 
 namespace Inject.NET.Services;
 
-public class ServiceScope : IServiceScope
+public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope, TParentSingletonScope, TParentServiceProvider> : IServiceScope<TSelf, TServiceProvider, TSingletonScope>, IScoped
+    where TServiceProvider : ServiceProvider<TServiceProvider, TSingletonScope, TSelf, TParentServiceProvider, TParentSingletonScope, TParentScope>, IServiceProvider<TSelf>
+    where TSingletonScope : SingletonScope<TSingletonScope, TServiceProvider, TSelf, TParentSingletonScope, TParentScope, TParentServiceProvider>
+    where TSelf : ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope, TParentSingletonScope, TParentServiceProvider>
+    where TParentScope : IServiceScope
+    where TParentSingletonScope : IServiceScope
 {
-    private static readonly Type ServiceScopeType = typeof(IServiceScope);
-    private static readonly Type ServiceProviderType = typeof(IServiceProvider);
-    
-    public IServiceScope scope { get; }
-    
+
 #if NET9_0_OR_GREATER
     private bool _disposed;
 #else
     private int _disposed;
 #endif
     
-    private Dictionary<ServiceKey, Lazy<object>>? _registered;
-    private Dictionary<ServiceKey, List<Lazy<object>>>? _registeredEnumerables;
+    private Dictionary<ServiceKey, Func<object>>? _registeredFactories;
+    private Dictionary<ServiceKey, List<Func<object>>>? _registeredEnumerableFactories;
     
     private Dictionary<ServiceKey, object>? _cachedObjects;
     private Dictionary<ServiceKey, List<object>>? _cachedEnumerables;
     
     private List<object>? _forDisposal;
-    private readonly ServiceProviderRoot _root;
+    private readonly TServiceProvider _root;
     private readonly ServiceFactories _serviceFactories;
+    private readonly TParentScope? _parentScope;
 
-    public ServiceScope(ServiceProviderRoot root, IServiceScope singletonScope, ServiceFactories serviceFactories)
+    public ServiceScope(TServiceProvider serviceProvider, ServiceFactories serviceFactories, TParentScope? parentScope)
     {
-        _root = root;
+        _root = serviceProvider;
         _serviceFactories = serviceFactories;
-        SingletonScope = singletonScope;
-        ServiceProvider = root;
-        scope = this;
+        _parentScope = parentScope;
+        Singletons = serviceProvider.Singletons;
+        ServiceProvider = serviceProvider;
     }
 
-    public IServiceScope SingletonScope { get; }
+    public TSingletonScope Singletons { get; }
 
-    public IServiceProvider ServiceProvider { get; }
+    public TServiceProvider ServiceProvider { get; }
 
-    public void Register(ServiceKey key, Lazy<object> lazy)
+    public T Register<T>(ServiceKey key, T obj) where T : notnull
     {
-        (_registered ??= DictionaryPool<ServiceKey, Lazy<object>>.Shared.Get()).Add(key, lazy);
+        (_cachedObjects ??= DictionaryPool<ServiceKey, object>.Shared.Get())[key] = obj;
         
-        (_registeredEnumerables ??= DictionaryPool<ServiceKey, List<Lazy<object>>>.Shared.Get())
+        (_cachedEnumerables ??= DictionaryPool<ServiceKey, List<object>>.Shared.Get())
             .GetOrAdd(key, _ => [])
-            .Add(lazy);
+            .Add(obj!);
+
+        return obj;
+    }
+    
+    public void Register(ServiceKey key, Func<object> value)
+    {
+        (_registeredFactories ??= DictionaryPool<ServiceKey, Func<object>>.Shared.Get())[key] = value;
+        
+        (_registeredEnumerableFactories ??= DictionaryPool<ServiceKey, List<Func<object>>>.Shared.Get())
+            .GetOrAdd(key, _ => [])
+            .Add(value);
     }
     
     public object? GetService(Type type)
     {
+        var serviceKey = new ServiceKey(type);
+        
         if (type.IsIEnumerable())
         {
-            return GetServices(new ServiceKey(type));
+            return GetServices(serviceKey);
         }
         
-        return GetService(new ServiceKey(type));
+        return GetService(serviceKey);
     }
 
     public object? GetService(ServiceKey serviceKey)
@@ -70,24 +86,24 @@ public class ServiceScope : IServiceScope
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-    public object? GetService(ServiceKey serviceKey, IServiceScope requestingScope)
+    public object? GetService(ServiceKey serviceKey, IServiceScope originatingScope)
     {
-        if (_registered?.TryGetValue(serviceKey, out var lazy) == true)
-        {
-            return lazy.Value;
-        }
-        
         if (_cachedObjects?.TryGetValue(serviceKey, out var cachedObject) == true)
         {
             return cachedObject;
         }
         
-        if (serviceKey.Type == ServiceScopeType)
+        if (_registeredFactories?.TryGetValue(serviceKey, out var factory) == true)
+        {
+            return (_cachedObjects ??= DictionaryPool<ServiceKey, object>.Shared.Get())[serviceKey] = factory();
+        }
+        
+        if (serviceKey.Type == Types.ServiceScope)
         {
             return this;
         }
         
-        if (serviceKey.Type == ServiceProviderType)
+        if (serviceKey.Type == Types.ServiceProvider)
         {
             return ServiceProvider;
         }
@@ -106,7 +122,7 @@ public class ServiceScope : IServiceScope
                     !_serviceFactories.Descriptor.TryGetValue(
                         serviceKey with { Type = serviceKey.Type.GetGenericTypeDefinition() }, out descriptor))
                 {
-                    return null;
+                    return _parentScope?.GetService(serviceKey, originatingScope);
                 }
 
                 _serviceFactories.LateBoundGenericDescriptor[serviceKey] = descriptor;
@@ -115,10 +131,10 @@ public class ServiceScope : IServiceScope
 
         if (descriptor.Lifetime == Lifetime.Singleton)
         {
-            return SingletonScope.GetService(serviceKey);
+            return Singletons.GetService(serviceKey);
         }
 
-        var obj = descriptor.Factory(requestingScope, serviceKey.Type, descriptor.Key);
+        var obj = descriptor.Factory(originatingScope, serviceKey.Type, descriptor.Key);
             
         if(descriptor.Lifetime != Lifetime.Transient)
         {
@@ -139,16 +155,21 @@ public class ServiceScope : IServiceScope
     }
     
     [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-    public IReadOnlyList<object> GetServices(ServiceKey serviceKey, IServiceScope scope)
+    public IReadOnlyList<object> GetServices(ServiceKey serviceKey, IServiceScope originatingScope)
     {
         if (_cachedEnumerables?.TryGetValue(serviceKey, out var cachedObjects) == true)
         {
             return cachedObjects;
         }
+        
+        if (_registeredEnumerableFactories?.TryGetValue(serviceKey, out var factory) == true)
+        {
+            return (_cachedEnumerables ??= DictionaryPool<ServiceKey, List<object>>.Shared.Get())[serviceKey] = factory.Select(x => x()).ToList();
+        }
 
         if (!_serviceFactories.Descriptors.TryGetValue(serviceKey, out var factories))
         {
-            return Array.Empty<object>();
+            return _parentScope?.GetServices(serviceKey, originatingScope) ?? Array.Empty<object>();
         }
         
         if (!_root.TryGetSingletons(serviceKey, out var singletons))
@@ -158,7 +179,7 @@ public class ServiceScope : IServiceScope
 
         var cachedEnumerables = _cachedEnumerables ??= DictionaryPool<ServiceKey, List<object>>.Shared.Get();
 
-        return cachedEnumerables[serviceKey] = [..ConstructItems(factories, singletons, scope, serviceKey, cachedEnumerables)];
+        return cachedEnumerables[serviceKey] = [..ConstructItems(factories, singletons, this, serviceKey, cachedEnumerables)];
     }
 
     private IEnumerable<object> ConstructItems(FrozenSet<ServiceDescriptor> factories,
@@ -232,7 +253,7 @@ public class ServiceScope : IServiceScope
                 
                 if (!vt.IsCompleted)
                 {
-                    return Await(--i, vt, forDisposal, this);
+                    return Await(--i, vt, forDisposal);
                 }
             }
             else if (obj is IDisposable disposable)
@@ -245,7 +266,7 @@ public class ServiceScope : IServiceScope
         
         return default;
         
-        static async ValueTask Await(int i, ValueTask vt, List<object> toDispose, ServiceScope serviceScope)
+        static async ValueTask Await(int i, ValueTask vt, List<object> toDispose)
         {
             await vt.ConfigureAwait(false);
 

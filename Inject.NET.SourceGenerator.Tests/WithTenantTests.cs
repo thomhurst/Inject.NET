@@ -27,12 +27,12 @@ public class WithTenantTests : TestsBase<DependenciesSourceGenerator>
                     "Interface1.cs"),
             ]
         },
-        async generatedFiles => { await Assert.That(generatedFiles.Length).IsEqualTo(2); });
+        async generatedFiles => { await Assert.That(generatedFiles.Length).IsEqualTo(1); });
     
     [Test]
     public Task WithTenantOverridingType() => RunTest(Path.Combine(Sourcy.Git.RootDirectory.FullName,
             "Inject.NET.SourceGenerator.Sample",
             "ServiceProviders",
             $"{TestContext.Current!.TestDetails.TestName}.cs"),
-        async generatedFiles => { await Assert.That(generatedFiles.Length).IsEqualTo(2); });
+        async generatedFiles => { await Assert.That(generatedFiles.Length).IsEqualTo(1); });
 }

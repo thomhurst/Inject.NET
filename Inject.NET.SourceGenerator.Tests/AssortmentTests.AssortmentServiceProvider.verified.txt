@@ -1,103 +1,155 @@
 ﻿[  
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Inject.NET.Enums;
 using Inject.NET.Extensions;
-using Inject.NET.Services;
-
-namespace Inject.NET.SourceGenerator.Sample.ServiceProviders;
-
-public class AssortmentServiceProviderServiceRegistrar : ServiceRegistrar
-{
-	public AssortmentServiceProviderServiceRegistrar()
-	{
-		Register(new global::Inject.NET.Models.ServiceDescriptor
-		{
-			ServiceType = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface1),
-			ImplementationType = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Class1),
-			Lifetime = Inject.NET.Enums.Lifetime.Singleton,
-			Factory = (scope, type, key) =>
-			new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Class1()
-		});
-
-		Register(new global::Inject.NET.Models.ServiceDescriptor
-		{
-			ServiceType = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface2),
-			ImplementationType = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Class2),
-			Lifetime = Inject.NET.Enums.Lifetime.Singleton,
-			Factory = (scope, type, key) =>
-			new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Class2((global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface1)scope.SingletonScope.GetRequiredService<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface1>())
-		});
-
-		Register(new global::Inject.NET.Models.ServiceDescriptor
-		{
-			ServiceType = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface3),
-			ImplementationType = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Class3),
-			Lifetime = Inject.NET.Enums.Lifetime.Singleton,
-			Factory = (scope, type, key) =>
-			new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Class3((global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface2)scope.SingletonScope.GetRequiredService<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface2>())
-		});
-
-		Register(new global::Inject.NET.Models.ServiceDescriptor
-		{
-			ServiceType = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface4),
-			ImplementationType = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Class4),
-			Lifetime = Inject.NET.Enums.Lifetime.Transient,
-			Factory = (scope, type, key) =>
-			new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Class4((global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface3)scope.SingletonScope.GetRequiredService<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface3>())
-		});
-
-		Register(new global::Inject.NET.Models.ServiceDescriptor
-		{
-			ServiceType = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.IGeneric<>),
-			ImplementationType = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Generic<>),
-			Lifetime = Inject.NET.Enums.Lifetime.Transient,
-			Factory = (scope, type, key) =>
-			 Activator.CreateInstance(typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Generic<>).MakeGenericType(type.GenericTypeArguments), [ ..type.GenericTypeArguments.Select(x => scope.GetService(x)) ])
-		});
-
-		Register(new global::Inject.NET.Models.ServiceDescriptor
-		{
-			ServiceType = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.IGeneric<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Class1>),
-			ImplementationType = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Generic<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Class1>),
-			Lifetime = Inject.NET.Enums.Lifetime.Transient,
-			Factory = (scope, type, key) =>
-			new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Generic<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Class1>()
-		});
-
-		Register(new global::Inject.NET.Models.ServiceDescriptor
-		{
-			ServiceType = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Wrapper),
-			ImplementationType = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Wrapper),
-			Lifetime = Inject.NET.Enums.Lifetime.Transient,
-			Factory = (scope, type, key) =>
-			new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Wrapper((global::Inject.NET.SourceGenerator.Sample.ServiceProviders.IGeneric<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Class1>)new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Generic<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Class1>())
-		});
-
-		Register(new global::Inject.NET.Models.ServiceDescriptor
-		{
-			ServiceType = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface5),
-			ImplementationType = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Class5),
-			Lifetime = Inject.NET.Enums.Lifetime.Scoped,
-			Factory = (scope, type, key) =>
-			new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Class5((global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface4)new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Class4((global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface3)scope.SingletonScope.GetRequiredService<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface3>()))
-		});
-
-	}
-}
-
-  
-using System;
-using System.Threading.Tasks;
-using Inject.NET.Enums;
 using Inject.NET.Interfaces;
+using Inject.NET.Models;
+using Inject.NET.Services;
 
 namespace Inject.NET.SourceGenerator.Sample.ServiceProviders;
 
 public partial class AssortmentServiceProvider
 {
-	public static ValueTask<IServiceProviderRoot> BuildAsync() =>
-		new AssortmentServiceProviderServiceRegistrar().BuildAsync();
+	public class ServiceRegistrar_ : global::Inject.NET.Services.ServiceRegistrar<ServiceProvider_, ServiceProvider_>
+	{
+		public ServiceRegistrar_()
+		{
+			Register(new global::Inject.NET.Models.ServiceDescriptor
+			{
+				ServiceType = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface1),
+				ImplementationType = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Class1),
+				Lifetime = Inject.NET.Enums.Lifetime.Singleton,
+				Factory = (scope, type, key) =>
+				new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Class1()
+			});
+
+			Register(new global::Inject.NET.Models.ServiceDescriptor
+			{
+				ServiceType = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface2),
+				ImplementationType = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Class2),
+				Lifetime = Inject.NET.Enums.Lifetime.Singleton,
+				Factory = (scope, type, key) =>
+				new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Class2(scope.GetRequiredService<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface1>())
+			});
+
+			Register(new global::Inject.NET.Models.ServiceDescriptor
+			{
+				ServiceType = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface3),
+				ImplementationType = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Class3),
+				Lifetime = Inject.NET.Enums.Lifetime.Singleton,
+				Factory = (scope, type, key) =>
+				new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Class3(scope.GetRequiredService<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface2>())
+			});
+
+			Register(new global::Inject.NET.Models.ServiceDescriptor
+			{
+				ServiceType = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface4),
+				ImplementationType = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Class4),
+				Lifetime = Inject.NET.Enums.Lifetime.Transient,
+				Factory = (scope, type, key) =>
+				new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Class4(scope.GetRequiredService<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface3>())
+			});
+
+			Register(new global::Inject.NET.Models.ServiceDescriptor
+			{
+				ServiceType = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Wrapper),
+				ImplementationType = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Wrapper),
+				Lifetime = Inject.NET.Enums.Lifetime.Transient,
+				Factory = (scope, type, key) =>
+				new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Wrapper(scope.GetRequiredService<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.IGeneric<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Class1>>())
+			});
+
+			Register(new global::Inject.NET.Models.ServiceDescriptor
+			{
+				ServiceType = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface5),
+				ImplementationType = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Class5),
+				Lifetime = Inject.NET.Enums.Lifetime.Scoped,
+				Factory = (scope, type, key) =>
+				new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Class5(scope.GetRequiredService<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface4>())
+			});
+
+			Register(new global::Inject.NET.Models.ServiceDescriptor
+			{
+				ServiceType = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.IGeneric<>),
+				ImplementationType = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Generic<>),
+				Lifetime = Inject.NET.Enums.Lifetime.Transient,
+				Factory = (scope, type, key) =>
+				scope.GetRequiredService(type)
+			});
+
+			Register(new global::Inject.NET.Models.ServiceDescriptor
+			{
+				ServiceType = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.IGeneric<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Class1>),
+				ImplementationType = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Generic<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Class1>),
+				Lifetime = Inject.NET.Enums.Lifetime.Transient,
+				Factory = (scope, type, key) =>
+				new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Generic<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Class1>(scope.GetRequiredService<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Class1>())
+			});
+
+		}
+
+		public override async ValueTask<ServiceProvider_> BuildAsync(ServiceProvider_ parent)
+{
+    var serviceProvider = new ServiceProvider_(ServiceFactoryBuilders.AsReadOnly());
+    
+    var vt = serviceProvider.InitializeAsync();
+
+    if (!vt.IsCompletedSuccessfully)
+    {
+        await vt.ConfigureAwait(false);
+    }
+    
+    return serviceProvider;
+}
+	}
+	public class SingletonScope_ : global::Inject.NET.Services.SingletonScope<SingletonScope_, ServiceProvider_, ServiceScope_, SingletonScope_, ServiceScope_, ServiceProvider_>
+	{
+		public SingletonScope_(ServiceProvider_ serviceProvider, ServiceFactories serviceFactories) : base(serviceProvider, serviceFactories, null)
+		{
+			Register(new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface1), Key = null }, () => Inject__NET__SourceGenerator__Sample__ServiceProviders__Interface1);
+			Register(new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface2), Key = null }, () => Inject__NET__SourceGenerator__Sample__ServiceProviders__Interface2);
+			Register(new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface3), Key = null }, () => Inject__NET__SourceGenerator__Sample__ServiceProviders__Interface3);
+		}
+
+		[field: AllowNull, MaybeNull]
+		public global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface1 Inject__NET__SourceGenerator__Sample__ServiceProviders__Interface1 => field ??= Register(new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface1), Key = null }, new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Class1());
+
+		[field: AllowNull, MaybeNull]
+		public global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface2 Inject__NET__SourceGenerator__Sample__ServiceProviders__Interface2 => field ??= Register(new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface2), Key = null }, new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Class2(Singletons.Inject__NET__SourceGenerator__Sample__ServiceProviders__Interface1));
+
+		[field: AllowNull, MaybeNull]
+		public global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface3 Inject__NET__SourceGenerator__Sample__ServiceProviders__Interface3 => field ??= Register(new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface3), Key = null }, new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Class3(Singletons.Inject__NET__SourceGenerator__Sample__ServiceProviders__Interface2));
+	}
+	public class ServiceScope_ : global::Inject.NET.Services.ServiceScope<ServiceScope_, ServiceProvider_, SingletonScope_, ServiceScope_, SingletonScope_, ServiceProvider_>
+	{
+		public ServiceScope_(ServiceProvider_ serviceProvider, ServiceFactories serviceFactories) : base(serviceProvider, serviceFactories, null)
+		{
+			Register(new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface5), Key = null }, () => Inject__NET__SourceGenerator__Sample__ServiceProviders__Interface5);
+		}
+
+		[field: AllowNull, MaybeNull]
+		public global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface5 Inject__NET__SourceGenerator__Sample__ServiceProviders__Interface5 => field ??= Register(new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface5), Key = null }, new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Class5(global::Inject.NET.ThrowHelpers.Throw<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface4>("Injecting type Class4 with a lifetime of Transient into an object with a lifetime of Scoped will cause it to also be Scoped")));
+	}
+	public class ServiceProvider_(global::Inject.NET.Models.ServiceFactories serviceFactories) : global::Inject.NET.Services.ServiceProvider<ServiceProvider_, SingletonScope_, ServiceScope_, ServiceProvider_, SingletonScope_, ServiceScope_>(serviceFactories, null)
+	{
+		[field: AllowNull, MaybeNull]
+		public override SingletonScope_ Singletons => field ??= new(this, serviceFactories);
+		public override ServiceScope_ CreateTypedScope() => new ServiceScope_(this, serviceFactories);
+		public override async ValueTask InitializeAsync()
+		{
+			await using var scope = CreateTypedScope();
+			_ = Singletons.Inject__NET__SourceGenerator__Sample__ServiceProviders__Interface1;
+			_ = Singletons.Inject__NET__SourceGenerator__Sample__ServiceProviders__Interface2;
+			_ = Singletons.Inject__NET__SourceGenerator__Sample__ServiceProviders__Interface3;
+			_ = scope.Inject__NET__SourceGenerator__Sample__ServiceProviders__Interface5;
+
+			await base.InitializeAsync();
+		}
+	}
+	public static ValueTask<ServiceProvider_> BuildAsync() =>
+		new ServiceRegistrar_().BuildAsync(null);
 }
 
 ]

@@ -23,7 +23,7 @@ public class DependenciesSourceGeneratorTests : TestsBase<DependenciesSourceGene
                     "Interface1.cs"),
             ]
         },
-        async generatedFiles => { await Assert.That(generatedFiles.Length).IsEqualTo(2); });
+        async generatedFiles => { await Assert.That(generatedFiles.Length).IsEqualTo(1); });
     
     [Test]
     public Task SingletonServiceImplementation() => RunTest(Path.Combine(Sourcy.Git.RootDirectory.FullName,
@@ -44,7 +44,7 @@ public class DependenciesSourceGeneratorTests : TestsBase<DependenciesSourceGene
                     "Interface1.cs"),
             ]
         },
-        async generatedFiles => { await Assert.That(generatedFiles.Length).IsEqualTo(2); });
+        async generatedFiles => { await Assert.That(generatedFiles.Length).IsEqualTo(1); });
     
     [Test]
     public Task ScopedImplementationOnly() => RunTest(Path.Combine(Sourcy.Git.RootDirectory.FullName,
@@ -65,7 +65,7 @@ public class DependenciesSourceGeneratorTests : TestsBase<DependenciesSourceGene
                     "Interface1.cs"),
             ]
         },
-        async generatedFiles => { await Assert.That(generatedFiles.Length).IsEqualTo(2); });
+        async generatedFiles => { await Assert.That(generatedFiles.Length).IsEqualTo(1); });
     
     [Test]
     public Task ScopedServiceImplementation() => RunTest(Path.Combine(Sourcy.Git.RootDirectory.FullName,
@@ -86,7 +86,7 @@ public class DependenciesSourceGeneratorTests : TestsBase<DependenciesSourceGene
                     "Interface1.cs"),
             ]
         },
-        async generatedFiles => { await Assert.That(generatedFiles.Length).IsEqualTo(2); });
+        async generatedFiles => { await Assert.That(generatedFiles.Length).IsEqualTo(1); });
     
     [Test]
     public Task TransientImplementationOnly() => RunTest(Path.Combine(Sourcy.Git.RootDirectory.FullName,
@@ -107,7 +107,7 @@ public class DependenciesSourceGeneratorTests : TestsBase<DependenciesSourceGene
                     "Interface1.cs"),
             ]
         },
-        async generatedFiles => { await Assert.That(generatedFiles.Length).IsEqualTo(2); });
+        async generatedFiles => { await Assert.That(generatedFiles.Length).IsEqualTo(1); });
     
     [Test]
     public Task TransientServiceImplementation() => RunTest(Path.Combine(Sourcy.Git.RootDirectory.FullName,
@@ -128,7 +128,7 @@ public class DependenciesSourceGeneratorTests : TestsBase<DependenciesSourceGene
                     "Interface1.cs"),
             ]
         },
-        async generatedFiles => { await Assert.That(generatedFiles.Length).IsEqualTo(2); });
+        async generatedFiles => { await Assert.That(generatedFiles.Length).IsEqualTo(1); });
     
     [Test]
     public Task SingletonGeneric() => RunTest(Path.Combine(Sourcy.Git.RootDirectory.FullName,
@@ -153,7 +153,7 @@ public class DependenciesSourceGeneratorTests : TestsBase<DependenciesSourceGene
                     "Generic.cs"),
             ]
         },
-        async generatedFiles => { await Assert.That(generatedFiles.Length).IsEqualTo(2); });
+        async generatedFiles => { await Assert.That(generatedFiles.Length).IsEqualTo(1); });
     
     [Test]
     public Task SingletonGeneric2() => RunTest(Path.Combine(Sourcy.Git.RootDirectory.FullName,
@@ -174,5 +174,5 @@ public class DependenciesSourceGeneratorTests : TestsBase<DependenciesSourceGene
                     "Interface1.cs"),
             ]
         },
-        async generatedFiles => { await Assert.That(generatedFiles.Length).IsEqualTo(2); });
+        async generatedFiles => { await Assert.That(generatedFiles.Length).IsEqualTo(1); });
 }

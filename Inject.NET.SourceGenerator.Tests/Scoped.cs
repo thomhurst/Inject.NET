@@ -8,6 +8,6 @@ public class Scoped : TestsBase<DependenciesSourceGenerator>
             "Scoped.cs"),
         async generatedFiles =>
         {
-            await Assert.That(generatedFiles.Length).IsEqualTo(4);
+            await Assert.That(generatedFiles.Length).IsEqualTo(1);
         });
 }

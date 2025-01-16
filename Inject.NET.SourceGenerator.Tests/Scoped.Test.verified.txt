@@ -1,34 +1,24 @@
 ﻿[  
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Threading.Tasks;
 using Inject.NET.Enums;
 using Inject.NET.Extensions;
+using Inject.NET.Interfaces;
+using Inject.NET.Models;
 using Inject.NET.Services;
 
 namespace Inject.NET.Tests;
 
 public partial class Scoped
 {
-	public class ScopedServiceProviderServiceRegistrar : ServiceRegistrar<global::Inject.NET.Tests.Scoped.ScopedServiceProvider>
+	public partial class ScopedServiceProvider
 	{
-		public ScopedServiceProviderServiceRegistrar()
+		public class ServiceRegistrar_ : global::Inject.NET.Services.ServiceRegistrar<ServiceProvider_, ServiceProvider_>
 		{
-			Register(new global::Inject.NET.Models.ServiceDescriptor
+			public ServiceRegistrar_()
 			{
-				ServiceType = typeof(global::Inject.NET.Tests.Scoped.ScopedClass),
-				ImplementationType = typeof(global::Inject.NET.Tests.Scoped.ScopedClass),
-				Lifetime = Inject.NET.Enums.Lifetime.Scoped,
-				Factory = (scope, type, key) =>
-				new global::Inject.NET.Tests.Scoped.ScopedClass()
-			});
-
-			{
-				var tenant = GetOrCreateTenant("NonOverridingTenant");
-			}
-			{
-				var tenant = GetOrCreateTenant("OverridingTenant");
-				tenant.Register(new global::Inject.NET.Models.ServiceDescriptor
+				Register(new global::Inject.NET.Models.ServiceDescriptor
 				{
 					ServiceType = typeof(global::Inject.NET.Tests.Scoped.ScopedClass),
 					ImplementationType = typeof(global::Inject.NET.Tests.Scoped.ScopedClass),
@@ -38,13 +28,10 @@ public partial class Scoped
 				});
 
 			}
-		}
 
-		public override async ValueTask<global::Inject.NET.Tests.Scoped.ScopedServiceProvider> BuildAsync()
+			public override async ValueTask<ServiceProvider_> BuildAsync(ServiceProvider_ parent)
 {
-    OnBeforeBuild(this);
-
-    var serviceProvider = new global::Inject.NET.Tests.Scoped.ScopedServiceProvider(ServiceFactoryBuilders.AsReadOnly(), Tenants);
+    var serviceProvider = new ServiceProvider_(ServiceFactoryBuilders.AsReadOnly());
     
     var vt = serviceProvider.InitializeAsync();
 
@@ -55,74 +42,152 @@ public partial class Scoped
     
     return serviceProvider;
 }
-	}
-}
-
-  
-using System;
-using System.Linq;
-using Inject.NET.Enums;
-using Inject.NET.Extensions;
-using Inject.NET.Interfaces;
-using Inject.NET.Models;
-using Inject.NET.Services;
-
-namespace Inject.NET.Tests;
-
-public partial class Scoped
-{
-	public class ScopedServiceProviderSingletonScope : SingletonScope
-	{
-		public ScopedServiceProviderSingletonScope(IServiceProviderRoot root, ServiceFactories serviceFactories) : base(root, serviceFactories)
-		{
 		}
-	}
-}
-
-  
-using System;
-using System.Linq;
-using Inject.NET.Enums;
-using Inject.NET.Extensions;
-using Inject.NET.Interfaces;
-using Inject.NET.Models;
-using Inject.NET.Services;
-
-namespace Inject.NET.Tests;
-
-public partial class Scoped
-{
-	public class ScopedServiceProviderScope : ServiceScope
-	{
-		public ScopedServiceProviderScope(ServiceProviderRoot root, IServiceScope singletonScope, ServiceFactories serviceFactories) : base(root, singletonScope, serviceFactories)
+		public class SingletonScope_ : global::Inject.NET.Services.SingletonScope<SingletonScope_, ServiceProvider_, ServiceScope_, SingletonScope_, ServiceScope_, ServiceProvider_>
 		{
-			Inject__NET__Tests__Scoped__ScopedClass = new global::System.Lazy<global::Inject.NET.Tests.Scoped.ScopedClass>(() => new global::Inject.NET.Tests.Scoped.ScopedClass());
-			Register(new global::Inject.NET.Models.ServiceKey(typeof(global::Inject.NET.Tests.Scoped.ScopedClass), null), new global::System.object(() => Inject__NET__Tests__Scoped__ScopedClass.Value));
+			public SingletonScope_(ServiceProvider_ serviceProvider, ServiceFactories serviceFactories) : base(serviceProvider, serviceFactories, null)
+			{
+			}
 		}
-		public global::System.Lazy<global::Inject.NET.Tests.Scoped.ScopedClass> Inject__NET__Tests__Scoped__ScopedClass { get; }
-	}
-}
-
-  
-using System;
-using System.Threading.Tasks;
-using Inject.NET.Enums;
-using Inject.NET.Interfaces;
-
-namespace Inject.NET.Tests;
-
-public partial class Scoped
-{
-	public partial class ScopedServiceProvider : global::Inject.NET.Services.ServiceProviderRoot
-	{
-		public override global::Inject.NET.Tests.Scoped.ScopedServiceProviderSingletonScope SingletonScope { get; }
-		public override IServiceScope CreateScope() => new global::Inject.NET.Tests.Scoped.ScopedServiceProviderScope(this, SingletonScope, ServiceFactories);
-		public ScopedServiceProvider(Inject.NET.Models.ServiceFactories serviceFactories, global::System.Collections.Generic.IDictionary<string, IServiceRegistrar> tenantRegistrars) : base(serviceFactories, tenantRegistrars)
+		public class ServiceScope_ : global::Inject.NET.Services.ServiceScope<ServiceScope_, ServiceProvider_, SingletonScope_, ServiceScope_, SingletonScope_, ServiceProvider_>
 		{
-			SingletonScope = new(this, serviceFactories);
+			public ServiceScope_(ServiceProvider_ serviceProvider, ServiceFactories serviceFactories) : base(serviceProvider, serviceFactories, null)
+			{
+				Register(new ServiceKey { Type = typeof(global::Inject.NET.Tests.Scoped.ScopedClass), Key = null }, () => Inject__NET__Tests__Scoped__ScopedClass);
+			}
+
+			[field: AllowNull, MaybeNull]
+			public global::Inject.NET.Tests.Scoped.ScopedClass Inject__NET__Tests__Scoped__ScopedClass => field ??= Register(new ServiceKey { Type = typeof(global::Inject.NET.Tests.Scoped.ScopedClass), Key = null }, new global::Inject.NET.Tests.Scoped.ScopedClass());
 		}
-		public static ValueTask<global::Inject.NET.Tests.Scoped.ScopedServiceProvider> BuildAsync() =>
-			new ScopedServiceProviderServiceRegistrar().BuildAsync();
+		public class ServiceProvider_(global::Inject.NET.Models.ServiceFactories serviceFactories) : global::Inject.NET.Services.ServiceProvider<ServiceProvider_, SingletonScope_, ServiceScope_, ServiceProvider_, SingletonScope_, ServiceScope_>(serviceFactories, null)
+		{
+			[field: AllowNull, MaybeNull]
+			public override SingletonScope_ Singletons => field ??= new(this, serviceFactories);
+			public override ServiceScope_ CreateTypedScope() => new ServiceScope_(this, serviceFactories);
+			[field: AllowNull, MaybeNull]
+			public ServiceProvider_GUID TenantGUID { get; private set; } = null!;
+			[field: AllowNull, MaybeNull]
+			public ServiceProvider_GUID TenantGUID { get; private set; } = null!;
+			public override async ValueTask InitializeAsync()
+			{
+				await using var scope = CreateTypedScope();
+				_ = scope.Inject__NET__Tests__Scoped__ScopedClass;
+				TenantGUID = await ServiceProvider_GUID.BuildAsync(this);
+				Register("NonOverridingTenant", TenantGUID;
+				TenantGUID = await ServiceProvider_GUID.BuildAsync(this);
+				Register("OverridingTenant", TenantGUID;
+
+				await base.InitializeAsync();
+			}
+		}
+		public class ServiceRegistrarGUID : global::Inject.NET.Services.ServiceRegistrar<ServiceProvider_GUID, ServiceProvider_>
+		{
+			public ServiceRegistrarGUID()
+			{
+			}
+
+			public override async ValueTask<ServiceProvider_GUID> BuildAsync(ServiceProvider_ parentServiceProvider)
+{
+    var serviceProvider = new ServiceProvider_GUID(ServiceFactoryBuilders.AsReadOnly(), parentServiceProvider);
+    
+    var vt = serviceProvider.InitializeAsync();
+
+    if (!vt.IsCompletedSuccessfully)
+    {
+        await vt.ConfigureAwait(false);
+    }
+    
+    return serviceProvider;
+}
+		}
+		public class SingletonScope_GUID : global::Inject.NET.Services.SingletonScope<SingletonScope_GUID, ServiceProvider_GUID, ServiceScope_GUID, SingletonScope_, ServiceScope_, ServiceProvider_>
+		{
+			public SingletonScope_GUID(ServiceProvider_GUID serviceProvider, ServiceFactories serviceFactories, SingletonScope_ parentScope) : base(serviceProvider, serviceFactories, parentScope)
+			{
+			}
+		}
+		public class ServiceScope_GUID : global::Inject.NET.Services.ServiceScope<ServiceScope_GUID, ServiceProvider_GUID, SingletonScope_GUID, ServiceScope_, SingletonScope_, ServiceProvider_>
+		{
+			public ServiceScope_GUID(ServiceProvider_GUID serviceProvider, ServiceFactories serviceFactories, ServiceScope_ parentScope) : base(serviceProvider, serviceFactories, parentScope)
+			{
+			}
+		}
+		public partial class ServiceProvider_GUID(ServiceFactories serviceFactories, ServiceProvider_ parent) : global::Inject.NET.Services.ServiceProvider<ServiceProvider_GUID, SingletonScope_GUID, ServiceScope_GUID, ServiceProvider_, SingletonScope_, ServiceScope_>(serviceFactories, parent)
+		{
+			[field: AllowNull, MaybeNull]
+			public override SingletonScope_GUID Singletons => field ??= new(this, serviceFactories, parent.Singletons);
+			public override ServiceScope_GUID CreateTypedScope() => new ServiceScope_GUID(this, serviceFactories, parent.CreateTypedScope());
+			public static ValueTask<ServiceProvider_GUID> BuildAsync(ServiceProvider_ serviceProvider) =>
+				new ServiceRegistrarGUID().BuildAsync(serviceProvider);
+			public override async ValueTask InitializeAsync()
+			{
+				await using var scope = CreateTypedScope();
+
+				await base.InitializeAsync();
+			}
+		}
+		public class ServiceRegistrarGUID : global::Inject.NET.Services.ServiceRegistrar<ServiceProvider_GUID, ServiceProvider_>
+		{
+			public ServiceRegistrarGUID()
+			{
+				Register(new global::Inject.NET.Models.ServiceDescriptor
+				{
+					ServiceType = typeof(global::Inject.NET.Tests.Scoped.ScopedClass),
+					ImplementationType = typeof(global::Inject.NET.Tests.Scoped.ScopedClass),
+					Lifetime = Inject.NET.Enums.Lifetime.Scoped,
+					Factory = (scope, type, key) =>
+					new global::Inject.NET.Tests.Scoped.ScopedClass()
+				});
+
+			}
+
+			public override async ValueTask<ServiceProvider_GUID> BuildAsync(ServiceProvider_ parentServiceProvider)
+{
+    var serviceProvider = new ServiceProvider_GUID(ServiceFactoryBuilders.AsReadOnly(), parentServiceProvider);
+    
+    var vt = serviceProvider.InitializeAsync();
+
+    if (!vt.IsCompletedSuccessfully)
+    {
+        await vt.ConfigureAwait(false);
+    }
+    
+    return serviceProvider;
+}
+		}
+		public class SingletonScope_GUID : global::Inject.NET.Services.SingletonScope<SingletonScope_GUID, ServiceProvider_GUID, ServiceScope_GUID, SingletonScope_, ServiceScope_, ServiceProvider_>
+		{
+			public SingletonScope_GUID(ServiceProvider_GUID serviceProvider, ServiceFactories serviceFactories, SingletonScope_ parentScope) : base(serviceProvider, serviceFactories, parentScope)
+			{
+			}
+		}
+		public class ServiceScope_GUID : global::Inject.NET.Services.ServiceScope<ServiceScope_GUID, ServiceProvider_GUID, SingletonScope_GUID, ServiceScope_, SingletonScope_, ServiceProvider_>
+		{
+			public ServiceScope_GUID(ServiceProvider_GUID serviceProvider, ServiceFactories serviceFactories, ServiceScope_ parentScope) : base(serviceProvider, serviceFactories, parentScope)
+			{
+				Register(new ServiceKey { Type = typeof(global::Inject.NET.Tests.Scoped.ScopedClass), Key = null }, () => Inject__NET__Tests__Scoped__ScopedClass);
+			}
+
+			[field: AllowNull, MaybeNull]
+			public global::Inject.NET.Tests.Scoped.ScopedClass Inject__NET__Tests__Scoped__ScopedClass => field ??= Register(new ServiceKey { Type = typeof(global::Inject.NET.Tests.Scoped.ScopedClass), Key = null }, new global::Inject.NET.Tests.Scoped.ScopedClass());
+		}
+		public partial class ServiceProvider_GUID(ServiceFactories serviceFactories, ServiceProvider_ parent) : global::Inject.NET.Services.ServiceProvider<ServiceProvider_GUID, SingletonScope_GUID, ServiceScope_GUID, ServiceProvider_, SingletonScope_, ServiceScope_>(serviceFactories, parent)
+		{
+			[field: AllowNull, MaybeNull]
+			public override SingletonScope_GUID Singletons => field ??= new(this, serviceFactories, parent.Singletons);
+			public override ServiceScope_GUID CreateTypedScope() => new ServiceScope_GUID(this, serviceFactories, parent.CreateTypedScope());
+			public static ValueTask<ServiceProvider_GUID> BuildAsync(ServiceProvider_ serviceProvider) =>
+				new ServiceRegistrarGUID().BuildAsync(serviceProvider);
+			public override async ValueTask InitializeAsync()
+			{
+				await using var scope = CreateTypedScope();
+				_ = scope.Inject__NET__Tests__Scoped__ScopedClass;
+
+				await base.InitializeAsync();
+			}
+		}
+		public static ValueTask<ServiceProvider_> BuildAsync() =>
+			new ServiceRegistrar_().BuildAsync(null);
 	}
 }
 

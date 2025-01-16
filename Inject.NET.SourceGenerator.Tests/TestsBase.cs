@@ -1,11 +1,12 @@
 using System.Collections.Immutable;
+using System.Text.RegularExpressions;
 using Inject.NET.SourceGenerator.Tests.Options;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
 namespace Inject.NET.SourceGenerator.Tests;
 
-public class TestsBase<TGenerator> where TGenerator : IIncrementalGenerator, new()
+public partial class TestsBase<TGenerator> where TGenerator : IIncrementalGenerator, new()
 {
     protected TestsBase()
     {
@@ -104,7 +105,8 @@ public class TestsBase<TGenerator> where TGenerator : IIncrementalGenerator, new
 
         await assertions(generatedFiles);
         
-        await Verify(generatedFiles);
+        await Verify(generatedFiles)
+            .ScrubLinesWithReplace(line => GuidRegex().Replace(line, "GUID"));
     }
 
     private static bool IsError(Diagnostic x)
@@ -121,4 +123,7 @@ public class TestsBase<TGenerator> where TGenerator : IIncrementalGenerator, new
         
         return false;
     }
+
+    [GeneratedRegex("(?im)[{(]?[0-9A-F]{8}[-]?(?:[0-9A-F]{4}[-]?){3}[0-9A-F]{12}[)}]?")]
+    private static partial Regex GuidRegex();
 }

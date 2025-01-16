@@ -8,6 +8,6 @@ public class Singletons : TestsBase<DependenciesSourceGenerator>
             "Singletons.cs"),
         async generatedFiles =>
         {
-            await Assert.That(generatedFiles.Length).IsEqualTo(4);
+            await Assert.That(generatedFiles.Length).IsEqualTo(1);
         });
 }

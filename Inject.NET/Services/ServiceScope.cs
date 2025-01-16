@@ -1,4 +1,5 @@
 using System.Collections.Frozen;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using Inject.NET.Enums;
 using Inject.NET.Extensions;
@@ -16,8 +17,6 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
     where TParentScope : IServiceScope
     where TParentSingletonScope : IServiceScope
 {
-    private static readonly Type ServiceScopeType = typeof(IServiceScope);
-    private static readonly Type ServiceProviderType = typeof(IServiceProvider);
 
 #if NET9_0_OR_GREATER
     private bool _disposed;
@@ -49,9 +48,9 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
 
     public TServiceProvider ServiceProvider { get; }
 
-    public T Register<T>(ServiceKey key, T obj)
+    public T Register<T>(ServiceKey key, T obj) where T : notnull
     {
-        (_cachedObjects ??= DictionaryPool<ServiceKey, object>.Shared.Get())[key] = obj!;
+        (_cachedObjects ??= DictionaryPool<ServiceKey, object>.Shared.Get())[key] = obj;
         
         (_cachedEnumerables ??= DictionaryPool<ServiceKey, List<object>>.Shared.Get())
             .GetOrAdd(key, _ => [])
@@ -99,12 +98,12 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
             return (_cachedObjects ??= DictionaryPool<ServiceKey, object>.Shared.Get())[serviceKey] = factory();
         }
         
-        if (serviceKey.Type == ServiceScopeType)
+        if (serviceKey.Type == Types.ServiceScope)
         {
             return this;
         }
         
-        if (serviceKey.Type == ServiceProviderType)
+        if (serviceKey.Type == Types.ServiceProvider)
         {
             return ServiceProvider;
         }

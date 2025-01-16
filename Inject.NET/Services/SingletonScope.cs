@@ -19,9 +19,6 @@ where TParentServiceScope : IServiceScope
     public TSelf Singletons => (TSelf)this;
     public TParentSingletonScope? ParentScope { get; } = parentScope;
     
-    private static readonly Type ServiceScopeType = typeof(IServiceScope);
-    private static readonly Type ServiceProviderType = typeof(IServiceProvider);
-    
     private Dictionary<ServiceKey, object>? _cachedObjects;
     private Dictionary<ServiceKey, List<object>>? _cachedEnumerables;
 
@@ -111,12 +108,12 @@ where TParentServiceScope : IServiceScope
             return (_cachedObjects ??= DictionaryPool<ServiceKey, object>.Shared.Get())[serviceKey] = factory();
         }
         
-        if (serviceKey.Type == ServiceScopeType)
+        if (serviceKey.Type == Types.ServiceScope)
         {
             return this;
         }
         
-        if (serviceKey.Type == ServiceProviderType)
+        if (serviceKey.Type == Types.ServiceProvider)
         {
             return ServiceProvider;
         }
@@ -177,7 +174,7 @@ where TParentServiceScope : IServiceScope
     
     public async ValueTask DisposeAsync()
     {
-        foreach (var item in _cachedEnumerables ?? Enumerable.Empty<KeyValuePair<ServiceKey, List<object>?>>())
+        foreach (var item in _cachedEnumerables ?? Enumerable.Empty<KeyValuePair<ServiceKey, List<object>>>())
         {
             foreach (var obj in item.Value)
             {

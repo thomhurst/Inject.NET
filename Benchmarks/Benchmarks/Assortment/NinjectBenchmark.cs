@@ -19,8 +19,8 @@ public class NinjectBenchmark
         _serviceProvider.Bind<Interface1>().To<Class1>().InSingletonScope();
         _serviceProvider.Bind<Interface2>().To<Class2>().InSingletonScope();
         _serviceProvider.Bind<Interface3>().To<Class3>().InSingletonScope();
-        _serviceProvider.Bind<Interface4>().To<Class4>().InTransientScope();
-        _serviceProvider.Bind<Interface5>().To<Class5>().InThreadScope();
+        _serviceProvider.Bind<Interface4>().To<Class4>().InThreadScope();
+        _serviceProvider.Bind<Interface5>().To<Class5>().InTransientScope();
     }
 
     [Benchmark]

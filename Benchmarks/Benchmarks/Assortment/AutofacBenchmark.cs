@@ -20,8 +20,8 @@ public class AutofacBenchmark
         containerBuilder.RegisterType<Class1>().As<Interface1>().SingleInstance();
         containerBuilder.RegisterType<Class2>().As<Interface2>().SingleInstance();
         containerBuilder.RegisterType<Class3>().As<Interface3>().SingleInstance();
-        containerBuilder.RegisterType<Class4>().As<Interface4>().InstancePerDependency();
-        containerBuilder.RegisterType<Class5>().As<Interface5>().InstancePerLifetimeScope();
+        containerBuilder.RegisterType<Class4>().As<Interface4>().InstancePerLifetimeScope();
+        containerBuilder.RegisterType<Class5>().As<Interface5>().InstancePerDependency();
 
 
         _serviceProvider = containerBuilder.Build();

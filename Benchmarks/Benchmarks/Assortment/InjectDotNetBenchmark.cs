@@ -16,8 +16,8 @@ public partial class InjectDotNetBenchmark
     [Singleton<Interface1, Class1>]
     [Singleton<Interface2, Class2>]
     [Singleton<Interface3, Class3>]
-    [Transient<Interface4, Class4>]
-    [Scoped<Interface5, Class5>]
+    [Scoped<Interface4, Class4>]
+    [Transient<Interface5, Class5>]
     public partial class MyServiceProvider;
     
     private MyServiceProvider.ServiceProvider_ _serviceProviderRoot = null!;

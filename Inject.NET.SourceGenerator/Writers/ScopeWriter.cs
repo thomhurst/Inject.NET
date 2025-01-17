@@ -74,6 +74,6 @@ internal static class ScopeWriter
         }
         
         return ObjectConstructionHelper.ConstructNewObject(tenantedServiceModelCollection.ServiceProviderType,
-            tenantedServiceModelCollection.Services, serviceModel, Lifetime.Scoped);
+            tenantedServiceModelCollection.Services, serviceModel, Lifetime.Transient);
     }
 }

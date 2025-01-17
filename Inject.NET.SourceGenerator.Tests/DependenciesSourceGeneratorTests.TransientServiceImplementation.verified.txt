@@ -52,6 +52,18 @@ public partial class TransientServiceImplementation
 		public ServiceScope_(ServiceProvider_ serviceProvider, ServiceFactories serviceFactories) : base(serviceProvider, serviceFactories, null)
 		{
 		}
+
+		[field: AllowNull, MaybeNull]
+		public Interface1 Interface1 => field ??= new Class1();
+
+		public virtual object? GetService(ServiceKey serviceKey, IServiceScope originatingScope)
+		{
+			if (serviceKey == new ServiceKey { Type = typeof(Interface1), Key = null })
+			{
+				return Interface1;
+			}
+			return base.GetService(serviceKey, originatingScope);
+		}
 	}
 	public class ServiceProvider_(global::Inject.NET.Models.ServiceFactories serviceFactories) : global::Inject.NET.Services.ServiceProvider<ServiceProvider_, SingletonScope_, ServiceScope_, ServiceProvider_, SingletonScope_, ServiceScope_>(serviceFactories, null)
 	{
@@ -60,6 +72,7 @@ public partial class TransientServiceImplementation
 		public override ServiceScope_ CreateTypedScope() => new ServiceScope_(this, serviceFactories);
 		public override async ValueTask InitializeAsync()
 		{
+			await Singletons.InitializeAsync();
 			await using var scope = CreateTypedScope();
 
 			await base.InitializeAsync();

@@ -45,8 +45,8 @@ internal static class TenantServiceRegistrarWriter
 
     private static void WriteRegistration(SourceCodeWriter sourceCodeWriter,
         INamedTypeSymbol serviceProviderType, 
-        Dictionary<ISymbol?, ServiceModel[]> tenantDependencies,
-        Dictionary<ISymbol?, ServiceModel[]> rootDependencies, string prefix)
+        IDictionary<ISymbol?, List<ServiceModel>> tenantDependencies,
+        IDictionary<ISymbol?, List<ServiceModel>> rootDependencies, string prefix)
     {
         foreach (var (_, serviceModels) in tenantDependencies)
         {
@@ -58,7 +58,7 @@ internal static class TenantServiceRegistrarWriter
     }
 
     private static void WriteRegistration(SourceCodeWriter sourceCodeWriter, INamedTypeSymbol serviceProviderType,
-        Dictionary<ISymbol?, ServiceModel[]> tenantDependencies, Dictionary<ISymbol?, ServiceModel[]> rootDependencies,
+        IDictionary<ISymbol?, List<ServiceModel>> tenantDependencies, IDictionary<ISymbol?, List<ServiceModel>> rootDependencies,
         string prefix,
         ServiceModel serviceModel)
     {

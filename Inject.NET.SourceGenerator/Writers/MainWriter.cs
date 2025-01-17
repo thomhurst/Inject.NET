@@ -58,23 +58,23 @@ internal static class MainWriter
 
         var tenants = TenantHelper.ConstructTenants(compilation, withTenantAttributes, rootDependencies);
 
-        var serviceProviderInformation = TypeCollector.Collect(serviceProviderModel, compilation);
+        var serviceModelCollection = TypeCollector.Collect(serviceProviderModel, compilation);
         
-        foreach (var (_, value) in serviceProviderInformation.RootDependencies)
+        foreach (var (_, value) in serviceModelCollection.Services)
         {
             foreach (var serviceModel in value)
             {
-                sourceProductionContext.CheckConflicts(serviceModel, serviceProviderInformation.Dependencies, serviceProviderInformation.ParentDependencies);
+                sourceProductionContext.CheckConflicts(serviceModel, serviceModelCollection.Services);
             }
         }
         
-        foreach (var (_, value) in serviceProviderInformation.TenantDependencies)
+        foreach (var (_, value) in serviceModelCollection.Tenants)
         {
-            foreach (var (_, value2) in value.Dependencies)
+            foreach (var (_, value2) in value.Services)
             {
                 foreach (var serviceModel in value2)
                 {
-                    sourceProductionContext.CheckConflicts(serviceModel, value.Dependencies, value.ParentDependencies);
+                    sourceProductionContext.CheckConflicts(serviceModel, value.Services);
                 }
             }
         }
@@ -83,16 +83,16 @@ internal static class MainWriter
         sourceCodeWriter.WriteLine("{");
         
         ServiceRegistrarWriter.Write(sourceProductionContext, sourceCodeWriter, compilation, serviceProviderModel, rootDependencies);
-        SingletonScopeWriter.Write(sourceProductionContext, sourceCodeWriter, compilation, serviceProviderModel, serviceProviderInformation);
-        ScopeWriter.Write(sourceProductionContext, sourceCodeWriter, compilation, serviceProviderModel, serviceProviderInformation);
-        ServiceProviderWriter.Write(sourceProductionContext, sourceCodeWriter, serviceProviderModel, serviceProviderInformation, tenants);
+        SingletonScopeWriter.Write(sourceProductionContext, sourceCodeWriter, compilation, serviceProviderModel, serviceModelCollection);
+        ScopeWriter.Write(sourceProductionContext, sourceCodeWriter, compilation, serviceProviderModel, serviceModelCollection);
+        ServiceProviderWriter.Write(sourceProductionContext, sourceCodeWriter, serviceProviderModel, serviceModelCollection, tenants);
         
         foreach (var tenant in tenants)
         {
             TenantServiceRegistrarWriter.Write(sourceProductionContext, sourceCodeWriter, compilation, serviceProviderModel, tenant);
-            TenantSingletonScopeWriter.Write(sourceProductionContext, sourceCodeWriter, compilation, serviceProviderModel, serviceProviderInformation, tenant);
-            TenantScopeWriter.Write(sourceProductionContext, sourceCodeWriter, compilation, serviceProviderModel, serviceProviderInformation, tenant);
-            TenantServiceProviderWriter.Write(sourceProductionContext, sourceCodeWriter, serviceProviderModel, serviceProviderInformation, tenant);
+            TenantSingletonScopeWriter.Write(sourceProductionContext, sourceCodeWriter, compilation, serviceProviderModel, serviceModelCollection, tenant);
+            TenantScopeWriter.Write(sourceProductionContext, sourceCodeWriter, compilation, serviceProviderModel, serviceModelCollection, tenant);
+            TenantServiceProviderWriter.Write(sourceProductionContext, sourceCodeWriter, serviceProviderModel, serviceModelCollection, tenant);
         }
         
         sourceCodeWriter.WriteLine(

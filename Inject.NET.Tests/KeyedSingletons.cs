@@ -92,10 +92,11 @@ public partial class KeyedSingletons
     public async Task DifferentInstanceWhenResolvingDifferentKey_IncludingTenantedScope()
     {
         await using var serviceProvider = await SingletonServiceProvider.BuildAsync();
-
-        await using var scope = serviceProvider.CreateScope();
-        await using var scope2 = serviceProvider.GetTenant("NonOverridingTenant").CreateScope();
-
+        
+        await using var scope = serviceProvider.CreateTypedScope();
+        
+        await using var scope2 = serviceProvider.Tenant_NonOverridingTenant.CreateTypedScope();
+        
         var a = scope.GetRequiredService<SingletonClass>("Key1");
         var b = scope2.GetRequiredService<SingletonClass>("Key2");
         

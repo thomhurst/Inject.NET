@@ -21,9 +21,6 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
     private int _disposed;
 #endif
     
-    private Dictionary<ServiceKey, Func<object>>? _registeredFactories;
-    private Dictionary<ServiceKey, List<Func<object>>>? _registeredEnumerableFactories;
-    
     private Dictionary<ServiceKey, object>? _cachedObjects;
     private Dictionary<ServiceKey, List<object>>? _cachedEnumerables;
     
@@ -47,22 +44,9 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
 
     public T Register<T>(ServiceKey key, T obj) where T : notnull
     {
-        (_cachedObjects ??= Pools.Objects.Get())[key] = obj;
-        
-        (_cachedEnumerables ??= Pools.Enumerables.Get())
-            .GetOrAdd(key, _ => [])
-            .Add(obj!);
+        (_forDisposal ??= Pools.DisposalTracker.Get()).Add(obj);
 
         return obj;
-    }
-    
-    public void Register(ServiceKey key, Func<object> value)
-    {
-        (_registeredFactories ??= Pools.Funcs.Get())[key] = value;
-        
-        (_registeredEnumerableFactories ??= Pools.EnumerableFuncs.Get())
-            .GetOrAdd(key, _ => [])
-            .Add(value);
     }
     
     public object? GetService(Type type)
@@ -82,24 +66,11 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
         return GetService(serviceKey, this);
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-    public object? GetService(ServiceKey serviceKey, IServiceScope originatingScope)
+    public virtual object? GetService(ServiceKey serviceKey, IServiceScope originatingScope)
     {
         if (_cachedObjects?.TryGetValue(serviceKey, out var cachedObject) == true)
         {
             return cachedObject;
-        }
-        
-        if (_registeredFactories?.TryGetValue(serviceKey, out var factory) == true)
-        {
-            var value = factory();
-            
-            if(value is IAsyncDisposable or IDisposable)
-            {
-                (_forDisposal ??= Pools.DisposalTracker.Get()).Add(value);
-            }
-            
-            return (_cachedObjects ??= Pools.Objects.Get())[serviceKey] = value;
         }
         
         if (serviceKey.Type == Types.ServiceScope)
@@ -159,16 +130,11 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
     }
     
     [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-    public IReadOnlyList<object> GetServices(ServiceKey serviceKey, IServiceScope originatingScope)
+    public virtual IReadOnlyList<object> GetServices(ServiceKey serviceKey, IServiceScope originatingScope)
     {
         if (_cachedEnumerables?.TryGetValue(serviceKey, out var cachedObjects) == true)
         {
             return cachedObjects;
-        }
-        
-        if (_registeredEnumerableFactories?.TryGetValue(serviceKey, out var factory) == true)
-        {
-            return (_cachedEnumerables ??= Pools.Enumerables.Get())[serviceKey] = factory.Select(x => x()).ToList();
         }
 
         if (!_serviceFactories.Descriptors.TryGetValue(serviceKey, out var factories))
@@ -248,17 +214,7 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
         {
             Pools.Enumerables.Return(_cachedEnumerables);
         }
-
-        if(_registeredFactories != null)
-        {
-            Pools.Funcs.Return(_registeredFactories);
-        }
-
-        if(_registeredEnumerableFactories != null)
-        {
-            Pools.EnumerableFuncs.Return(_registeredEnumerableFactories);
-        }
-
+        
         if (Interlocked.Exchange(ref _forDisposal, null) is not {} forDisposal)
         {
             return default;
@@ -318,16 +274,6 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
         if (_cachedEnumerables != null)
         {
             Pools.Enumerables.Return(_cachedEnumerables);
-        }
-
-        if(_registeredFactories != null)
-        {
-            Pools.Funcs.Return(_registeredFactories);
-        }
-
-        if(_registeredEnumerableFactories != null)
-        {
-            Pools.EnumerableFuncs.Return(_registeredEnumerableFactories);
         }
         
         if (Interlocked.Exchange(ref _forDisposal, null) is not {} forDisposal)

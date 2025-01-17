@@ -61,6 +61,25 @@ public partial class WithTenantOverridingType
 		public ServiceScope_(ServiceProvider_ serviceProvider, ServiceFactories serviceFactories) : base(serviceProvider, serviceFactories, null)
 		{
 		}
+
+		[field: AllowNull, MaybeNull]
+		public global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.IChild Inject__NET__SourceGenerator__Sample__ServiceProviders__WithTenantOverridingType__IChild => field ??= new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.Child1();
+
+		[field: AllowNull, MaybeNull]
+		public global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.Parent Inject__NET__SourceGenerator__Sample__ServiceProviders__WithTenantOverridingType__Parent => field ??= new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.Parent(global::Inject.NET.ThrowHelpers.Throw<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.IChild>("Injecting type Child1 with a lifetime of Transient into an object with a lifetime of Scoped will cause it to also be Scoped"));
+
+		public virtual object? GetService(ServiceKey serviceKey, IServiceScope originatingScope)
+		{
+			if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.IChild), Key = null })
+			{
+				return Inject__NET__SourceGenerator__Sample__ServiceProviders__WithTenantOverridingType__IChild;
+			}
+			if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.Parent), Key = null })
+			{
+				return Inject__NET__SourceGenerator__Sample__ServiceProviders__WithTenantOverridingType__Parent;
+			}
+			return base.GetService(serviceKey, originatingScope);
+		}
 	}
 	public class ServiceProvider_(global::Inject.NET.Models.ServiceFactories serviceFactories) : global::Inject.NET.Services.ServiceProvider<ServiceProvider_, SingletonScope_, ServiceScope_, ServiceProvider_, SingletonScope_, ServiceScope_>(serviceFactories, null)
 	{
@@ -71,6 +90,7 @@ public partial class WithTenantOverridingType
 		public ServiceProvider_GUID TenantGUID { get; private set; } = null!;
 		public override async ValueTask InitializeAsync()
 		{
+			await Singletons.InitializeAsync();
 			await using var scope = CreateTypedScope();
 			TenantGUID = await ServiceProvider_GUID.BuildAsync(this);
 			Register("tenant1", TenantGUID;
@@ -112,6 +132,8 @@ public partial class WithTenantOverridingType
 		public SingletonScope_GUID(ServiceProvider_GUID serviceProvider, ServiceFactories serviceFactories, SingletonScope_ parentScope) : base(serviceProvider, serviceFactories, parentScope)
 		{
 		}
+		public global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.IChild Inject__NET__SourceGenerator__Sample__ServiceProviders__WithTenantOverridingType__IChild => ServiceProvider.Singletons.Inject__NET__SourceGenerator__Sample__ServiceProviders__WithTenantOverridingType__IChild;
+		public global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.Parent Inject__NET__SourceGenerator__Sample__ServiceProviders__WithTenantOverridingType__Parent => ServiceProvider.Singletons.Inject__NET__SourceGenerator__Sample__ServiceProviders__WithTenantOverridingType__Parent;
 	}
 	public class ServiceScope_GUID : global::Inject.NET.Services.ServiceScope<ServiceScope_GUID, ServiceProvider_GUID, SingletonScope_GUID, ServiceScope_, SingletonScope_, ServiceProvider_>
 	{
@@ -128,6 +150,7 @@ public partial class WithTenantOverridingType
 			new ServiceRegistrarGUID().BuildAsync(serviceProvider);
 		public override async ValueTask InitializeAsync()
 		{
+			await Singletons.InitializeAsync();
 			await using var scope = CreateTypedScope();
 
 			await base.InitializeAsync();

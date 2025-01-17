@@ -7,10 +7,10 @@ namespace Inject.NET.SourceGenerator.Writers;
 internal static class TenantServiceProviderWriter
 {
     public static void Write(SourceProductionContext sourceProductionContext, SourceCodeWriter sourceCodeWriter,
-        TypedServiceProviderModel serviceProviderModel, TenantedServiceProviderInformation serviceProviderInformation,
+        TypedServiceProviderModel serviceProviderModel, TenantedServiceModelCollection tenantedServiceModelCollection,
         Tenant tenant)
     {
-        var serviceProviderType = serviceProviderInformation.ServiceProviderType;
+        var serviceProviderType = tenantedServiceModelCollection.ServiceProviderType;
 
         var className = $"ServiceProvider_{tenant.Guid}";
                 
@@ -38,6 +38,8 @@ internal static class TenantServiceProviderWriter
     {
         sourceCodeWriter.WriteLine("public override async ValueTask InitializeAsync()");
         sourceCodeWriter.WriteLine("{");
+        
+        sourceCodeWriter.WriteLine("await Singletons.InitializeAsync();");
         
         sourceCodeWriter.WriteLine("await using var scope = CreateTypedScope();");
         

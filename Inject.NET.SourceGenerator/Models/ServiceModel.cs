@@ -14,9 +14,11 @@ public record ServiceModel
     
     public required string? Key { get; init; }
     
+    public bool ResolvedFromParent { get; set; }
+    
     public required Parameter[] Parameters { get; init; }
 
-    public IEnumerable<ServiceModel> GetAllNestedParameters(Dictionary<ISymbol?, ServiceModel[]> dependencyDictionary)
+    public IEnumerable<ServiceModel> GetAllNestedParameters(IDictionary<ISymbol?, List<ServiceModel>> dependencyDictionary)
     {
         foreach (var serviceModel in Parameters
                      .Where(x => dependencyDictionary.Keys.Contains(x.Type, SymbolEqualityComparer.Default))

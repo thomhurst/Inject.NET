@@ -10,12 +10,12 @@ namespace Inject.NET.SourceGenerator;
 internal static class ParameterHelper
 {
     public static IEnumerable<string> BuildParameters(INamedTypeSymbol serviceProviderType,
-        Dictionary<ISymbol?, ServiceModel[]> dependencies,
-        Dictionary<ISymbol?, ServiceModel[]> parentDependencies, ServiceModel serviceModel, Lifetime currentLifetime)
+        IDictionary<ISymbol?, List<ServiceModel>> dependencies,
+        ServiceModel serviceModel, Lifetime currentLifetime)
     {
         foreach (var parameter in serviceModel.Parameters)
         {
-            if (WriteParameter(serviceProviderType, dependencies, parentDependencies, parameter, serviceModel, currentLifetime) is { } written)
+            if (WriteParameter(serviceProviderType, dependencies, parameter, serviceModel, currentLifetime) is { } written)
             {
                 yield return written;
             }
@@ -23,13 +23,12 @@ internal static class ParameterHelper
     }
 
     public static string? WriteParameter(INamedTypeSymbol serviceProviderType,
-        Dictionary<ISymbol?, ServiceModel[]> dependencyDictionary,
-        Dictionary<ISymbol?, ServiceModel[]> parentDependencies,
+        IDictionary<ISymbol?, List<ServiceModel>> dependencies,
         Parameter parameter,
         ServiceModel serviceModel,
         Lifetime currentLifetime)
     {
-        ServiceModel[]? models = null;
+        List<ServiceModel>? models = null;
         
         if (parameter.Type is ITypeParameterSymbol typeParameterSymbol)
         {
@@ -40,10 +39,17 @@ internal static class ParameterHelper
             {
                 var subtitutedType = serviceModel.ServiceType.TypeArguments[substitutedTypeIndex];
 
-                if (!dependencyDictionary.TryGetValue(subtitutedType, out models))
+                if (!dependencies.TryGetValue(subtitutedType, out models))
                 {
                     var key = parameter.Key is null ? "null" : $"\"{parameter.Key}\"";
 
+                    if (serviceModel.ResolvedFromParent)
+                    {
+                        return parameter.IsOptional
+                            ? $"parentScope.GetOptionalService<{subtitutedType.GloballyQualified()}>({key})"
+                            : $"parentScope.GetRequiredService<{subtitutedType.GloballyQualified()}>({key})"; 
+                    }
+                    
                     return parameter.IsOptional
                         ? $"scope.GetOptionalService<{subtitutedType.GloballyQualified()}>({key})"
                         : $"scope.GetRequiredService<{subtitutedType.GloballyQualified()}>({key})";
@@ -51,17 +57,11 @@ internal static class ParameterHelper
             }
         }
 
-        if (models is null && !dependencyDictionary.TryGetValue(parameter.Type, out models))
+        if (models is null && !dependencies.TryGetValue(parameter.Type, out models))
         {
             if (parameter.Type is not INamedTypeSymbol { IsGenericType: true } genericType
-                || !dependencyDictionary.TryGetValue(genericType.ConstructUnboundGenericType(), out models))
+                || !dependencies.TryGetValue(genericType.ConstructUnboundGenericType(), out models))
             {
-                if (parentDependencies.Keys.Contains(parameter.Type, SymbolEqualityComparer.Default))
-                {
-                    return WriteParameter(serviceProviderType, parentDependencies, [], parameter, serviceModel,
-                        currentLifetime);
-                } 
-                    
                 if (parameter.IsOptional)
                 {
                     return null;
@@ -78,11 +78,16 @@ internal static class ParameterHelper
 
         if (parameter.IsEnumerable)
         {
+            if(serviceModel.ResolvedFromParent)
+            {
+                return $"parentScope.GetServices<{parameter.Type.GloballyQualified()}>({parameter.Key})";
+            }
+
             return $"scope.GetServices<{parameter.Type.GloballyQualified()}>({parameter.Key})";
         }
 
         var lastModel = models.Last();
         
-        return TypeHelper.GetOrConstructType(serviceProviderType, dependencyDictionary, parentDependencies, lastModel, currentLifetime);
+        return TypeHelper.GetOrConstructType(serviceProviderType, dependencies, lastModel, currentLifetime);
     }
 }

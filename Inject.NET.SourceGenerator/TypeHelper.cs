@@ -7,8 +7,7 @@ internal static class TypeHelper
 {
     public static string GetOrConstructType(
         INamedTypeSymbol serviceProviderType,
-        Dictionary<ISymbol?, ServiceModel[]> dependencies,
-        Dictionary<ISymbol?, ServiceModel[]> parentDependencies,
+        IDictionary<ISymbol?, List<ServiceModel>> dependencies,
         ServiceModel serviceModel,
         Lifetime currentLifetime)
     {
@@ -18,44 +17,38 @@ internal static class TypeHelper
                 $"global::Inject.NET.ThrowHelpers.Throw<{serviceModel.ServiceType.GloballyQualified()}>(\"Injecting type {serviceModel.ImplementationType.Name} with a lifetime of {serviceModel.Lifetime} into an object with a lifetime of {currentLifetime} will cause it to also be {currentLifetime}\")";
         }
 
-        if (!dependencies.Keys.Contains(serviceModel.ServiceType, SymbolEqualityComparer.Default) &&
-            !parentDependencies.Keys.Contains(serviceModel.ServiceType, SymbolEqualityComparer.Default))
+        if (!dependencies.Keys.Contains(serviceModel.ServiceType, SymbolEqualityComparer.Default))
         {
             return
                 $"global::Inject.NET.ThrowHelpers.Throw<{serviceModel.ServiceType.GloballyQualified()}>(\"No dependency found for {serviceModel.ServiceType.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)}\")";
         }
-        
-        if (!dependencies.Keys.Contains(serviceModel.ServiceType, SymbolEqualityComparer.Default))
+
+        if (serviceModel.Lifetime == Lifetime.Singleton)
         {
-            switch (serviceModel.Lifetime)
+            if (serviceModel.ResolvedFromParent)
             {
-                case Lifetime.Singleton:
-                    return $"Singletons.ParentScope.{PropertyNameHelper.Format(serviceModel)}";
-                case Lifetime.Scoped:
-                    return $"_parentScope.{PropertyNameHelper.Format(serviceModel)}";
-                case Lifetime.Transient:
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
+                return $"Singletons.ParentScope.{PropertyNameHelper.Format(serviceModel)}";
             }
+
+            return $"Singletons.{PropertyNameHelper.Format(serviceModel)}";
         }
 
-        if(serviceModel.Lifetime != Lifetime.Transient)
+        if (serviceModel.Lifetime == Lifetime.Scoped)
         {
-            switch (serviceModel.Lifetime)
+            if (serviceModel.ResolvedFromParent)
             {
-                case Lifetime.Singleton:
-                    return $"Singletons.{PropertyNameHelper.Format(serviceModel)}";
-                case Lifetime.Scoped:
-                    return PropertyNameHelper.Format(serviceModel);
-                case Lifetime.Transient:
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
+                return $"_parentScope.{PropertyNameHelper.Format(serviceModel)}";
             }
+
+            return $"{PropertyNameHelper.Format(serviceModel)}";
         }
 
-        return ObjectConstructionHelper.ConstructNewObject(serviceProviderType, dependencies, parentDependencies,
-            serviceModel, currentLifetime);
+        if (serviceModel.Lifetime == Lifetime.Transient)
+        {
+            return ObjectConstructionHelper.ConstructNewObject(serviceProviderType, dependencies,
+                serviceModel, currentLifetime);
+        }
+
+        throw new ArgumentOutOfRangeException();
     }
 }

@@ -6,7 +6,7 @@ namespace Inject.NET.SourceGenerator.Writers;
 internal static class TenantSingletonScopeWriter
 {
     public static void Write(SourceProductionContext sourceProductionContext, SourceCodeWriter sourceCodeWriter,
-        Compilation compilation, TypedServiceProviderModel serviceProviderModel, ServiceProviderInformation serviceProviderInformation, Tenant tenant)
+        Compilation compilation, TypedServiceProviderModel serviceProviderModel, ServiceModelCollection serviceModelCollection, Tenant tenant)
     {
         var className = $"SingletonScope_{tenant.Guid}";
 
@@ -19,13 +19,6 @@ internal static class TenantSingletonScopeWriter
             $"public {className}(ServiceProvider_{tenant.Guid} serviceProvider, ServiceFactories serviceFactories, SingletonScope_ parentScope) : base(serviceProvider, serviceFactories, parentScope)");
         sourceCodeWriter.WriteLine("{");
         
-        foreach (var serviceModel in singletonModels)
-        {
-            var propertyName = PropertyNameHelper.Format(serviceModel);
-            
-            sourceCodeWriter.WriteLine($"Register({serviceModel.GetKey()}, () => {propertyName});");
-        }
-        
         sourceCodeWriter.WriteLine("}");
         
         foreach (var serviceModel in singletonModels)
@@ -35,12 +28,10 @@ internal static class TenantSingletonScopeWriter
             var propertyName = PropertyNameHelper.Format(serviceModel);
                     
             sourceCodeWriter.WriteLine(
-                $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => field ??= Register({serviceModel.GetKey()}, {ObjectConstructionHelper.ConstructNewObject(serviceProviderInformation.ServiceProviderType, tenant.TenantDependencies, tenant.RootDependencies, serviceModel, Lifetime.Singleton)});");
+                $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => field ??= Register({ObjectConstructionHelper.ConstructNewObject(serviceProviderModel.Type, serviceModelCollection.Services, serviceModel, Lifetime.Singleton)});");
         }
 
-        foreach (var (_, serviceModels) in serviceProviderInformation.ParentDependencies
-                     .Where(x => !serviceProviderInformation.Dependencies.Keys.Contains(x.Key,
-                         SymbolEqualityComparer.Default)))
+        foreach (var (_, serviceModels) in serviceModelCollection.Services)
         {
             var serviceModel = serviceModels.Last();
 
@@ -57,7 +48,7 @@ internal static class TenantSingletonScopeWriter
         sourceCodeWriter.WriteLine("}");
     }
     
-    private static IEnumerable<ServiceModel> GetSingletonModels(Dictionary<ISymbol?, ServiceModel[]> dependencies)
+    private static IEnumerable<ServiceModel> GetSingletonModels(IDictionary<ISymbol?, List<ServiceModel>> dependencies)
     {
         foreach (var (_, serviceModels) in dependencies)
         {

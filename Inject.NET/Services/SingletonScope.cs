@@ -16,60 +16,26 @@ where TParentServiceScope : IServiceScope
 {
     public TSelf Singletons => (TSelf)this;
     public TParentSingletonScope? ParentScope { get; } = parentScope;
-    
-    private Dictionary<ServiceKey, object>? _cachedObjects;
-    private Dictionary<ServiceKey, List<object>>? _cachedEnumerables;
 
-    private readonly ConcurrentDictionary<ServiceKey, List<object>> _singletonsBuilder = [];
-    
-    private Dictionary<ServiceKey, Func<object>>? _registeredFactories;
-    private Dictionary<ServiceKey, List<Func<object>>>? _registeredEnumerableFactories;
-    
-    private bool _isBuilt;
+    protected readonly List<object?> ConstructedObjects = [];
     
     public TServiceProvider ServiceProvider { get; } = serviceProvider;
-
-    public void PreBuild()
-    {
-        foreach (var cacheKey in GetSingletonKeys())
-        {
-            GetServices(cacheKey);
-        }
-    }
     
-    public T Register<T>(ServiceKey key, T value)
+    public T Register<T>(T value)
     {
-        (_cachedObjects ??= Pools.Objects.Get())[key] = value!;
-        
-        (_cachedEnumerables ??= Pools.Enumerables.Get())
-            .GetOrAdd(key, _ => [])
-            .Add(value!);
+        ConstructedObjects.Add(value);
 
         return value;
     }
-    
-    public void Register(ServiceKey key, Func<object> value)
-    {
-        (_registeredFactories ??= Pools.Funcs.Get())[key] = value;
-        
-        (_registeredEnumerableFactories ??= Pools.EnumerableFuncs.Get())
-            .GetOrAdd(key, _ => [])
-            .Add(value);
-    }
 
-    internal async Task FinalizeAsync()
+    public async Task InitializeAsync()
     {
-        if(_cachedEnumerables is not null)
+        foreach (var singletonAsyncInitialization in ConstructedObjects
+                     .OfType<ISingletonAsyncInitialization>()
+                     .OrderBy(x => x.Order))
         {
-            foreach (var singletonAsyncInitialization in _cachedEnumerables.SelectMany(s => s.Value)
-                         .OfType<ISingletonAsyncInitialization>()
-                         .OrderBy(x => x.Order))
-            {
-                await singletonAsyncInitialization.InitializeAsync();
-            }
+            await singletonAsyncInitialization.InitializeAsync();
         }
-
-        _isBuilt = true;
     }
 
     public object? GetService(Type type)
@@ -94,18 +60,8 @@ where TParentServiceScope : IServiceScope
         return GetServices(serviceKey, this);
     }
 
-    public object? GetService(ServiceKey serviceKey, IServiceScope originatingScope)
+    public virtual object? GetService(ServiceKey serviceKey, IServiceScope originatingScope)
     {
-        if (_cachedObjects?.TryGetValue(serviceKey, out var singleton) == true)
-        {
-            return singleton;
-        }
-
-        if (_registeredFactories?.TryGetValue(serviceKey, out var factory) == true)
-        {
-            return (_cachedObjects ??= Pools.Objects.Get())[serviceKey] = factory();
-        }
-        
         if (serviceKey.Type == Types.ServiceScope)
         {
             return this;
@@ -126,38 +82,9 @@ where TParentServiceScope : IServiceScope
         return services[^1];
     }
 
-    public IReadOnlyList<object> GetServices(ServiceKey serviceKey, IServiceScope originatingScope)
+    public virtual IReadOnlyList<object> GetServices(ServiceKey serviceKey, IServiceScope originatingScope)
     {
-        if (_cachedEnumerables?.TryGetValue(serviceKey, out var singletons) == true)
-        {
-            return _cachedEnumerables[serviceKey] = singletons;
-        }
-        
-        if (_registeredEnumerableFactories?.TryGetValue(serviceKey, out var factory) == true)
-        {
-            return (_cachedEnumerables ??= Pools.Enumerables.Get())[serviceKey] = factory.Select(x => x()).ToList();
-        }
-
-        if (!_isBuilt)
-        {
-            if (_singletonsBuilder.TryGetValue(serviceKey, out var cache))
-            {
-                return cache;
-            }
-
-            if (!serviceFactories.Descriptors.TryGetValue(serviceKey, out var descriptors))
-            {
-                return ParentScope?.GetServices(serviceKey, originatingScope) ?? Array.Empty<object>();
-            }
-
-            return _singletonsBuilder[serviceKey] =
-            [
-                ..descriptors
-                    .Where(x => x.Lifetime == Lifetime.Singleton)
-                    .Select(descriptor => descriptor.Factory(originatingScope, serviceKey.Type, descriptor.Key))
-            ];
-        }
-
+        // TODO;
         return [];
     }
 
@@ -172,29 +99,23 @@ where TParentServiceScope : IServiceScope
     
     public async ValueTask DisposeAsync()
     {
-        foreach (var item in _cachedEnumerables ?? Enumerable.Empty<KeyValuePair<ServiceKey, List<object>>>())
+        foreach (var item in ConstructedObjects)
         {
-            foreach (var obj in item.Value)
-            {
-                await Disposer.DisposeAsync(obj);
-            }
+            await Disposer.DisposeAsync(item);
         }
     }
 
     public void Dispose()
     {
-        foreach (var item in _cachedEnumerables ?? Enumerable.Empty<KeyValuePair<ServiceKey, List<object>>>())
+        foreach (var item in ConstructedObjects)
         {
-            foreach (var obj in item.Value)
+            if (item is IDisposable disposable)
             {
-                if (obj is IDisposable disposable)
-                {
-                    disposable.Dispose();
-                }
-                else if (obj is IAsyncDisposable asyncDisposable)
-                {
-                    _ = asyncDisposable.DisposeAsync();
-                }
+                disposable.Dispose();
+            }
+            else if (item is IAsyncDisposable asyncDisposable)
+            {
+                _ = asyncDisposable.DisposeAsync();
             }
         }
     }

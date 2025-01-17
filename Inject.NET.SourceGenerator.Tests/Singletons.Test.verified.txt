@@ -47,16 +47,27 @@ public partial class Singletons
 		{
 			public SingletonScope_(ServiceProvider_ serviceProvider, ServiceFactories serviceFactories) : base(serviceProvider, serviceFactories, null)
 			{
-				Register(new ServiceKey { Type = typeof(global::Inject.NET.Tests.Singletons.SingletonClass), Key = null }, () => Inject__NET__Tests__Singletons__SingletonClass);
 			}
 
 			[field: AllowNull, MaybeNull]
-			public global::Inject.NET.Tests.Singletons.SingletonClass Inject__NET__Tests__Singletons__SingletonClass => field ??= Register(new ServiceKey { Type = typeof(global::Inject.NET.Tests.Singletons.SingletonClass), Key = null }, new global::Inject.NET.Tests.Singletons.SingletonClass());
+			public global::Inject.NET.Tests.Singletons.SingletonClass Inject__NET__Tests__Singletons__SingletonClass => field ??= Register(new global::Inject.NET.Tests.Singletons.SingletonClass());
 		}
 		public class ServiceScope_ : global::Inject.NET.Services.ServiceScope<ServiceScope_, ServiceProvider_, SingletonScope_, ServiceScope_, SingletonScope_, ServiceProvider_>
 		{
 			public ServiceScope_(ServiceProvider_ serviceProvider, ServiceFactories serviceFactories) : base(serviceProvider, serviceFactories, null)
 			{
+			}
+
+			[field: AllowNull, MaybeNull]
+			public global::Inject.NET.Tests.Singletons.SingletonClass Inject__NET__Tests__Singletons__SingletonClass => field ??= Singletons.Inject__NET__Tests__Singletons__SingletonClass;
+
+			public virtual object? GetService(ServiceKey serviceKey, IServiceScope originatingScope)
+			{
+				if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.Tests.Singletons.SingletonClass), Key = null })
+				{
+					return Inject__NET__Tests__Singletons__SingletonClass;
+				}
+				return base.GetService(serviceKey, originatingScope);
 			}
 		}
 		public class ServiceProvider_(global::Inject.NET.Models.ServiceFactories serviceFactories) : global::Inject.NET.Services.ServiceProvider<ServiceProvider_, SingletonScope_, ServiceScope_, ServiceProvider_, SingletonScope_, ServiceScope_>(serviceFactories, null)
@@ -70,6 +81,7 @@ public partial class Singletons
 			public ServiceProvider_GUID TenantGUID { get; private set; } = null!;
 			public override async ValueTask InitializeAsync()
 			{
+				await Singletons.InitializeAsync();
 				await using var scope = CreateTypedScope();
 				_ = Singletons.Inject__NET__Tests__Singletons__SingletonClass;
 				TenantGUID = await ServiceProvider_GUID.BuildAsync(this);
@@ -121,6 +133,7 @@ public partial class Singletons
 				new ServiceRegistrarGUID().BuildAsync(serviceProvider);
 			public override async ValueTask InitializeAsync()
 			{
+				await Singletons.InitializeAsync();
 				await using var scope = CreateTypedScope();
 
 				await base.InitializeAsync();
@@ -159,11 +172,10 @@ public partial class Singletons
 		{
 			public SingletonScope_GUID(ServiceProvider_GUID serviceProvider, ServiceFactories serviceFactories, SingletonScope_ parentScope) : base(serviceProvider, serviceFactories, parentScope)
 			{
-				Register(new ServiceKey { Type = typeof(global::Inject.NET.Tests.Singletons.SingletonClass), Key = null }, () => Inject__NET__Tests__Singletons__SingletonClass);
 			}
 
 			[field: AllowNull, MaybeNull]
-			public global::Inject.NET.Tests.Singletons.SingletonClass Inject__NET__Tests__Singletons__SingletonClass => field ??= Register(new ServiceKey { Type = typeof(global::Inject.NET.Tests.Singletons.SingletonClass), Key = null }, new global::Inject.NET.Tests.Singletons.SingletonClass());
+			public global::Inject.NET.Tests.Singletons.SingletonClass Inject__NET__Tests__Singletons__SingletonClass => field ??= Register(new global::Inject.NET.Tests.Singletons.SingletonClass());
 		}
 		public class ServiceScope_GUID : global::Inject.NET.Services.ServiceScope<ServiceScope_GUID, ServiceProvider_GUID, SingletonScope_GUID, ServiceScope_, SingletonScope_, ServiceProvider_>
 		{
@@ -180,6 +192,7 @@ public partial class Singletons
 				new ServiceRegistrarGUID().BuildAsync(serviceProvider);
 			public override async ValueTask InitializeAsync()
 			{
+				await Singletons.InitializeAsync();
 				await using var scope = CreateTypedScope();
 				_ = Singletons.Inject__NET__Tests__Singletons__SingletonClass;
 

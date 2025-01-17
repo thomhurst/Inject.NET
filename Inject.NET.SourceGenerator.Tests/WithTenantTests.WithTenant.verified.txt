@@ -45,16 +45,27 @@ public partial class WithTenant
 	{
 		public SingletonScope_(ServiceProvider_ serviceProvider, ServiceFactories serviceFactories) : base(serviceProvider, serviceFactories, null)
 		{
-			Register(new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.Models.Class1), Key = null }, () => Inject__NET__SourceGenerator__Sample__Models__Class1);
 		}
 
 		[field: AllowNull, MaybeNull]
-		public global::Inject.NET.SourceGenerator.Sample.Models.Class1 Inject__NET__SourceGenerator__Sample__Models__Class1 => field ??= Register(new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.Models.Class1), Key = null }, new global::Inject.NET.SourceGenerator.Sample.Models.Class1());
+		public global::Inject.NET.SourceGenerator.Sample.Models.Class1 Inject__NET__SourceGenerator__Sample__Models__Class1 => field ??= Register(new global::Inject.NET.SourceGenerator.Sample.Models.Class1());
 	}
 	public class ServiceScope_ : global::Inject.NET.Services.ServiceScope<ServiceScope_, ServiceProvider_, SingletonScope_, ServiceScope_, SingletonScope_, ServiceProvider_>
 	{
 		public ServiceScope_(ServiceProvider_ serviceProvider, ServiceFactories serviceFactories) : base(serviceProvider, serviceFactories, null)
 		{
+		}
+
+		[field: AllowNull, MaybeNull]
+		public global::Inject.NET.SourceGenerator.Sample.Models.Class1 Inject__NET__SourceGenerator__Sample__Models__Class1 => field ??= Singletons.Inject__NET__SourceGenerator__Sample__Models__Class1;
+
+		public virtual object? GetService(ServiceKey serviceKey, IServiceScope originatingScope)
+		{
+			if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.Models.Class1), Key = null })
+			{
+				return Inject__NET__SourceGenerator__Sample__Models__Class1;
+			}
+			return base.GetService(serviceKey, originatingScope);
 		}
 	}
 	public class ServiceProvider_(global::Inject.NET.Models.ServiceFactories serviceFactories) : global::Inject.NET.Services.ServiceProvider<ServiceProvider_, SingletonScope_, ServiceScope_, ServiceProvider_, SingletonScope_, ServiceScope_>(serviceFactories, null)
@@ -66,6 +77,7 @@ public partial class WithTenant
 		public ServiceProvider_GUID TenantGUID { get; private set; } = null!;
 		public override async ValueTask InitializeAsync()
 		{
+			await Singletons.InitializeAsync();
 			await using var scope = CreateTypedScope();
 			_ = Singletons.Inject__NET__SourceGenerator__Sample__Models__Class1;
 			TenantGUID = await ServiceProvider_GUID.BuildAsync(this);
@@ -107,11 +119,10 @@ public partial class WithTenant
 	{
 		public SingletonScope_GUID(ServiceProvider_GUID serviceProvider, ServiceFactories serviceFactories, SingletonScope_ parentScope) : base(serviceProvider, serviceFactories, parentScope)
 		{
-			Register(new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.Models.InheritsFromClass1), Key = null }, () => Inject__NET__SourceGenerator__Sample__Models__InheritsFromClass1);
 		}
 
 		[field: AllowNull, MaybeNull]
-		public global::Inject.NET.SourceGenerator.Sample.Models.InheritsFromClass1 Inject__NET__SourceGenerator__Sample__Models__InheritsFromClass1 => field ??= Register(new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.Models.InheritsFromClass1), Key = null }, new global::Inject.NET.SourceGenerator.Sample.Models.InheritsFromClass1());
+		public global::Inject.NET.SourceGenerator.Sample.Models.InheritsFromClass1 Inject__NET__SourceGenerator__Sample__Models__InheritsFromClass1 => field ??= Register(global::Inject.NET.ThrowHelpers.Throw<global::Inject.NET.SourceGenerator.Sample.Models.InheritsFromClass1>("No dependency found for Inject.NET.SourceGenerator.Sample.Models.InheritsFromClass1"));
 	}
 	public class ServiceScope_GUID : global::Inject.NET.Services.ServiceScope<ServiceScope_GUID, ServiceProvider_GUID, SingletonScope_GUID, ServiceScope_, SingletonScope_, ServiceProvider_>
 	{
@@ -128,6 +139,7 @@ public partial class WithTenant
 			new ServiceRegistrarGUID().BuildAsync(serviceProvider);
 		public override async ValueTask InitializeAsync()
 		{
+			await Singletons.InitializeAsync();
 			await using var scope = CreateTypedScope();
 			_ = Singletons.Inject__NET__SourceGenerator__Sample__Models__InheritsFromClass1;
 

@@ -5,7 +5,7 @@ namespace Inject.NET.SourceGenerator;
 
 public class TypeCollector
 {
-    public static TenantedServiceProviderInformation Collect(TypedServiceProviderModel serviceProviderModel, Compilation compilation)
+    public static TenantedServiceModelCollection Collect(TypedServiceProviderModel serviceProviderModel, Compilation compilation)
     {
         var dependencyInjectionAttributeType = compilation.GetTypeByMetadataName("Inject.NET.Attributes.IDependencyInjectionAttribute");
 
@@ -27,44 +27,6 @@ public class TypeCollector
 
         var tenants = TenantHelper.ConstructTenants(compilation, withTenantAttributes, rootDependencies);
         
-        return new TenantedServiceProviderInformation(serviceProviderModel.Type, rootDependencies, tenants);
+        return new TenantedServiceModelCollection(serviceProviderModel.Type, rootDependencies.SelectMany(x => x.Value).ToArray(), tenants);
     }
-}
-
-public record TenantedServiceProviderInformation(INamedTypeSymbol ServiceProviderType, Dictionary<ISymbol?,ServiceModel[]> RootDependencies, Tenant[] Tenants) : ServiceProviderInformation(ServiceProviderType, RootDependencies)
-{
-    public Dictionary<Tenant, ServiceProviderInformation> TenantDependencies { get; } =
-        Tenants.ToDictionary(t => t, t => new ServiceProviderInformation(ServiceProviderType, t.TenantDependencies)
-        {
-            ParentDependencies = RootDependencies
-        });
-}
-
-public record ServiceProviderInformation
-{
-    public ServiceProviderInformation(INamedTypeSymbol serviceProviderType,
-        Dictionary<ISymbol?, ServiceModel[]> dependencies)
-    {
-        ServiceProviderType = serviceProviderType;
-        Dependencies = dependencies;
-        
-        Enumerables = dependencies.ToDictionary(
-            serviceTypes => serviceTypes.Key,
-            keyValuePair => keyValuePair.Value.ToArray(),
-            SymbolEqualityComparer.Default);
-        
-        Singular = dependencies.ToDictionary(
-            serviceTypes => serviceTypes.Key,
-            keyValuePair => keyValuePair.Value[^1],
-            SymbolEqualityComparer.Default);
-    }
-
-    public Dictionary<ISymbol?, ServiceModel[]> ParentDependencies { get; init; } = [];
-    
-    public Dictionary<ISymbol?, ServiceModel[]> Enumerables { get; }
-
-    public Dictionary<ISymbol?, ServiceModel> Singular { get; }
-
-    public INamedTypeSymbol ServiceProviderType { get; init; }
-    public Dictionary<ISymbol?, ServiceModel[]> Dependencies { get; init; }
 }

@@ -53,11 +53,19 @@ public partial class Scoped
 		{
 			public ServiceScope_(ServiceProvider_ serviceProvider, ServiceFactories serviceFactories) : base(serviceProvider, serviceFactories, null)
 			{
-				Register(new ServiceKey { Type = typeof(global::Inject.NET.Tests.Scoped.ScopedClass), Key = null }, () => Inject__NET__Tests__Scoped__ScopedClass);
 			}
 
 			[field: AllowNull, MaybeNull]
 			public global::Inject.NET.Tests.Scoped.ScopedClass Inject__NET__Tests__Scoped__ScopedClass => field ??= Register(new ServiceKey { Type = typeof(global::Inject.NET.Tests.Scoped.ScopedClass), Key = null }, new global::Inject.NET.Tests.Scoped.ScopedClass());
+
+			public virtual object? GetService(ServiceKey serviceKey, IServiceScope originatingScope)
+			{
+				if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.Tests.Scoped.ScopedClass), Key = null })
+				{
+					return Inject__NET__Tests__Scoped__ScopedClass;
+				}
+				return base.GetService(serviceKey, originatingScope);
+			}
 		}
 		public class ServiceProvider_(global::Inject.NET.Models.ServiceFactories serviceFactories) : global::Inject.NET.Services.ServiceProvider<ServiceProvider_, SingletonScope_, ServiceScope_, ServiceProvider_, SingletonScope_, ServiceScope_>(serviceFactories, null)
 		{
@@ -70,6 +78,7 @@ public partial class Scoped
 			public ServiceProvider_GUID TenantGUID { get; private set; } = null!;
 			public override async ValueTask InitializeAsync()
 			{
+				await Singletons.InitializeAsync();
 				await using var scope = CreateTypedScope();
 				_ = scope.Inject__NET__Tests__Scoped__ScopedClass;
 				TenantGUID = await ServiceProvider_GUID.BuildAsync(this);
@@ -105,6 +114,7 @@ public partial class Scoped
 			public SingletonScope_GUID(ServiceProvider_GUID serviceProvider, ServiceFactories serviceFactories, SingletonScope_ parentScope) : base(serviceProvider, serviceFactories, parentScope)
 			{
 			}
+			public global::Inject.NET.Tests.Scoped.ScopedClass Inject__NET__Tests__Scoped__ScopedClass => ServiceProvider.Singletons.Inject__NET__Tests__Scoped__ScopedClass;
 		}
 		public class ServiceScope_GUID : global::Inject.NET.Services.ServiceScope<ServiceScope_GUID, ServiceProvider_GUID, SingletonScope_GUID, ServiceScope_, SingletonScope_, ServiceProvider_>
 		{
@@ -121,6 +131,7 @@ public partial class Scoped
 				new ServiceRegistrarGUID().BuildAsync(serviceProvider);
 			public override async ValueTask InitializeAsync()
 			{
+				await Singletons.InitializeAsync();
 				await using var scope = CreateTypedScope();
 
 				await base.InitializeAsync();
@@ -160,12 +171,12 @@ public partial class Scoped
 			public SingletonScope_GUID(ServiceProvider_GUID serviceProvider, ServiceFactories serviceFactories, SingletonScope_ parentScope) : base(serviceProvider, serviceFactories, parentScope)
 			{
 			}
+			public global::Inject.NET.Tests.Scoped.ScopedClass Inject__NET__Tests__Scoped__ScopedClass => ServiceProvider.Singletons.Inject__NET__Tests__Scoped__ScopedClass;
 		}
 		public class ServiceScope_GUID : global::Inject.NET.Services.ServiceScope<ServiceScope_GUID, ServiceProvider_GUID, SingletonScope_GUID, ServiceScope_, SingletonScope_, ServiceProvider_>
 		{
 			public ServiceScope_GUID(ServiceProvider_GUID serviceProvider, ServiceFactories serviceFactories, ServiceScope_ parentScope) : base(serviceProvider, serviceFactories, parentScope)
 			{
-				Register(new ServiceKey { Type = typeof(global::Inject.NET.Tests.Scoped.ScopedClass), Key = null }, () => Inject__NET__Tests__Scoped__ScopedClass);
 			}
 
 			[field: AllowNull, MaybeNull]
@@ -180,6 +191,7 @@ public partial class Scoped
 				new ServiceRegistrarGUID().BuildAsync(serviceProvider);
 			public override async ValueTask InitializeAsync()
 			{
+				await Singletons.InitializeAsync();
 				await using var scope = CreateTypedScope();
 				_ = scope.Inject__NET__Tests__Scoped__ScopedClass;
 

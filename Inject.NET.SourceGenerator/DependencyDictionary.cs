@@ -1,11 +1,12 @@
-﻿using Inject.NET.SourceGenerator.Models;
+﻿using System.Diagnostics.CodeAnalysis;
+using Inject.NET.SourceGenerator.Models;
 using Microsoft.CodeAnalysis;
 
 namespace Inject.NET.SourceGenerator;
 
 internal static class DependencyDictionary
 {
-    public static Dictionary<ISymbol?, ServiceModel[]> Create(Compilation compilation, AttributeData[] dependencyAttributes)
+    public static IDictionary<ISymbol?, List<ServiceModel>> Create(Compilation compilation, AttributeData[] dependencyAttributes)
     {
         var list = new List<ServiceModelBuilder>();
         
@@ -107,7 +108,7 @@ internal static class DependencyDictionary
                     Lifetime = smb.Lifetime,
                     IsOpenGeneric = smb.IsOpenGeneric,
                     Parameters = smb.Parameters.ToArray()
-                }).ToArray(), SymbolEqualityComparer.Default);
+                }).ToList(), SymbolEqualityComparer.Default);
         
         return enumerableDictionary;
     }
@@ -205,9 +206,21 @@ internal static class DependencyDictionary
 
 public class Tenant
 {
-    public string Guid { get; } = System.Guid.NewGuid().ToString("N");
+    [field: AllowNull, MaybeNull]
+    public string Guid => field ??= GenerateId();
+
+    private string GenerateId()
+    {
+        if (TenantId.All(x => char.IsLetterOrDigit(x) || x == '_'))
+        {
+            return TenantId;
+        }
+
+        return System.Guid.NewGuid().ToString("N");
+    }
+
     public required INamedTypeSymbol TenantDefinition { get; init; }
     public required string TenantId { get; init; }
-    public required Dictionary<ISymbol?, ServiceModel[]> RootDependencies { get; init; }
-    public required Dictionary<ISymbol?, ServiceModel[]> TenantDependencies { get; init; }
+    public required IDictionary<ISymbol?, List<ServiceModel>> RootDependencies { get; init; }
+    public required IDictionary<ISymbol?, List<ServiceModel>> TenantDependencies { get; init; }
 }

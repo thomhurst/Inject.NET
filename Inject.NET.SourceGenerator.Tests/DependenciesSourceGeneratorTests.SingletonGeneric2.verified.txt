@@ -45,16 +45,27 @@ public partial class SingletonGeneric2
 	{
 		public SingletonScope_(ServiceProvider_ serviceProvider, ServiceFactories serviceFactories) : base(serviceProvider, serviceFactories, null)
 		{
-			Register(new ServiceKey { Type = typeof(IGeneric<>), Key = null }, () => IGeneric__);
 		}
 
 		[field: AllowNull, MaybeNull]
-		public IGeneric<> IGeneric__ => field ??= Register(new ServiceKey { Type = typeof(IGeneric<>), Key = null }, new Generic<>());
+		public IGeneric<> IGeneric__ => field ??= Register(new Generic<>());
 	}
 	public class ServiceScope_ : global::Inject.NET.Services.ServiceScope<ServiceScope_, ServiceProvider_, SingletonScope_, ServiceScope_, SingletonScope_, ServiceProvider_>
 	{
 		public ServiceScope_(ServiceProvider_ serviceProvider, ServiceFactories serviceFactories) : base(serviceProvider, serviceFactories, null)
 		{
+		}
+
+		[field: AllowNull, MaybeNull]
+		public IGeneric<> IGeneric__ => field ??= Singletons.IGeneric__;
+
+		public virtual object? GetService(ServiceKey serviceKey, IServiceScope originatingScope)
+		{
+			if (serviceKey == new ServiceKey { Type = typeof(IGeneric<>), Key = null })
+			{
+				return IGeneric__;
+			}
+			return base.GetService(serviceKey, originatingScope);
 		}
 	}
 	public class ServiceProvider_(global::Inject.NET.Models.ServiceFactories serviceFactories) : global::Inject.NET.Services.ServiceProvider<ServiceProvider_, SingletonScope_, ServiceScope_, ServiceProvider_, SingletonScope_, ServiceScope_>(serviceFactories, null)
@@ -64,6 +75,7 @@ public partial class SingletonGeneric2
 		public override ServiceScope_ CreateTypedScope() => new ServiceScope_(this, serviceFactories);
 		public override async ValueTask InitializeAsync()
 		{
+			await Singletons.InitializeAsync();
 			await using var scope = CreateTypedScope();
 			_ = Singletons.IGeneric__;
 

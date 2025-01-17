@@ -7,10 +7,10 @@ namespace Inject.NET.SourceGenerator.Writers;
 internal static class ServiceProviderWriter
 {
     public static void Write(SourceProductionContext sourceProductionContext, SourceCodeWriter sourceCodeWriter,
-        TypedServiceProviderModel serviceProviderModel, TenantedServiceProviderInformation serviceProviderInformation,
+        TypedServiceProviderModel serviceProviderModel, TenantedServiceModelCollection tenantedServiceModelCollection,
         Tenant[] tenants)
     {
-        var serviceProviderType = serviceProviderInformation.ServiceProviderType;
+        var serviceProviderType = tenantedServiceModelCollection.ServiceProviderType;
                 
         sourceCodeWriter.WriteLine(
             $"{serviceProviderType.DeclaredAccessibility.ToString().ToLower(CultureInfo.InvariantCulture)} class ServiceProvider_(global::Inject.NET.Models.ServiceFactories serviceFactories) : global::Inject.NET.Services.ServiceProvider<ServiceProvider_, SingletonScope_, ServiceScope_, ServiceProvider_, SingletonScope_, ServiceScope_>(serviceFactories, null)");
@@ -27,22 +27,25 @@ internal static class ServiceProviderWriter
         {
             sourceCodeWriter.WriteLine("[field: AllowNull, MaybeNull]");
             
-            sourceCodeWriter.WriteLine($$"""public ServiceProvider_{{tenant.Guid}} Tenant{{tenant.Guid}} { get; private set; } = null!;""");
+            sourceCodeWriter.WriteLine($$"""public ServiceProvider_{{tenant.Guid}} Tenant_{{tenant.Guid}} { get; private set; } = null!;""");
         }
                 
-        WriteInitializeAsync(sourceCodeWriter, serviceProviderInformation, tenants);
+        WriteInitializeAsync(sourceCodeWriter, tenantedServiceModelCollection, tenants);
 
         sourceCodeWriter.WriteLine("}");
     }
 
     private static void WriteInitializeAsync(SourceCodeWriter sourceCodeWriter,
-        TenantedServiceProviderInformation serviceProviderInformation, Tenant[] tenants)
+        TenantedServiceModelCollection tenantedServiceModelCollection, Tenant[] tenants)
     {
         sourceCodeWriter.WriteLine("public override async ValueTask InitializeAsync()");
         sourceCodeWriter.WriteLine("{");
         
+        sourceCodeWriter.WriteLine("await Singletons.InitializeAsync();");
+
         sourceCodeWriter.WriteLine("await using var scope = CreateTypedScope();");
-        foreach (var serviceModel in serviceProviderInformation.Dependencies.Where(x => x.Key is INamedTypeSymbol { IsUnboundGenericType: false }).Select(x => x.Value[^1]))
+        
+        foreach (var serviceModel in tenantedServiceModelCollection.Services.Where(x => x.Key is INamedTypeSymbol { IsUnboundGenericType: false }).Select(x => x.Value[^1]))
         {
             if(serviceModel.Lifetime == Lifetime.Singleton)
             {
@@ -56,8 +59,8 @@ internal static class ServiceProviderWriter
 
         foreach (var tenant in tenants)
         {
-            sourceCodeWriter.WriteLine($"Tenant{tenant.Guid} = await ServiceProvider_{tenant.Guid}.BuildAsync(this);");
-            sourceCodeWriter.WriteLine($"Register(\"{tenant.TenantId}\", Tenant{tenant.Guid});");
+            sourceCodeWriter.WriteLine($"Tenant_{tenant.Guid} = await ServiceProvider_{tenant.Guid}.BuildAsync(this);");
+            sourceCodeWriter.WriteLine($"Register(\"{tenant.TenantId}\", Tenant_{tenant.Guid});");
         }
         
         sourceCodeWriter.WriteLine();

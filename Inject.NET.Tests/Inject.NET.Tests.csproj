@@ -12,11 +12,6 @@
         <ProjectReference Include="..\Inject.NET\Inject.NET.csproj" />
     </ItemGroup>
 
-    <PropertyGroup>
-<!--                <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>-->
-<!--                <CompilerGeneratedFilesOutputPath>GeneratedViewer</CompilerGeneratedFilesOutputPath>-->
-    </PropertyGroup>
-
     <ItemGroup>
       <PackageReference Include="TUnit" Version="0.6.33" />
     </ItemGroup>

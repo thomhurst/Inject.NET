@@ -46,7 +46,7 @@ public partial class Scoped
         await using var serviceProvider = await ScopedServiceProvider.BuildAsync();
 
         await using var scope = serviceProvider.CreateScope();
-        await using var scope2 = serviceProvider.GetTenant("NonOverridingTenant").CreateScope();
+        await using var scope2 = serviceProvider.GetTenant<ScopedServiceProvider.NonOverridingTenant>().CreateScope();
 
         var a = scope.GetRequiredService<ScopedClass>();
         var b = scope2.GetRequiredService<ScopedClass>();
@@ -60,7 +60,7 @@ public partial class Scoped
         await using var serviceProvider = await ScopedServiceProvider.BuildAsync();
 
         await using var scope = serviceProvider.CreateScope();
-        await using var scope2 = serviceProvider.GetTenant("OverridingTenant").CreateScope();
+        await using var scope2 = serviceProvider.GetTenant<ScopedServiceProvider.OverridingTenant>().CreateScope();
 
         var a = scope.GetRequiredService<ScopedClass>();
         var b = scope2.GetRequiredService<ScopedClass>();
@@ -73,7 +73,7 @@ public partial class Scoped
     {
         await using var serviceProvider = await ScopedServiceProvider.BuildAsync();
 
-        await using var scope = serviceProvider.GetTenant("OverridingTenant").CreateScope();
+        await using var scope = serviceProvider.GetTenant<ScopedServiceProvider.OverridingTenant>().CreateScope();
 
         var a = scope.GetRequiredService<ScopedClass>();
         var b = scope.GetRequiredService<ScopedClass>();
@@ -86,8 +86,8 @@ public partial class Scoped
     {
         await using var serviceProvider = await ScopedServiceProvider.BuildAsync();
 
-        var scope = serviceProvider.GetTenant("OverridingTenant").CreateScope();
-        var scope2 = serviceProvider.GetTenant("OverridingTenant").CreateScope();
+        var scope = serviceProvider.GetTenant<ScopedServiceProvider.OverridingTenant>().CreateScope();
+        var scope2 = serviceProvider.GetTenant<ScopedServiceProvider.OverridingTenant>().CreateScope();
 
         var a = scope.GetRequiredService<ScopedClass>();
         var b = scope2.GetRequiredService<ScopedClass>();
@@ -95,7 +95,7 @@ public partial class Scoped
         await scope.DisposeAsync();
         await scope2.DisposeAsync();
         
-        await using var scope3 = serviceProvider.GetTenant("OverridingTenant").CreateScope();
+        await using var scope3 = serviceProvider.GetTenant<ScopedServiceProvider.OverridingTenant>().CreateScope();
 
         var c = scope3.GetRequiredService<ScopedClass>();
         
@@ -110,8 +110,8 @@ public partial class Scoped
 
     [ServiceProvider]
     [Scoped<ScopedClass>]
-    [WithTenant<NonOverridingTenant>("NonOverridingTenant")]
-    [WithTenant<OverridingTenant>("OverridingTenant")]
+    [WithTenant<NonOverridingTenant>]
+    [WithTenant<OverridingTenant>]
     public partial class ScopedServiceProvider
     {
         public record NonOverridingTenant;

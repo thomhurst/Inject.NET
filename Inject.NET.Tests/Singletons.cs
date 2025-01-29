@@ -45,7 +45,7 @@ public partial class Singletons
         await using var serviceProvider = await SingletonServiceProvider.BuildAsync();
 
         await using var scope = serviceProvider.CreateScope();
-        await using var scope2 = serviceProvider.GetTenant("NonOverridingTenant").CreateScope();
+        await using var scope2 = serviceProvider.GetTenant<SingletonServiceProvider.NonOverridingTenant>().CreateScope();
 
         var a = scope.GetRequiredService<SingletonClass>();
         var b = scope2.GetRequiredService<SingletonClass>();
@@ -59,7 +59,7 @@ public partial class Singletons
         await using var serviceProvider = await SingletonServiceProvider.BuildAsync();
 
         await using var scope = serviceProvider.CreateScope();
-        await using var scope2 = serviceProvider.GetTenant("OverridingTenant").CreateScope();
+        await using var scope2 = serviceProvider.GetTenant<SingletonServiceProvider.OverridingTenant>().CreateScope();
 
         var a = scope.GetRequiredService<SingletonClass>();
         var b = scope2.GetRequiredService<SingletonClass>();
@@ -72,7 +72,7 @@ public partial class Singletons
     {
         await using var serviceProvider = await SingletonServiceProvider.BuildAsync();
 
-        await using var scope = serviceProvider.GetTenant("OverridingTenant").CreateScope();
+        await using var scope = serviceProvider.GetTenant<SingletonServiceProvider.OverridingTenant>().CreateScope();
 
         var a = scope.GetRequiredService<SingletonClass>();
         var b = scope.GetRequiredService<SingletonClass>();
@@ -85,8 +85,8 @@ public partial class Singletons
     {
         await using var serviceProvider = await SingletonServiceProvider.BuildAsync();
 
-        var scope = serviceProvider.GetTenant("OverridingTenant").CreateScope();
-        var scope2 = serviceProvider.GetTenant("OverridingTenant").CreateScope();
+        var scope = serviceProvider.GetTenant<SingletonServiceProvider.OverridingTenant>().CreateScope();
+        var scope2 = serviceProvider.GetTenant<SingletonServiceProvider.OverridingTenant>().CreateScope();
 
         var a = scope.GetRequiredService<SingletonClass>();
         var b = scope2.GetRequiredService<SingletonClass>();
@@ -94,7 +94,7 @@ public partial class Singletons
         await scope.DisposeAsync();
         await scope2.DisposeAsync();
         
-        await using var scope3 = serviceProvider.GetTenant("OverridingTenant").CreateScope();
+        await using var scope3 = serviceProvider.GetTenant<SingletonServiceProvider.OverridingTenant>().CreateScope();
 
         var c = scope3.GetRequiredService<SingletonClass>();
         
@@ -108,8 +108,8 @@ public partial class Singletons
 
     [ServiceProvider]
     [Singleton<SingletonClass>]
-    [WithTenant<NonOverridingTenant>("NonOverridingTenant")]
-    [WithTenant<OverridingTenant>("OverridingTenant")]
+    [WithTenant<NonOverridingTenant>]
+    [WithTenant<OverridingTenant>]
     public partial class SingletonServiceProvider
     {
         public record NonOverridingTenant;

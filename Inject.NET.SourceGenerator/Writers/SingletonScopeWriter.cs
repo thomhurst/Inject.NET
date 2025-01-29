@@ -21,35 +21,20 @@ internal static class SingletonScopeWriter
         
         sourceCodeWriter.WriteLine("public override object? GetService(ServiceKey serviceKey, IServiceScope originatingScope)");
         sourceCodeWriter.WriteLine("{");
-        foreach (var (_, serviceModels) in tenantedServiceModelCollection.Services)
+        foreach (var serviceModel in singletonModels)
         {
-            var serviceModel = serviceModels[^1];
-            
-            if (serviceModel.IsOpenGeneric || serviceModel.Lifetime != Lifetime.Singleton)
-            {
-                continue;
-            }
-
-            var propertyName = PropertyNameHelper.Format(serviceModel);
-            
-            sourceCodeWriter.WriteLine($"if (serviceKey == {serviceModel.GetKey()})");
+            sourceCodeWriter.WriteLine($"if (serviceKey == {serviceModel.GetNewServiceKeyInvocation()})");
             sourceCodeWriter.WriteLine("{");
-            sourceCodeWriter.WriteLine($"return {propertyName};");
+            sourceCodeWriter.WriteLine($"return {serviceModel.GetPropertyName()};");
             sourceCodeWriter.WriteLine("}");
         }
+        sourceCodeWriter.WriteLine();
         sourceCodeWriter.WriteLine("return base.GetService(serviceKey, originatingScope);");
         sourceCodeWriter.WriteLine("}");
 
 
-        foreach (var (_, serviceModels) in tenantedServiceModelCollection.Services)
+        foreach (var serviceModel in singletonModels)
         {
-            var serviceModel = serviceModels.Last();
-
-            if (serviceModel.Lifetime != Lifetime.Singleton || serviceModel.IsOpenGeneric)
-            {
-                continue;
-            }
-
             sourceCodeWriter.WriteLine();
             sourceCodeWriter.WriteLine("[field: AllowNull, MaybeNull]");
             var propertyName = PropertyNameHelper.Format(serviceModel);
@@ -61,11 +46,11 @@ internal static class SingletonScopeWriter
         sourceCodeWriter.WriteLine("}");
     }
     
-    private static IEnumerable<ServiceModel> GetSingletonModels(IDictionary<ISymbol?, List<ServiceModel>> dependencies)
+    private static IEnumerable<ServiceModel> GetSingletonModels(IDictionary<ServiceModelCollection.ServiceKey, List<ServiceModel>> dependencies)
     {
         foreach (var (_, serviceModels) in dependencies)
         {
-            var serviceModel = serviceModels.Last();
+            var serviceModel = serviceModels[^1];
 
             if (serviceModel.Lifetime != Lifetime.Singleton || serviceModel.IsOpenGeneric)
             {

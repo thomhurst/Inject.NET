@@ -7,7 +7,7 @@ internal static class ServiceRegistrarWriter
 {
     public static void Write(SourceProductionContext sourceProductionContext, SourceCodeWriter sourceCodeWriter,
         Compilation compilation, TypedServiceProviderModel serviceProviderModel,
-        IDictionary<ISymbol?, List<ServiceModel>> dependencyDictionary)
+        IDictionary<ServiceModelCollection.ServiceKey, List<ServiceModel>> dependencyDictionary)
     {
         sourceCodeWriter.WriteLine(
             "public class ServiceRegistrar_ : global::Inject.NET.Services.ServiceRegistrar<ServiceProvider_, ServiceProvider_>");
@@ -24,7 +24,7 @@ internal static class ServiceRegistrarWriter
         sourceCodeWriter.WriteLine();
 
         sourceCodeWriter.WriteLine("""
-                                   public override async ValueTask<ServiceProvider_> BuildAsync(ServiceProvider_ parent)
+                                   public override async ValueTask<ServiceProvider_> BuildAsync(ServiceProvider_? parent)
                                    {
                                        var serviceProvider = new ServiceProvider_(ServiceFactoryBuilders.AsReadOnly());
                                        
@@ -43,7 +43,7 @@ internal static class ServiceRegistrarWriter
     }
 
     private static void WriteRegistration(SourceCodeWriter sourceCodeWriter,
-        INamedTypeSymbol serviceProviderType, IDictionary<ISymbol?, List<ServiceModel>> dependencyDictionary, string prefix)
+        INamedTypeSymbol serviceProviderType, IDictionary<ServiceModelCollection.ServiceKey, List<ServiceModel>> dependencyDictionary, string prefix)
     {
         foreach (var (_, serviceModels) in dependencyDictionary)
         {
@@ -54,7 +54,7 @@ internal static class ServiceRegistrarWriter
         }
     }
 
-    private static void WriteRegistration(SourceCodeWriter sourceCodeWriter, INamedTypeSymbol serviceProviderType, IDictionary<ISymbol?, List<ServiceModel>> dependencyDictionary, string prefix,
+    private static void WriteRegistration(SourceCodeWriter sourceCodeWriter, INamedTypeSymbol serviceProviderType, IDictionary<ServiceModelCollection.ServiceKey, List<ServiceModel>> dependencyDictionary, string prefix,
         ServiceModel serviceModel)
     {
         sourceCodeWriter.WriteLine($"{prefix}Register(new global::Inject.NET.Models.ServiceDescriptor");
@@ -76,7 +76,7 @@ internal static class ServiceRegistrarWriter
         }
         else
         {
-            var lastTypeInDictionary = dependencyDictionary[serviceModel.ServiceType][^1];
+            var lastTypeInDictionary = dependencyDictionary[serviceModel.ServiceKey][^1];
 
             sourceCodeWriter.WriteLine(
                 $"new {lastTypeInDictionary.ImplementationType.GloballyQualified()}({string.Join(", ", BuildParameters(serviceModel))})");

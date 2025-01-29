@@ -12,22 +12,22 @@ internal static class TenantServiceProviderWriter
     {
         var serviceProviderType = tenantedServiceModelCollection.ServiceProviderType;
 
-        var className = $"ServiceProvider_{tenant.Guid}";
+        var className = $"ServiceProvider_{tenant.TenantDefinition.Name}";
                 
         sourceCodeWriter.WriteLine(
-            $"{serviceProviderType.DeclaredAccessibility.ToString().ToLower(CultureInfo.InvariantCulture)} partial class {className}(ServiceFactories serviceFactories, ServiceProvider_ parent) : global::Inject.NET.Services.ServiceProvider<{className}, SingletonScope_{tenant.Guid}, ServiceScope_{tenant.Guid}, ServiceProvider_, SingletonScope_, ServiceScope_>(serviceFactories, parent)");
+            $"{serviceProviderType.DeclaredAccessibility.ToString().ToLower(CultureInfo.InvariantCulture)} partial class {className}(ServiceFactories serviceFactories, ServiceProvider_ parent) : global::Inject.NET.Services.ServiceProvider<{className}, SingletonScope_{tenant.TenantDefinition.Name}, ServiceScope_{tenant.TenantDefinition.Name}, ServiceProvider_, SingletonScope_, ServiceScope_>(serviceFactories, parent)");
         sourceCodeWriter.WriteLine("{");
                 
         sourceCodeWriter.WriteLine("[field: AllowNull, MaybeNull]");
         sourceCodeWriter.WriteLine(
-            $"public override SingletonScope_{tenant.Guid} Singletons => field ??= new(this, serviceFactories, parent.Singletons);");
+            $"public override SingletonScope_{tenant.TenantDefinition.Name} Singletons => field ??= new(this, serviceFactories, parent.Singletons);");
 
         sourceCodeWriter.WriteLine(
-            $"public override ServiceScope_{tenant.Guid} CreateTypedScope() => new ServiceScope_{tenant.Guid}(this, serviceFactories, parent.CreateTypedScope());");
+            $"public override ServiceScope_{tenant.TenantDefinition.Name} CreateTypedScope() => new ServiceScope_{tenant.TenantDefinition.Name}(this, serviceFactories, parent.CreateTypedScope());");
                 
         sourceCodeWriter.WriteLine(
             $"public static ValueTask<{className}> BuildAsync(ServiceProvider_ serviceProvider) =>");
-        sourceCodeWriter.WriteLine($"\tnew ServiceRegistrar{tenant.Guid}().BuildAsync(serviceProvider);");
+        sourceCodeWriter.WriteLine($"\tnew ServiceRegistrar{tenant.TenantDefinition.Name}().BuildAsync(serviceProvider);");
 
         WriteInitializeAsync(sourceCodeWriter, tenant);
         
@@ -43,7 +43,7 @@ internal static class TenantServiceProviderWriter
         
         sourceCodeWriter.WriteLine("await using var scope = CreateTypedScope();");
         
-        foreach (var serviceModel in tenant.TenantDependencies.Where(x => x.Key is INamedTypeSymbol { IsUnboundGenericType: false }).Select(x => x.Value[^1]))
+        foreach (var serviceModel in tenant.TenantDependencies.Where(x => x.Key.Type is INamedTypeSymbol { IsUnboundGenericType: false }).Select(x => x.Value[^1]))
         {
             if(serviceModel.Lifetime == Lifetime.Singleton)
             {

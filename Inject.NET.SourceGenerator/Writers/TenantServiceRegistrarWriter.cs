@@ -10,11 +10,11 @@ internal static class TenantServiceRegistrarWriter
         TypedServiceProviderModel serviceProviderModel, Tenant tenant)
     {
         sourceCodeWriter.WriteLine(
-            $"public class ServiceRegistrar{tenant.Guid} : global::Inject.NET.Services.ServiceRegistrar<ServiceProvider_{tenant.Guid}, ServiceProvider_>");
+            $"public class ServiceRegistrar{tenant.TenantDefinition.Name} : global::Inject.NET.Services.ServiceRegistrar<ServiceProvider_{tenant.TenantDefinition.Name}, ServiceProvider_>");
 
         sourceCodeWriter.WriteLine("{");
 
-        sourceCodeWriter.WriteLine($"public ServiceRegistrar{tenant.Guid}()");
+        sourceCodeWriter.WriteLine($"public ServiceRegistrar{tenant.TenantDefinition.Name}()");
         sourceCodeWriter.WriteLine("{");
 
         WriteRegistration(sourceCodeWriter, serviceProviderModel.Type, tenant.TenantDependencies,
@@ -25,9 +25,9 @@ internal static class TenantServiceRegistrarWriter
         sourceCodeWriter.WriteLine();
 
         sourceCodeWriter.WriteLine($$"""
-                                     public override async ValueTask<ServiceProvider_{{tenant.Guid}}> BuildAsync(ServiceProvider_ parentServiceProvider)
+                                     public override async ValueTask<ServiceProvider_{{tenant.TenantDefinition.Name}}> BuildAsync(ServiceProvider_? parentServiceProvider)
                                      {
-                                         var serviceProvider = new ServiceProvider_{{tenant.Guid}}(ServiceFactoryBuilders.AsReadOnly(), parentServiceProvider);
+                                         var serviceProvider = new ServiceProvider_{{tenant.TenantDefinition.Name}}(ServiceFactoryBuilders.AsReadOnly(), parentServiceProvider!);
                                          
                                          var vt = serviceProvider.InitializeAsync();
                                      
@@ -45,8 +45,8 @@ internal static class TenantServiceRegistrarWriter
 
     private static void WriteRegistration(SourceCodeWriter sourceCodeWriter,
         INamedTypeSymbol serviceProviderType, 
-        IDictionary<ISymbol?, List<ServiceModel>> tenantDependencies,
-        IDictionary<ISymbol?, List<ServiceModel>> rootDependencies, string prefix)
+        IDictionary<ServiceModelCollection.ServiceKey, List<ServiceModel>> tenantDependencies,
+        IDictionary<ServiceModelCollection.ServiceKey, List<ServiceModel>> rootDependencies, string prefix)
     {
         foreach (var (_, serviceModels) in tenantDependencies)
         {
@@ -58,7 +58,7 @@ internal static class TenantServiceRegistrarWriter
     }
 
     private static void WriteRegistration(SourceCodeWriter sourceCodeWriter, INamedTypeSymbol serviceProviderType,
-        IDictionary<ISymbol?, List<ServiceModel>> tenantDependencies, IDictionary<ISymbol?, List<ServiceModel>> rootDependencies,
+        IDictionary<ServiceModelCollection.ServiceKey, List<ServiceModel>> tenantDependencies, IDictionary<ServiceModelCollection.ServiceKey, List<ServiceModel>> rootDependencies,
         string prefix,
         ServiceModel serviceModel)
     {
@@ -82,7 +82,7 @@ internal static class TenantServiceRegistrarWriter
         }
         else
         {
-            var lastTypeInDictionary = tenantDependencies[serviceModel.ServiceType][^1];
+            var lastTypeInDictionary = tenantDependencies[serviceModel.ServiceKey][^1];
 
             sourceCodeWriter.WriteLine(
                 $"new {lastTypeInDictionary.ImplementationType.GloballyQualified()}({string.Join(", ", BuildParameters(serviceModel))})");

@@ -27,18 +27,19 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
     private List<object>? _forDisposal;
     private readonly TServiceProvider _root;
     private readonly ServiceFactories _serviceFactories;
-    private readonly TParentScope? _parentScope;
 
     public ServiceScope(TServiceProvider serviceProvider, ServiceFactories serviceFactories, TParentScope? parentScope)
     {
         _root = serviceProvider;
         _serviceFactories = serviceFactories;
-        _parentScope = parentScope;
+        ParentScope = parentScope;
         Singletons = serviceProvider.Singletons;
         ServiceProvider = serviceProvider;
     }
 
     public TSingletonScope Singletons { get; }
+    
+    public TParentScope? ParentScope { get; }
 
     public TServiceProvider ServiceProvider { get; }
 
@@ -97,7 +98,7 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
                     !_serviceFactories.Descriptor.TryGetValue(
                         serviceKey with { Type = serviceKey.Type.GetGenericTypeDefinition() }, out descriptor))
                 {
-                    return _parentScope?.GetService(serviceKey, originatingScope);
+                    return ParentScope?.GetService(serviceKey, originatingScope);
                 }
 
                 _serviceFactories.LateBoundGenericDescriptor[serviceKey] = descriptor;
@@ -139,7 +140,7 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
 
         if (!_serviceFactories.Descriptors.TryGetValue(serviceKey, out var factories))
         {
-            return _parentScope?.GetServices(serviceKey, originatingScope) ?? Array.Empty<object>();
+            return ParentScope?.GetServices(serviceKey, originatingScope) ?? Array.Empty<object>();
         }
         
         if (!_root.TryGetSingletons(serviceKey, out var singletons))

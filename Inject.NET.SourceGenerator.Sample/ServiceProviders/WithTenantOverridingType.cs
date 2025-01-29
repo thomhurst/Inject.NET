@@ -3,7 +3,7 @@
 namespace Inject.NET.SourceGenerator.Sample.ServiceProviders;
 
 [ServiceProvider]
-[WithTenant<Tenant>("tenant1")]
+[WithTenant<Tenant>]
 [Transient<Parent>]
 [Transient<IChild, Child1>]
 public partial class WithTenantOverridingType

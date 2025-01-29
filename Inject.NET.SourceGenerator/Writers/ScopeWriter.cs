@@ -28,9 +28,19 @@ internal static class ScopeWriter
             }
             
             sourceCodeWriter.WriteLine();
-            sourceCodeWriter.WriteLine("[field: AllowNull, MaybeNull]");
             var propertyName = PropertyNameHelper.Format(serviceModel);
-            sourceCodeWriter.WriteLine($"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => field ??= {GetInvocation(tenantedServiceModelCollection, serviceModel)};");
+
+            if (serviceModel.Lifetime == Lifetime.Transient)
+            {
+                sourceCodeWriter.WriteLine(
+                    $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => {GetInvocation(tenantedServiceModelCollection, serviceModel)};");
+            }
+            else
+            {
+                sourceCodeWriter.WriteLine("[field: AllowNull, MaybeNull]");
+                sourceCodeWriter.WriteLine(
+                    $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => field ??= {GetInvocation(tenantedServiceModelCollection, serviceModel)};");
+            }
         }
         
         sourceCodeWriter.WriteLine();
@@ -44,12 +54,12 @@ internal static class ScopeWriter
             {
                 continue;
             }
-
-            var propertyName = PropertyNameHelper.Format(serviceModel);
             
-            sourceCodeWriter.WriteLine($"if (serviceKey == {serviceModel.GetKey()})");
+            sourceCodeWriter.WriteLine($"if (serviceKey == {serviceModel.GetNewServiceKeyInvocation()})");
             sourceCodeWriter.WriteLine("{");
-            sourceCodeWriter.WriteLine($"return {propertyName};");
+            
+            sourceCodeWriter.WriteLine($"return {serviceModel.GetPropertyName()};");
+
             sourceCodeWriter.WriteLine("}");
         }
         sourceCodeWriter.WriteLine("return base.GetService(serviceKey, originatingScope);");
@@ -64,7 +74,7 @@ internal static class ScopeWriter
         if (serviceModel.Lifetime == Lifetime.Scoped)
         {
             return
-                $"Register({serviceModel.GetKey()}, {ObjectConstructionHelper.ConstructNewObject(tenantedServiceModelCollection.ServiceProviderType,
+                $"Register({serviceModel.GetNewServiceKeyInvocation()}, {ObjectConstructionHelper.ConstructNewObject(tenantedServiceModelCollection.ServiceProviderType,
                     tenantedServiceModelCollection.Services, serviceModel, Lifetime.Scoped)})";
         }
         

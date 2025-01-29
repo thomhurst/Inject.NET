@@ -89,9 +89,9 @@ public partial class OpenGeneric
 
 		public global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.Class1 Inject__NET__SourceGenerator__Sample__ServiceProviders__OpenGeneric__Class1 => new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.Class1();
 
-		public global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.Wrapper Inject__NET__SourceGenerator__Sample__ServiceProviders__OpenGeneric__Wrapper => new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.Wrapper(new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.Generic<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.Class1>(new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.Class1()));
-
 		public global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.IGeneric<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.Class1> Inject__NET__SourceGenerator__Sample__ServiceProviders__OpenGeneric__IGeneric_Inject__NET__SourceGenerator__Sample__ServiceProviders__OpenGeneric__Class1_ => new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.Generic<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.Class1>(new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.Class1());
+
+		public global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.Wrapper Inject__NET__SourceGenerator__Sample__ServiceProviders__OpenGeneric__Wrapper => new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.Wrapper(new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.Generic<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.Class1>(new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.Class1()));
 
 		public override object? GetService(ServiceKey serviceKey, IServiceScope originatingScope)
 		{
@@ -99,13 +99,13 @@ public partial class OpenGeneric
 			{
 				return Inject__NET__SourceGenerator__Sample__ServiceProviders__OpenGeneric__Class1;
 			}
-			if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.Wrapper), Key = null })
-			{
-				return Inject__NET__SourceGenerator__Sample__ServiceProviders__OpenGeneric__Wrapper;
-			}
 			if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.IGeneric<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.Class1>), Key = null })
 			{
 				return Inject__NET__SourceGenerator__Sample__ServiceProviders__OpenGeneric__IGeneric_Inject__NET__SourceGenerator__Sample__ServiceProviders__OpenGeneric__Class1_;
+			}
+			if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.Wrapper), Key = null })
+			{
+				return Inject__NET__SourceGenerator__Sample__ServiceProviders__OpenGeneric__Wrapper;
 			}
 			return base.GetService(serviceKey, originatingScope);
 		}

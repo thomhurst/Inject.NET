@@ -36,7 +36,7 @@ internal static class TenantScopeWriter
 
                 sourceCodeWriter.WriteLine(
                     serviceModel.ResolvedFromParent
-                        ? $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => field ??= Register({serviceModel.GetKey()}, parentScope.{propertyName});"
+                        ? $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => field ??= Register({serviceModel.GetKey()}, ParentScope.{propertyName});"
                         : $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => field ??= Register({serviceModel.GetKey()}, {ObjectConstructionHelper.ConstructNewObject(tenantedServiceModelCollection.ServiceProviderType, tenantServices, serviceModel, Lifetime.Scoped)});");
             }
 

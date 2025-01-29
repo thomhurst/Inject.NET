@@ -6,14 +6,16 @@ namespace Inject.NET.SourceGenerator.Writers;
 internal static class TenantSingletonScopeWriter
 {
     public static void Write(SourceProductionContext sourceProductionContext, SourceCodeWriter sourceCodeWriter,
-        Compilation compilation, TypedServiceProviderModel serviceProviderModel, ServiceModelCollection serviceModelCollection, Tenant tenant)
+        Compilation compilation, TypedServiceProviderModel serviceProviderModel, TenantedServiceModelCollection tenantedServiceModelCollection, Tenant tenant)
     {
         var className = $"SingletonScope_{tenant.TenantDefinition.Name}";
+
+        var tenantedServices = tenantedServiceModelCollection.Tenants[tenant.TenantDefinition.GloballyQualified()];
 
         sourceCodeWriter.WriteLine($"public class {className} : global::Inject.NET.Services.SingletonScope<{className}, ServiceProvider_{tenant.TenantDefinition.Name}, ServiceScope_{tenant.TenantDefinition.Name}, SingletonScope_, ServiceScope_, ServiceProvider_>");
         sourceCodeWriter.WriteLine("{");
 
-        var singletonModels = GetSingletonModels(tenant.TenantDependencies).ToArray();
+        var singletonModels = GetSingletonModels(tenantedServices.Services).ToArray();
         
         sourceCodeWriter.WriteLine(
             $"public {className}(ServiceProvider_{tenant.TenantDefinition.Name} serviceProvider, ServiceFactories serviceFactories, SingletonScope_ parentScope) : base(serviceProvider, serviceFactories, parentScope)");
@@ -29,8 +31,8 @@ internal static class TenantSingletonScopeWriter
             var propertyName = PropertyNameHelper.Format(serviceModel);
 
             sourceCodeWriter.WriteLine(serviceModel.ResolvedFromParent
-                ? $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => field ??=  parentScope.{propertyName};"
-                : $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => field ??= Register({ObjectConstructionHelper.ConstructNewObject(serviceProviderModel.Type, serviceModelCollection.Services, serviceModel, Lifetime.Singleton)});");
+                ? $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => field ??= ParentScope.{propertyName};"
+                : $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => field ??= Register({ObjectConstructionHelper.ConstructNewObject(serviceProviderModel.Type, tenantedServices.Services, serviceModel, Lifetime.Singleton)});");
         }
 
         sourceCodeWriter.WriteLine("}");

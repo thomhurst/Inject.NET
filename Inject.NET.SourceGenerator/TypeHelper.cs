@@ -37,7 +37,7 @@ internal static class TypeHelper
         {
             if (serviceModel.ResolvedFromParent)
             {
-                return $"_parentScope.{PropertyNameHelper.Format(serviceModel)}";
+                return $"ParentScope.{PropertyNameHelper.Format(serviceModel)}";
             }
 
             return $"{PropertyNameHelper.Format(serviceModel)}";

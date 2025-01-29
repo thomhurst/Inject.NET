@@ -46,8 +46,8 @@ internal static class ParameterHelper
                     if (serviceModel.ResolvedFromParent)
                     {
                         return parameter.IsOptional
-                            ? $"parentScope.GetOptionalService<{subtitutedType.GloballyQualified()}>({key})"
-                            : $"parentScope.GetRequiredService<{subtitutedType.GloballyQualified()}>({key})"; 
+                            ? $"ParentScope.GetOptionalService<{subtitutedType.GloballyQualified()}>({key})"
+                            : $"ParentScope.GetRequiredService<{subtitutedType.GloballyQualified()}>({key})"; 
                     }
                     
                     return parameter.IsOptional
@@ -80,7 +80,7 @@ internal static class ParameterHelper
         {
             if(serviceModel.ResolvedFromParent)
             {
-                return $"parentScope.GetServices<{parameter.Type.GloballyQualified()}>({parameter.Key})";
+                return $"ParentScope.GetServices<{parameter.Type.GloballyQualified()}>({parameter.Key})";
             }
 
             return $"scope.GetServices<{parameter.Type.GloballyQualified()}>({parameter.Key})";

@@ -67,6 +67,14 @@ public class ServiceModelCollection
             return SymbolEqualityComparer.Default.Equals(Type, other.Type) && Key == other.Key;
         }
 
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                return (Type.GloballyQualified().GetHashCode() * 397) ^ (Key != null ? Key.GetHashCode() : 0);
+            }
+        }
+
         public int CompareTo(ServiceKey? other)
         {
             if (ReferenceEquals(this, other))

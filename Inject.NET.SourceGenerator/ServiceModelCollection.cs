@@ -28,11 +28,15 @@ public class ServiceModelCollection
     
     public ServiceModelCollection(ServiceModel[] dependencies, ServiceModel[] parentDependencies)
     {
+        var allDependencies = dependencies.Concat(parentDependencies)
+            .GroupBy(x => x.ServiceType, SymbolEqualityComparer.Default)
+            .ToDictionary(x => x.Key, x => x.ToList(), SymbolEqualityComparer.Default);
+        
         foreach (var parentDependency in parentDependencies)
         {
             Services.GetOrAdd(parentDependency.ServiceType, []).Add(parentDependency with
             {
-                ResolvedFromParent = true
+                ResolvedFromParent = !parentDependency.GetAllNestedParameters(allDependencies).Select(x => x.ServiceType).Intersect(dependencies.Select(x => x.ServiceType), SymbolEqualityComparer.Default).Any()
             });
         }
         

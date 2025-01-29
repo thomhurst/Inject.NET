@@ -13,8 +13,10 @@ internal static class TenantScopeWriter
         sourceCodeWriter.WriteLine(
             $"public class {className} : global::Inject.NET.Services.ServiceScope<{className}, ServiceProvider_{tenant.TenantDefinition.Name}, SingletonScope_{tenant.TenantDefinition.Name}, ServiceScope_, SingletonScope_, ServiceProvider_>");
         sourceCodeWriter.WriteLine("{");
+
+        var tenantServices = tenantedServiceModelCollection.Tenants[tenant.TenantDefinition.GloballyQualified()].Services;
         
-        var models = GetModels(tenant.TenantDependencies).ToArray();
+        var models = GetModels(tenantServices).ToArray();
 
         sourceCodeWriter.WriteLine(
             $"public {className}(ServiceProvider_{tenant.TenantDefinition.Name} serviceProvider, ServiceFactories serviceFactories, ServiceScope_ parentScope) : base(serviceProvider, serviceFactories, parentScope)");
@@ -35,7 +37,7 @@ internal static class TenantScopeWriter
                 sourceCodeWriter.WriteLine(
                     serviceModel.ResolvedFromParent
                         ? $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => field ??= Register({serviceModel.GetKey()}, parentScope.{propertyName});"
-                        : $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => field ??= Register({serviceModel.GetKey()}, {ObjectConstructionHelper.ConstructNewObject(tenantedServiceModelCollection.ServiceProviderType, tenantedServiceModelCollection.Services, serviceModel, Lifetime.Scoped)});");
+                        : $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => field ??= Register({serviceModel.GetKey()}, {ObjectConstructionHelper.ConstructNewObject(tenantedServiceModelCollection.ServiceProviderType, tenantServices, serviceModel, Lifetime.Scoped)});");
             }
 
             if (serviceModel.Lifetime == Lifetime.Singleton)
@@ -43,13 +45,13 @@ internal static class TenantScopeWriter
                 sourceCodeWriter.WriteLine("[field: AllowNull, MaybeNull]");
 
                 sourceCodeWriter.WriteLine(
-                    $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => field ??= Register({serviceModel.GetKey()}, serviceProvider.Singletons.{propertyName});");
+                    $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => field ??= Register({serviceModel.GetKey()}, Singletons.{propertyName});");
             }
 
             if (serviceModel.Lifetime == Lifetime.Transient)
             {
                 sourceCodeWriter.WriteLine(
-                    $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => {ObjectConstructionHelper.ConstructNewObject(tenantedServiceModelCollection.ServiceProviderType, tenantedServiceModelCollection.Services, serviceModel, Lifetime.Scoped)};");
+                    $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => {ObjectConstructionHelper.ConstructNewObject(tenantedServiceModelCollection.ServiceProviderType, tenantServices, serviceModel, Lifetime.Transient)};");
             }
         }
 

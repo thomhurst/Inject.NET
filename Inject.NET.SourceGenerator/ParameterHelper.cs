@@ -10,7 +10,7 @@ namespace Inject.NET.SourceGenerator;
 internal static class ParameterHelper
 {
     public static IEnumerable<string> BuildParameters(INamedTypeSymbol serviceProviderType,
-        IDictionary<ISymbol?, List<ServiceModel>> dependencies,
+        IDictionary<ServiceModelCollection.ServiceKey, List<ServiceModel>> dependencies,
         ServiceModel serviceModel, Lifetime currentLifetime)
     {
         foreach (var parameter in serviceModel.Parameters)
@@ -23,7 +23,7 @@ internal static class ParameterHelper
     }
 
     public static string? WriteParameter(INamedTypeSymbol serviceProviderType,
-        IDictionary<ISymbol?, List<ServiceModel>> dependencies,
+        IDictionary<ServiceModelCollection.ServiceKey, List<ServiceModel>> dependencies,
         Parameter parameter,
         ServiceModel serviceModel,
         Lifetime currentLifetime)
@@ -38,8 +38,8 @@ internal static class ParameterHelper
             if (substitutedTypeIndex != -1)
             {
                 var subtitutedType = serviceModel.ServiceType.TypeArguments[substitutedTypeIndex];
-
-                if (!dependencies.TryGetValue(subtitutedType, out models))
+                
+                if (!dependencies.TryGetValue(new ServiceModelCollection.ServiceKey(subtitutedType, parameter.Key), out models))
                 {
                     var key = parameter.Key is null ? "null" : $"\"{parameter.Key}\"";
 
@@ -57,10 +57,10 @@ internal static class ParameterHelper
             }
         }
 
-        if (models is null && !dependencies.TryGetValue(parameter.Type, out models))
+        if (models is null && !dependencies.TryGetValue(parameter.ServiceKey, out models))
         {
             if (parameter.Type is not INamedTypeSymbol { IsGenericType: true } genericType
-                || !dependencies.TryGetValue(genericType.ConstructUnboundGenericType(), out models))
+                || !dependencies.TryGetValue(new ServiceModelCollection.ServiceKey(genericType.ConstructUnboundGenericType(), parameter.Key), out models))
             {
                 if (parameter.IsOptional)
                 {

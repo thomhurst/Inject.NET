@@ -23,11 +23,9 @@ internal static class SingletonScopeWriter
         sourceCodeWriter.WriteLine("{");
         foreach (var serviceModel in singletonModels)
         {
-            var propertyName = PropertyNameHelper.Format(serviceModel);
-            
-            sourceCodeWriter.WriteLine($"if (serviceKey == {serviceModel.GetKey()})");
+            sourceCodeWriter.WriteLine($"if (serviceKey == {serviceModel.GetNewServiceKeyInvocation()})");
             sourceCodeWriter.WriteLine("{");
-            sourceCodeWriter.WriteLine($"return {propertyName};");
+            sourceCodeWriter.WriteLine($"return {serviceModel.GetPropertyName()};");
             sourceCodeWriter.WriteLine("}");
         }
         sourceCodeWriter.WriteLine();
@@ -48,7 +46,7 @@ internal static class SingletonScopeWriter
         sourceCodeWriter.WriteLine("}");
     }
     
-    private static IEnumerable<ServiceModel> GetSingletonModels(IDictionary<ISymbol?, List<ServiceModel>> dependencies)
+    private static IEnumerable<ServiceModel> GetSingletonModels(IDictionary<ServiceModelCollection.ServiceKey, List<ServiceModel>> dependencies)
     {
         foreach (var (_, serviceModels) in dependencies)
         {

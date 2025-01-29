@@ -43,7 +43,7 @@ internal static class TenantServiceProviderWriter
         
         sourceCodeWriter.WriteLine("await using var scope = CreateTypedScope();");
         
-        foreach (var serviceModel in tenant.TenantDependencies.Where(x => x.Key is INamedTypeSymbol { IsUnboundGenericType: false }).Select(x => x.Value[^1]))
+        foreach (var serviceModel in tenant.TenantDependencies.Where(x => x.Key.Type is INamedTypeSymbol { IsUnboundGenericType: false }).Select(x => x.Value[^1]))
         {
             if(serviceModel.Lifetime == Lifetime.Singleton)
             {

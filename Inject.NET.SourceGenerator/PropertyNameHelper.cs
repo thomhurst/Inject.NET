@@ -6,12 +6,14 @@ namespace Inject.NET.SourceGenerator;
 
 public class PropertyNameHelper
 {
-    public static string Format(ServiceModel singleton)
+    public static string Format(ServiceModel serviceModel)
     {
-        return Format(singleton.ServiceType);
+        var propertyName = Format(serviceModel.ServiceType);
+
+        return serviceModel.Key != null ? $"Keyed__{propertyName}__{serviceModel.Id}" : propertyName;
     }
 
-    public static string Format(ITypeSymbol type)
+    private static string Format(ITypeSymbol type)
     {
         return type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)
             .Replace('<', '_')

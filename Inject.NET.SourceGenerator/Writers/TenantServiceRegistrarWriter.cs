@@ -45,8 +45,8 @@ internal static class TenantServiceRegistrarWriter
 
     private static void WriteRegistration(SourceCodeWriter sourceCodeWriter,
         INamedTypeSymbol serviceProviderType, 
-        IDictionary<ISymbol?, List<ServiceModel>> tenantDependencies,
-        IDictionary<ISymbol?, List<ServiceModel>> rootDependencies, string prefix)
+        IDictionary<ServiceModelCollection.ServiceKey, List<ServiceModel>> tenantDependencies,
+        IDictionary<ServiceModelCollection.ServiceKey, List<ServiceModel>> rootDependencies, string prefix)
     {
         foreach (var (_, serviceModels) in tenantDependencies)
         {
@@ -58,7 +58,7 @@ internal static class TenantServiceRegistrarWriter
     }
 
     private static void WriteRegistration(SourceCodeWriter sourceCodeWriter, INamedTypeSymbol serviceProviderType,
-        IDictionary<ISymbol?, List<ServiceModel>> tenantDependencies, IDictionary<ISymbol?, List<ServiceModel>> rootDependencies,
+        IDictionary<ServiceModelCollection.ServiceKey, List<ServiceModel>> tenantDependencies, IDictionary<ServiceModelCollection.ServiceKey, List<ServiceModel>> rootDependencies,
         string prefix,
         ServiceModel serviceModel)
     {
@@ -82,7 +82,7 @@ internal static class TenantServiceRegistrarWriter
         }
         else
         {
-            var lastTypeInDictionary = tenantDependencies[serviceModel.ServiceType][^1];
+            var lastTypeInDictionary = tenantDependencies[serviceModel.ServiceKey][^1];
 
             sourceCodeWriter.WriteLine(
                 $"new {lastTypeInDictionary.ImplementationType.GloballyQualified()}({string.Join(", ", BuildParameters(serviceModel))})");

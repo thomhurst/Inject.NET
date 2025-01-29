@@ -5,7 +5,7 @@ namespace Inject.NET.SourceGenerator.Helpers;
 
 public static class ConflictsHelper
 {
-    public static void CheckConflicts(this SourceProductionContext context, ServiceModel serviceModel, IDictionary<ISymbol?, List<ServiceModel>> dependencies)
+    public static void CheckConflicts(this SourceProductionContext context, ServiceModel serviceModel, IDictionary<ServiceModelCollection.ServiceKey, List<ServiceModel>> dependencies)
     {
         if (serviceModel.GetAllNestedParameters(dependencies).Any(x =>
                 SymbolEqualityComparer.Default.Equals(x.ServiceType, serviceModel.ServiceType)))

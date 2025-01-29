@@ -4,6 +4,7 @@ namespace Inject.NET.SourceGenerator.Models;
 
 public record ServiceModel
 {
+    public string Id { get; } = Guid.NewGuid().ToString("N");
     public required INamedTypeSymbol ServiceType { get; init; }
     
     public required INamedTypeSymbol ImplementationType { get; init; }
@@ -17,12 +18,14 @@ public record ServiceModel
     public bool ResolvedFromParent { get; set; }
     
     public required Parameter[] Parameters { get; init; }
+    
+    public ServiceModelCollection.ServiceKey ServiceKey => new(ServiceType, Key);
 
-    public IEnumerable<ServiceModel> GetAllNestedParameters(IDictionary<ISymbol?, List<ServiceModel>> dependencyDictionary)
+    public IEnumerable<ServiceModel> GetAllNestedParameters(IDictionary<ServiceModelCollection.ServiceKey, List<ServiceModel>> dependencyDictionary)
     {
         foreach (var serviceModel in Parameters
-                     .Where(x => dependencyDictionary.Keys.Contains(x.Type, SymbolEqualityComparer.Default))
-                     .SelectMany(x => dependencyDictionary[x.Type]))
+                     .Where(x => dependencyDictionary.Keys.Select(k => k.Type).Contains(x.Type, SymbolEqualityComparer.Default))
+                     .SelectMany(x => dependencyDictionary[new ServiceModelCollection.ServiceKey(x.Type, x.Key)]))
         {
             yield return serviceModel;
 
@@ -33,9 +36,24 @@ public record ServiceModel
         }
     }
 
-    public string GetKey()
+    public string GetNewServiceKeyInvocation()
     {
         var key = Key is null ? "null" : $"\"{Key}\"";
         return $$"""new ServiceKey { Type = typeof({{ServiceType.GloballyQualified()}}), Key = {{key}} }""";
+    }
+    
+    public string GetWrittenType()
+    {
+        if (Key is null)
+        {
+            return $"global::Inject.NET.Models.KeyedType<{ServiceType.GloballyQualified()}>";
+        }
+
+        return ServiceType.GloballyQualified();
+    }
+
+    public string GetPropertyName()
+    {
+        return PropertyNameHelper.Format(this);
     }
 }

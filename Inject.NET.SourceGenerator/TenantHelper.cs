@@ -6,13 +6,13 @@ namespace Inject.NET.SourceGenerator;
 internal static class TenantHelper
 {
     public static Tenant[] ConstructTenants(Compilation compilation,
-        AttributeData[] withTenantAttributes, IDictionary<ISymbol?, List<ServiceModel>> rootDependencies)
+        AttributeData[] withTenantAttributes, IDictionary<ServiceModelCollection.ServiceKey, List<ServiceModel>> rootDependencies)
     {
         return ConstructTenantsEnumerable(compilation, withTenantAttributes, rootDependencies).ToArray();
     }
 
     private static IEnumerable<Tenant> ConstructTenantsEnumerable(Compilation compilation, AttributeData[] withTenantAttributes,
-        IDictionary<ISymbol?, List<ServiceModel>> rootDependencies)
+        IDictionary<ServiceModelCollection.ServiceKey, List<ServiceModel>> rootDependencies)
     {
         var dependencyInjectionAttributeType = compilation.GetTypeByMetadataName("Inject.NET.Attributes.IDependencyInjectionAttribute");
 

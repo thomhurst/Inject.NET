@@ -6,7 +6,7 @@ namespace Inject.NET.SourceGenerator;
 
 internal static class DependencyDictionary
 {
-    public static IDictionary<ISymbol?, List<ServiceModel>> Create(Compilation compilation, AttributeData[] dependencyAttributes)
+    public static IDictionary<ServiceModelCollection.ServiceKey, List<ServiceModel>> Create(Compilation compilation, AttributeData[] dependencyAttributes)
     {
         var list = new List<ServiceModelBuilder>();
         
@@ -92,10 +92,10 @@ internal static class DependencyDictionary
         }
 
         var enumerableDictionaryBuilder = list
-            .GroupBy(x => x.ServiceType, SymbolEqualityComparer.Default)
+            .GroupBy(x => new ServiceModelCollection.ServiceKey(x.ServiceType, x.Key))
             .ToDictionary(
                 x => x.Key,
-                x => x.ToArray(), SymbolEqualityComparer.Default);
+                x => x.ToArray());
 
         var enumerableDictionary = enumerableDictionaryBuilder
             .ToDictionary(
@@ -108,7 +108,7 @@ internal static class DependencyDictionary
                     Lifetime = smb.Lifetime,
                     IsOpenGeneric = smb.IsOpenGeneric,
                     Parameters = smb.Parameters.ToArray()
-                }).ToList(), SymbolEqualityComparer.Default);
+                }).ToList());
         
         return enumerableDictionary;
     }
@@ -207,6 +207,6 @@ internal static class DependencyDictionary
 public class Tenant
 {
     public required INamedTypeSymbol TenantDefinition { get; init; }
-    public required IDictionary<ISymbol?, List<ServiceModel>> RootDependencies { get; init; }
-    public required IDictionary<ISymbol?, List<ServiceModel>> TenantDependencies { get; init; }
+    public required IDictionary<ServiceModelCollection.ServiceKey, List<ServiceModel>> RootDependencies { get; init; }
+    public required IDictionary<ServiceModelCollection.ServiceKey, List<ServiceModel>> TenantDependencies { get; init; }
 }

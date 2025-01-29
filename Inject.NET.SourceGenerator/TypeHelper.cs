@@ -7,7 +7,7 @@ internal static class TypeHelper
 {
     public static string GetOrConstructType(
         INamedTypeSymbol serviceProviderType,
-        IDictionary<ISymbol?, List<ServiceModel>> dependencies,
+        IDictionary<ServiceModelCollection.ServiceKey, List<ServiceModel>> dependencies,
         ServiceModel serviceModel,
         Lifetime currentLifetime)
     {
@@ -17,7 +17,7 @@ internal static class TypeHelper
                 $"global::Inject.NET.ThrowHelpers.Throw<{serviceModel.ServiceType.GloballyQualified()}>(\"Injecting type {serviceModel.ImplementationType.Name} with a lifetime of {serviceModel.Lifetime} into an object with a lifetime of {currentLifetime} will cause it to also be {currentLifetime}\")";
         }
 
-        if (!dependencies.Keys.Contains(serviceModel.ServiceType, SymbolEqualityComparer.Default))
+        if (!dependencies.Keys.Select(k => k.Type).Contains(serviceModel.ServiceType, SymbolEqualityComparer.Default))
         {
             return
                 $"global::Inject.NET.ThrowHelpers.Throw<{serviceModel.ServiceType.GloballyQualified()}>(\"No dependency found for {serviceModel.ServiceType.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)}\")";

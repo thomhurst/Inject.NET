@@ -55,6 +55,8 @@ public record Parameter
     public required bool IsNullable { get; init; }
     public required bool IsEnumerable { get; init; }
     public string? Key { get; init; }
+    
+    public ServiceModelCollection.ServiceKey ServiceKey => new(Type, Key);
 
     public string WriteSource()
     {

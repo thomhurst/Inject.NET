@@ -24,17 +24,17 @@ public class TenantedServiceModelCollection : ServiceModelCollection
 
 public class ServiceModelCollection
 {
-    public readonly ConcurrentDictionary<ISymbol?, List<ServiceModel>> Services = new(SymbolEqualityComparer.Default);
+    public readonly ConcurrentDictionary<ServiceKey, List<ServiceModel>> Services = new();
     
     public ServiceModelCollection(ServiceModel[] dependencies, ServiceModel[] parentDependencies)
     {
         var allDependencies = dependencies.Concat(parentDependencies)
-            .GroupBy(x => x.ServiceType, SymbolEqualityComparer.Default)
-            .ToDictionary(x => x.Key, x => x.ToList(), SymbolEqualityComparer.Default);
+            .GroupBy(x => x.ServiceKey)
+            .ToDictionary(x => x.Key, x => x.ToList());
         
         foreach (var parentDependency in parentDependencies)
         {
-            Services.GetOrAdd(parentDependency.ServiceType, []).Add(parentDependency with
+            Services.GetOrAdd(parentDependency.ServiceKey, []).Add(parentDependency with
             {
                 ResolvedFromParent = !parentDependency.GetAllNestedParameters(allDependencies).Select(x => x.ServiceType).Intersect(dependencies.Select(x => x.ServiceType), SymbolEqualityComparer.Default).Any()
             });
@@ -42,10 +42,28 @@ public class ServiceModelCollection
         
         foreach (var dependency in dependencies)
         {
-            Services.GetOrAdd(dependency.ServiceType, []).Add(dependency with
+            Services.GetOrAdd(dependency.ServiceKey, []).Add(dependency with
             {
                 ResolvedFromParent = false
             });
+        }
+    }
+
+    public sealed record ServiceKey(ITypeSymbol Type, string? Key)
+    {
+        public bool Equals(ServiceKey? other)
+        {
+            if (other is null)
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            return SymbolEqualityComparer.Default.Equals(Type, other.Type) && Key == other.Key;
         }
     }
 }

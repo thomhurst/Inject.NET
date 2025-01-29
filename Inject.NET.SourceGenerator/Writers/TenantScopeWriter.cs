@@ -24,7 +24,7 @@ internal static class TenantScopeWriter
         
         sourceCodeWriter.WriteLine("}");
 
-        foreach (var serviceModel in models)
+        foreach (var serviceModel in models.Where(x => x.Key is null))
         {
             sourceCodeWriter.WriteLine();
 
@@ -36,8 +36,8 @@ internal static class TenantScopeWriter
 
                 sourceCodeWriter.WriteLine(
                     serviceModel.ResolvedFromParent
-                        ? $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => field ??= Register({serviceModel.GetKey()}, ParentScope.{propertyName});"
-                        : $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => field ??= Register({serviceModel.GetKey()}, {ObjectConstructionHelper.ConstructNewObject(tenantedServiceModelCollection.ServiceProviderType, tenantServices, serviceModel, Lifetime.Scoped)});");
+                        ? $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => field ??= Register({serviceModel.GetNewServiceKeyInvocation()}, ParentScope.{propertyName});"
+                        : $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => field ??= Register({serviceModel.GetNewServiceKeyInvocation()}, {ObjectConstructionHelper.ConstructNewObject(tenantedServiceModelCollection.ServiceProviderType, tenantServices, serviceModel, Lifetime.Scoped)});");
             }
 
             if (serviceModel.Lifetime == Lifetime.Singleton)
@@ -45,7 +45,7 @@ internal static class TenantScopeWriter
                 sourceCodeWriter.WriteLine("[field: AllowNull, MaybeNull]");
 
                 sourceCodeWriter.WriteLine(
-                    $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => field ??= Register({serviceModel.GetKey()}, Singletons.{propertyName});");
+                    $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => field ??= Register({serviceModel.GetNewServiceKeyInvocation()}, Singletons.{propertyName});");
             }
 
             if (serviceModel.Lifetime == Lifetime.Transient)
@@ -66,12 +66,10 @@ internal static class TenantScopeWriter
             {
                 continue;
             }
-
-            var propertyName = PropertyNameHelper.Format(serviceModel);
             
-            sourceCodeWriter.WriteLine($"if (serviceKey == {serviceModel.GetKey()})");
+            sourceCodeWriter.WriteLine($"if (serviceKey == {serviceModel.GetNewServiceKeyInvocation()})");
             sourceCodeWriter.WriteLine("{");
-            sourceCodeWriter.WriteLine($"return {propertyName};");
+            sourceCodeWriter.WriteLine($"return {serviceModel.GetPropertyName()};");
             sourceCodeWriter.WriteLine("}");
         }
         sourceCodeWriter.WriteLine("return base.GetService(serviceKey, originatingScope);");
@@ -81,7 +79,7 @@ internal static class TenantScopeWriter
         sourceCodeWriter.WriteLine("}");
     }
     
-    private static IEnumerable<ServiceModel> GetModels(IDictionary<ISymbol?, List<ServiceModel>> dependencies)
+    private static IEnumerable<ServiceModel> GetModels(IDictionary<ServiceModelCollection.ServiceKey, List<ServiceModel>> dependencies)
     {
         foreach (var (_, serviceModels) in dependencies)
         {

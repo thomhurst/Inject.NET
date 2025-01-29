@@ -104,6 +104,7 @@ internal static class DependencyDictionary
                 {
                     ServiceType = smb.ServiceType,
                     ImplementationType = smb.ImplementationType,
+                    ResolvedFromParent = false,
                     Key = smb.Key,
                     Lifetime = smb.Lifetime,
                     IsOpenGeneric = smb.IsOpenGeneric,

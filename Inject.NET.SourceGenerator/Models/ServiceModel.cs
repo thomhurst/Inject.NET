@@ -4,7 +4,6 @@ namespace Inject.NET.SourceGenerator.Models;
 
 public record ServiceModel
 {
-    public string Id { get; } = Guid.NewGuid().ToString("N");
     public required INamedTypeSymbol ServiceType { get; init; }
     
     public required INamedTypeSymbol ImplementationType { get; init; }
@@ -15,7 +14,7 @@ public record ServiceModel
     
     public required string? Key { get; init; }
     
-    public bool ResolvedFromParent { get; set; }
+    public required bool ResolvedFromParent { get; init; }
     
     public required Parameter[] Parameters { get; init; }
     

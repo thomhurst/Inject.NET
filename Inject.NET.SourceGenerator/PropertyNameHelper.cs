@@ -10,7 +10,7 @@ public class PropertyNameHelper
     {
         var propertyName = Format(serviceModel.ServiceType);
 
-        return serviceModel.Key != null ? $"Keyed__{propertyName}__{serviceModel.Id}" : propertyName;
+        return serviceModel.Key != null ? $"Keyed__{propertyName}__{serviceModel.Key}" : propertyName;
     }
 
     private static string Format(ITypeSymbol type)

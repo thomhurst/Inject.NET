@@ -24,7 +24,7 @@ internal static class TenantScopeWriter
         
         sourceCodeWriter.WriteLine("}");
 
-        foreach (var serviceModel in models.Where(x => x.Key is null))
+        foreach (var serviceModel in models)
         {
             sourceCodeWriter.WriteLine();
 

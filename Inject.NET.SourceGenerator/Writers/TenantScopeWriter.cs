@@ -54,6 +54,29 @@ internal static class TenantScopeWriter
                     $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => {ObjectConstructionHelper.ConstructNewObject(tenantedServiceModelCollection.ServiceProviderType, tenantServices, serviceModel, Lifetime.Transient)};");
             }
         }
+        
+        sourceCodeWriter.WriteLine();
+        sourceCodeWriter.WriteLine("public override object? GetService(ServiceKey serviceKey, IServiceScope originatingScope)");
+        sourceCodeWriter.WriteLine("{");
+        foreach (var (_, serviceModels) in tenantServices)
+        {
+            var serviceModel = serviceModels[^1];
+            
+            if (serviceModel.IsOpenGeneric)
+            {
+                continue;
+            }
+
+            var propertyName = PropertyNameHelper.Format(serviceModel);
+            
+            sourceCodeWriter.WriteLine($"if (serviceKey == {serviceModel.GetKey()})");
+            sourceCodeWriter.WriteLine("{");
+            sourceCodeWriter.WriteLine($"return {propertyName};");
+            sourceCodeWriter.WriteLine("}");
+        }
+        sourceCodeWriter.WriteLine("return base.GetService(serviceKey, originatingScope);");
+        sourceCodeWriter.WriteLine("}");
+
 
         sourceCodeWriter.WriteLine("}");
     }

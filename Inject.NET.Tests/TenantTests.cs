@@ -42,6 +42,25 @@ public partial class TenantTests
         await Assert.That(tenant2Scope.GetRequiredService<Parent>().Get())
             .IsEqualTo("Tenant2Child");
     }
+    
+    [Test]
+    public async Task CanOverrideTenantObjects_ResolvingViaParent_Typed()
+    {
+        var serviceProvider = await ServiceProvider.BuildAsync();
+
+        //await using var defaultScope = serviceProvider.CreateScope();
+        await using var tenant1Scope = serviceProvider.Tenant_Tenant1.CreateTypedScope();
+        await using var tenant2Scope = serviceProvider.Tenant_Tenant2.CreateTypedScope();
+
+        // await Assert.That(defaultScope.GetRequiredService<Parent>().Get())
+        //     .IsEqualTo("DefaultChild");
+
+        await Assert.That(tenant1Scope.Inject__NET__Tests__TenantTests__Parent.Get())
+            .IsEqualTo("Tenant1Child");
+        
+        await Assert.That(tenant2Scope.Inject__NET__Tests__TenantTests__IChild.Get())
+            .IsEqualTo("Tenant2Child");
+    }
 
     [Scoped<Parent>]
     [Scoped<IChild, DefaultChild>]

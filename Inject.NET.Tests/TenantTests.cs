@@ -11,8 +11,8 @@ public partial class TenantTests
         var serviceProvider = await ServiceProvider.BuildAsync();
 
         await using var defaultScope = serviceProvider.CreateScope();
-        await using var tenant1Scope = serviceProvider.GetTenant("tenant1").CreateScope();
-        await using var tenant2Scope = serviceProvider.GetTenant("tenant2").CreateScope();
+        await using var tenant1Scope = serviceProvider.GetTenant<Tenant1>().CreateScope();
+        await using var tenant2Scope = serviceProvider.GetTenant<Tenant2>().CreateScope();
 
         await Assert.That(defaultScope.GetRequiredService<IChild>().Get())
             .IsEqualTo("DefaultChild");
@@ -30,8 +30,8 @@ public partial class TenantTests
         var serviceProvider = await ServiceProvider.BuildAsync();
 
         //await using var defaultScope = serviceProvider.CreateScope();
-        await using var tenant1Scope = serviceProvider.GetTenant("tenant1").CreateScope();
-        await using var tenant2Scope = serviceProvider.GetTenant("tenant2").CreateScope();
+        await using var tenant1Scope = serviceProvider.GetTenant<Tenant1>().CreateScope();
+        await using var tenant2Scope = serviceProvider.GetTenant<Tenant2>().CreateScope();
 
         // await Assert.That(defaultScope.GetRequiredService<Parent>().Get())
         //     .IsEqualTo("DefaultChild");
@@ -45,8 +45,8 @@ public partial class TenantTests
 
     [Scoped<Parent>]
     [Scoped<IChild, DefaultChild>]
-    [WithTenant<Tenant1>("tenant1")]
-    [WithTenant<Tenant2>("tenant2")]
+    [WithTenant<Tenant1>]
+    [WithTenant<Tenant2>]
     [ServiceProvider]
     public partial class ServiceProvider;
 

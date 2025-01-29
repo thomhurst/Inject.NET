@@ -18,7 +18,6 @@ internal static class TenantHelper
 
         foreach (var withTenantAttribute in withTenantAttributes)
         {
-            var tenantId = (string)withTenantAttribute.ConstructorArguments[0].Value!;
             var definitionType = withTenantAttribute.AttributeClass!.TypeArguments[0];
             
             var attributes = definitionType.GetAttributes();
@@ -29,10 +28,9 @@ internal static class TenantHelper
                 .ToArray();
 
             var dependencies = DependencyDictionary.Create(compilation, dependencyAttributes);
-
+            
             yield return new Tenant
             {
-                TenantId = tenantId,
                 TenantDefinition = (INamedTypeSymbol) definitionType,
                 RootDependencies = rootDependencies,
                 TenantDependencies = dependencies

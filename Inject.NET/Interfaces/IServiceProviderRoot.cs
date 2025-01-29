@@ -4,5 +4,5 @@ public interface IServiceProviderRoot<out TScope> : IServiceProviderRoot, IServi
 
 public interface IServiceProviderRoot
 {
-    IServiceProvider GetTenant(string tenantId);
+    IServiceProvider GetTenant<TTenant>();
 }

@@ -28,9 +28,20 @@ internal static class ScopeWriter
             }
             
             sourceCodeWriter.WriteLine();
-            sourceCodeWriter.WriteLine("[field: AllowNull, MaybeNull]");
             var propertyName = PropertyNameHelper.Format(serviceModel);
-            sourceCodeWriter.WriteLine($"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => field ??= {GetInvocation(tenantedServiceModelCollection, serviceModel)};");
+
+            if (serviceModel.Lifetime != Lifetime.Transient)
+            {
+                sourceCodeWriter.WriteLine("[field: AllowNull, MaybeNull]");
+
+                sourceCodeWriter.WriteLine(
+                    $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => field ??= {GetInvocation(tenantedServiceModelCollection, serviceModel)};");
+            }
+            else
+            {
+                sourceCodeWriter.WriteLine(
+                    $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => {GetInvocation(tenantedServiceModelCollection, serviceModel)};");
+            }
         }
         
         sourceCodeWriter.WriteLine();

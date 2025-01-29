@@ -27,7 +27,7 @@ internal static class ServiceProviderWriter
         {
             sourceCodeWriter.WriteLine("[field: AllowNull, MaybeNull]");
             
-            sourceCodeWriter.WriteLine($$"""public ServiceProvider_{{tenant.Guid}} Tenant_{{tenant.Guid}} { get; private set; } = null!;""");
+            sourceCodeWriter.WriteLine($$"""public ServiceProvider_{{tenant.TenantDefinition.Name}} Tenant_{{tenant.TenantDefinition.Name}} { get; private set; } = null!;""");
         }
                 
         WriteInitializeAsync(sourceCodeWriter, tenantedServiceModelCollection, tenants);
@@ -59,8 +59,8 @@ internal static class ServiceProviderWriter
 
         foreach (var tenant in tenants)
         {
-            sourceCodeWriter.WriteLine($"Tenant_{tenant.Guid} = await ServiceProvider_{tenant.Guid}.BuildAsync(this);");
-            sourceCodeWriter.WriteLine($"Register(\"{tenant.TenantId}\", Tenant_{tenant.Guid});");
+            sourceCodeWriter.WriteLine($"Tenant_{tenant.TenantDefinition.Name} = await ServiceProvider_{tenant.TenantDefinition.Name}.BuildAsync(this);");
+            sourceCodeWriter.WriteLine($"Register<{tenant.TenantDefinition.GloballyQualified()}>(Tenant_{tenant.TenantDefinition.Name});");
         }
         
         sourceCodeWriter.WriteLine();

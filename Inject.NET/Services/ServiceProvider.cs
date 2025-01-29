@@ -14,7 +14,7 @@ public abstract class ServiceProvider<TSelf, TSingletonScope, TScope, TParentSer
     public TParentServiceProvider? ParentServiceProvider { get; }
     protected readonly ServiceFactories ServiceFactories;
 
-    protected readonly Dictionary<string, IServiceProvider> Tenants = [];
+    protected readonly Dictionary<Type, IServiceProvider> Tenants = [];
     
     public abstract TSingletonScope Singletons { get; }
 
@@ -24,9 +24,9 @@ public abstract class ServiceProvider<TSelf, TSingletonScope, TScope, TParentSer
         ServiceFactories = serviceFactories;
     }
 
-    protected void Register(string tenant, IServiceProvider provider)
+    protected void Register<TTenant>(IServiceProvider provider)
     {
-        Tenants[tenant] = provider;
+        Tenants[typeof(TTenant)] = provider;
     }
 
     public virtual async ValueTask InitializeAsync()
@@ -65,9 +65,9 @@ public abstract class ServiceProvider<TSelf, TSingletonScope, TScope, TParentSer
         return false;
     }
     
-    public IServiceProvider GetTenant(string tenantId)
+    public IServiceProvider GetTenant<TTenant>()
     {
-        return Tenants[tenantId];
+        return Tenants[typeof(TTenant)];
     }
 
     public abstract TScope CreateTypedScope();

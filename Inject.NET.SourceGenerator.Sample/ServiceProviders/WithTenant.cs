@@ -4,7 +4,7 @@ using Inject.NET.SourceGenerator.Sample.Models;
 namespace Inject.NET.SourceGenerator.Sample.ServiceProviders;
 
 [ServiceProvider]
-[WithTenant<Tenant>("tenant1")]
+[WithTenant<Tenant>]
 [Singleton<Class1>]
 public partial class WithTenant
 {

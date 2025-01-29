@@ -46,7 +46,7 @@ public partial class Transient
         await using var serviceProvider = await TransientServiceProvider.BuildAsync();
 
         await using var scope = serviceProvider.CreateScope();
-        await using var scope2 = serviceProvider.GetTenant("NonOverridingTenant").CreateScope();
+        await using var scope2 = serviceProvider.GetTenant<TransientServiceProvider.NonOverridingTenant>().CreateScope();
 
         var a = scope.GetRequiredService<TransientClass>();
         var b = scope2.GetRequiredService<TransientClass>();
@@ -60,7 +60,7 @@ public partial class Transient
         await using var serviceProvider = await TransientServiceProvider.BuildAsync();
 
         await using var scope = serviceProvider.CreateScope();
-        await using var scope2 = serviceProvider.GetTenant("OverridingTenant").CreateScope();
+        await using var scope2 = serviceProvider.GetTenant<TransientServiceProvider.OverridingTenant>().CreateScope();
 
         var a = scope.GetRequiredService<TransientClass>();
         var b = scope2.GetRequiredService<TransientClass>();
@@ -73,7 +73,7 @@ public partial class Transient
     {
         await using var serviceProvider = await TransientServiceProvider.BuildAsync();
 
-        await using var scope = serviceProvider.GetTenant("OverridingTenant").CreateScope();
+        await using var scope = serviceProvider.GetTenant<TransientServiceProvider.OverridingTenant>().CreateScope();
 
         var a = scope.GetRequiredService<TransientClass>();
         var b = scope.GetRequiredService<TransientClass>();
@@ -86,8 +86,8 @@ public partial class Transient
     {
         await using var serviceProvider = await TransientServiceProvider.BuildAsync();
 
-        var scope = serviceProvider.GetTenant("OverridingTenant").CreateScope();
-        var scope2 = serviceProvider.GetTenant("OverridingTenant").CreateScope();
+        var scope = serviceProvider.GetTenant<TransientServiceProvider.OverridingTenant>().CreateScope();
+        var scope2 = serviceProvider.GetTenant<TransientServiceProvider.OverridingTenant>().CreateScope();
 
         var a = scope.GetRequiredService<TransientClass>();
         var b = scope2.GetRequiredService<TransientClass>();
@@ -95,7 +95,7 @@ public partial class Transient
         await scope.DisposeAsync();
         await scope2.DisposeAsync();
         
-        await using var scope3 = serviceProvider.GetTenant("OverridingTenant").CreateScope();
+        await using var scope3 = serviceProvider.GetTenant<TransientServiceProvider.OverridingTenant>().CreateScope();
 
         var c = scope3.GetRequiredService<TransientClass>();
         
@@ -113,8 +113,8 @@ public partial class Transient
     [ServiceProvider]
     [Transient<TransientClass>]
     [Transient<ClassContainingTransient>]
-    [WithTenant<NonOverridingTenant>("NonOverridingTenant")]
-    [WithTenant<OverridingTenant>("OverridingTenant")]
+    [WithTenant<NonOverridingTenant>]
+    [WithTenant<OverridingTenant>]
     public partial class TransientServiceProvider
     {
         public record NonOverridingTenant;

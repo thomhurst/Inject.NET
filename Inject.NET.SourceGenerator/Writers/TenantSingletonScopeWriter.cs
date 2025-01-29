@@ -8,15 +8,15 @@ internal static class TenantSingletonScopeWriter
     public static void Write(SourceProductionContext sourceProductionContext, SourceCodeWriter sourceCodeWriter,
         Compilation compilation, TypedServiceProviderModel serviceProviderModel, ServiceModelCollection serviceModelCollection, Tenant tenant)
     {
-        var className = $"SingletonScope_{tenant.Guid}";
+        var className = $"SingletonScope_{tenant.TenantDefinition.Name}";
 
-        sourceCodeWriter.WriteLine($"public class {className} : global::Inject.NET.Services.SingletonScope<{className}, ServiceProvider_{tenant.Guid}, ServiceScope_{tenant.Guid}, SingletonScope_, ServiceScope_, ServiceProvider_>");
+        sourceCodeWriter.WriteLine($"public class {className} : global::Inject.NET.Services.SingletonScope<{className}, ServiceProvider_{tenant.TenantDefinition.Name}, ServiceScope_{tenant.TenantDefinition.Name}, SingletonScope_, ServiceScope_, ServiceProvider_>");
         sourceCodeWriter.WriteLine("{");
 
         var singletonModels = GetSingletonModels(tenant.TenantDependencies).ToArray();
         
         sourceCodeWriter.WriteLine(
-            $"public {className}(ServiceProvider_{tenant.Guid} serviceProvider, ServiceFactories serviceFactories, SingletonScope_ parentScope) : base(serviceProvider, serviceFactories, parentScope)");
+            $"public {className}(ServiceProvider_{tenant.TenantDefinition.Name} serviceProvider, ServiceFactories serviceFactories, SingletonScope_ parentScope) : base(serviceProvider, serviceFactories, parentScope)");
         sourceCodeWriter.WriteLine("{");
         
         sourceCodeWriter.WriteLine("}");
@@ -25,24 +25,12 @@ internal static class TenantSingletonScopeWriter
         {
             sourceCodeWriter.WriteLine();
             sourceCodeWriter.WriteLine("[field: AllowNull, MaybeNull]");
+            
             var propertyName = PropertyNameHelper.Format(serviceModel);
-                    
-            sourceCodeWriter.WriteLine(
-                $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => field ??= Register({ObjectConstructionHelper.ConstructNewObject(serviceProviderModel.Type, serviceModelCollection.Services, serviceModel, Lifetime.Singleton)});");
-        }
 
-        foreach (var (_, serviceModels) in serviceModelCollection.Services)
-        {
-            var serviceModel = serviceModels.Last();
-
-            if (serviceModel.Lifetime == Lifetime.Singleton || serviceModel.IsOpenGeneric)
-            {
-                continue;
-            }
-
-            var propertyName = PropertyNameHelper.Format(serviceModel);
-            sourceCodeWriter.WriteLine(
-                $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => ServiceProvider.Singletons.{propertyName};");
+            sourceCodeWriter.WriteLine(serviceModel.ResolvedFromParent
+                ? $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => field ??=  parentScope.{propertyName};"
+                : $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => field ??= Register({ObjectConstructionHelper.ConstructNewObject(serviceProviderModel.Type, serviceModelCollection.Services, serviceModel, Lifetime.Singleton)});");
         }
 
         sourceCodeWriter.WriteLine("}");
@@ -52,7 +40,7 @@ internal static class TenantSingletonScopeWriter
     {
         foreach (var (_, serviceModels) in dependencies)
         {
-            var serviceModel = serviceModels.Last();
+            var serviceModel = serviceModels[^1];
 
             if (serviceModel.Lifetime != Lifetime.Singleton || serviceModel.IsOpenGeneric)
             {

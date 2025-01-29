@@ -206,21 +206,7 @@ internal static class DependencyDictionary
 
 public class Tenant
 {
-    [field: AllowNull, MaybeNull]
-    public string Guid => field ??= GenerateId();
-
-    private string GenerateId()
-    {
-        if (TenantId.All(x => char.IsLetterOrDigit(x) || x == '_'))
-        {
-            return TenantId;
-        }
-
-        return System.Guid.NewGuid().ToString("N");
-    }
-
     public required INamedTypeSymbol TenantDefinition { get; init; }
-    public required string TenantId { get; init; }
     public required IDictionary<ISymbol?, List<ServiceModel>> RootDependencies { get; init; }
     public required IDictionary<ISymbol?, List<ServiceModel>> TenantDependencies { get; init; }
 }

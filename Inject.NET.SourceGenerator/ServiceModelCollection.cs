@@ -16,7 +16,7 @@ public class TenantedServiceModelCollection : ServiceModelCollection
         
         foreach (var tenant in tenants)
         {
-            Tenants.TryAdd(tenant.TenantId,
+            Tenants.TryAdd(tenant.TenantDefinition.GloballyQualified(),
                 new ServiceModelCollection(tenant.TenantDependencies.SelectMany(x => x.Value).ToArray(), dependencies));
         }
     }

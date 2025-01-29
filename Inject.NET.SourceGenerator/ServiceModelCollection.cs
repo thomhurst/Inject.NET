@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using Inject.NET.SourceGenerator.Extensions;
 using Inject.NET.SourceGenerator.Models;
 using Microsoft.CodeAnalysis;
 
@@ -24,7 +25,7 @@ public class TenantedServiceModelCollection : ServiceModelCollection
 
 public class ServiceModelCollection
 {
-    public readonly ConcurrentDictionary<ServiceKey, List<ServiceModel>> Services = new();
+    public readonly SortedDictionary<ServiceKey, List<ServiceModel>> Services = new();
     
     public ServiceModelCollection(ServiceModel[] dependencies, ServiceModel[] parentDependencies)
     {
@@ -49,7 +50,7 @@ public class ServiceModelCollection
         }
     }
 
-    public sealed record ServiceKey(ITypeSymbol Type, string? Key)
+    public sealed record ServiceKey(ITypeSymbol Type, string? Key) : IComparable<ServiceKey>, IComparable
     {
         public bool Equals(ServiceKey? other)
         {
@@ -64,6 +65,29 @@ public class ServiceModelCollection
             }
 
             return SymbolEqualityComparer.Default.Equals(Type, other.Type) && Key == other.Key;
+        }
+
+        public int CompareTo(ServiceKey? other)
+        {
+            if (ReferenceEquals(this, other))
+            {
+                return 0;
+            }
+
+            if (other is null)
+            {
+                return 1;
+            }
+
+            return string.Compare(
+                $"{Type.GloballyQualified()}{Key}",
+                $"{other.Type.GloballyQualified()}{other.Key}", StringComparison.Ordinal
+            );
+        }
+
+        public int CompareTo(object? obj)
+        {
+            return CompareTo(obj as ServiceKey);
         }
     }
 }

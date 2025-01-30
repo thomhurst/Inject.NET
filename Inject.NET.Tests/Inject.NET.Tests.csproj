@@ -14,7 +14,7 @@
 
     <ItemGroup>
       <PackageReference Include="MediatR" Version="12.4.1" />
-      <PackageReference Include="TUnit" Version="0.6.33" />
+      <PackageReference Include="TUnit" Version="0.8.12" />
     </ItemGroup>
 
     <Target Name="CleanGenerated" BeforeTargets="PreBuildEvent">

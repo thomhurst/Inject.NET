@@ -1,33 +1,31 @@
 using Inject.NET.SourceGenerator.Models;
-using Microsoft.CodeAnalysis;
 
 namespace Inject.NET.SourceGenerator.Writers;
 
 internal static class TenantServiceRegistrarWriter
 {
-    public static void Write(SourceProductionContext sourceProductionContext, SourceCodeWriter sourceCodeWriter,
-        Compilation compilation,
-        TypedServiceProviderModel serviceProviderModel, Tenant tenant)
+    public static void Write(SourceCodeWriter sourceCodeWriter, TenantServiceModelCollection tenantServices)
     {
+        var tenantName = tenantServices.TenantName;
+        
         sourceCodeWriter.WriteLine(
-            $"public class ServiceRegistrar{tenant.TenantDefinition.Name} : global::Inject.NET.Services.ServiceRegistrar<ServiceProvider_{tenant.TenantDefinition.Name}, ServiceProvider_>");
+            $"public class ServiceRegistrar{tenantName} : global::Inject.NET.Services.ServiceRegistrar<ServiceProvider_{tenantName}, ServiceProvider_>");
 
         sourceCodeWriter.WriteLine("{");
 
-        sourceCodeWriter.WriteLine($"public ServiceRegistrar{tenant.TenantDefinition.Name}()");
+        sourceCodeWriter.WriteLine($"public ServiceRegistrar{tenantName}()");
         sourceCodeWriter.WriteLine("{");
 
-        WriteRegistration(sourceCodeWriter, serviceProviderModel.Type, tenant.TenantDependencies,
-            tenant.RootDependencies, string.Empty);
+        WriteRegistration(sourceCodeWriter, tenantServices, string.Empty);
 
         sourceCodeWriter.WriteLine("}");
 
         sourceCodeWriter.WriteLine();
 
         sourceCodeWriter.WriteLine($$"""
-                                     public override async ValueTask<ServiceProvider_{{tenant.TenantDefinition.Name}}> BuildAsync(ServiceProvider_? parentServiceProvider)
+                                     public override async ValueTask<ServiceProvider_{{tenantName}}> BuildAsync(ServiceProvider_? parentServiceProvider)
                                      {
-                                         var serviceProvider = new ServiceProvider_{{tenant.TenantDefinition.Name}}(ServiceFactoryBuilders.AsReadOnly(), parentServiceProvider!);
+                                         var serviceProvider = new ServiceProvider_{{tenantName}}(ServiceFactoryBuilders.AsReadOnly(), parentServiceProvider!);
                                          
                                          var vt = serviceProvider.InitializeAsync();
                                      
@@ -43,22 +41,20 @@ internal static class TenantServiceRegistrarWriter
         sourceCodeWriter.WriteLine("}");
     }
 
-    private static void WriteRegistration(SourceCodeWriter sourceCodeWriter,
-        INamedTypeSymbol serviceProviderType, 
-        IDictionary<ServiceModelCollection.ServiceKey, List<ServiceModel>> tenantDependencies,
-        IDictionary<ServiceModelCollection.ServiceKey, List<ServiceModel>> rootDependencies, string prefix)
+    private static void WriteRegistration(SourceCodeWriter sourceCodeWriter, 
+        TenantServiceModelCollection tenantServices, string prefix)
     {
-        foreach (var (_, serviceModels) in tenantDependencies)
+        foreach (var (_, serviceModels) in tenantServices.Services)
         {
             foreach (var serviceModel in serviceModels)
             {
-                WriteRegistration(sourceCodeWriter, serviceProviderType, tenantDependencies, rootDependencies, prefix, serviceModel);
+                WriteRegistration(sourceCodeWriter, tenantServices, prefix, serviceModel);
             }
         }
     }
 
-    private static void WriteRegistration(SourceCodeWriter sourceCodeWriter, INamedTypeSymbol serviceProviderType,
-        IDictionary<ServiceModelCollection.ServiceKey, List<ServiceModel>> tenantDependencies, IDictionary<ServiceModelCollection.ServiceKey, List<ServiceModel>> rootDependencies,
+    private static void WriteRegistration(SourceCodeWriter sourceCodeWriter,
+        TenantServiceModelCollection tenantServices,
         string prefix,
         ServiceModel serviceModel)
     {
@@ -82,7 +78,7 @@ internal static class TenantServiceRegistrarWriter
         }
         else
         {
-            var lastTypeInDictionary = tenantDependencies[serviceModel.ServiceKey][^1];
+            var lastTypeInDictionary = tenantServices.Services[serviceModel.ServiceKey][^1];
 
             sourceCodeWriter.WriteLine(
                 $"new {lastTypeInDictionary.ImplementationType.GloballyQualified()}({string.Join(", ", BuildParameters(serviceModel))})");

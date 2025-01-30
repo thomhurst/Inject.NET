@@ -1,12 +1,10 @@
 using Inject.NET.SourceGenerator.Models;
-using Microsoft.CodeAnalysis;
 
 namespace Inject.NET.SourceGenerator.Writers;
 
 internal static class ScopeWriter
 {
-    public static void Write(SourceProductionContext sourceProductionContext, SourceCodeWriter sourceCodeWriter,
-        Compilation compilation, TypedServiceProviderModel serviceProviderModel, TenantedServiceModelCollection tenantedServiceModelCollection)
+    public static void Write(SourceCodeWriter sourceCodeWriter, RootServiceModelCollection rootServiceModelCollection)
     {
         sourceCodeWriter.WriteLine(
             "public class ServiceScope_ : global::Inject.NET.Services.ServiceScope<ServiceScope_, ServiceProvider_, SingletonScope_, ServiceScope_, SingletonScope_, ServiceProvider_>");
@@ -18,7 +16,7 @@ internal static class ScopeWriter
 
         sourceCodeWriter.WriteLine("}");
 
-        foreach (var (_, serviceModels) in tenantedServiceModelCollection.Services)
+        foreach (var (_, serviceModels) in rootServiceModelCollection.Services)
         {
             var serviceModel = serviceModels[^1];
 
@@ -33,20 +31,20 @@ internal static class ScopeWriter
             if (serviceModel.Lifetime == Lifetime.Transient)
             {
                 sourceCodeWriter.WriteLine(
-                    $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => {GetInvocation(tenantedServiceModelCollection, serviceModel)};");
+                    $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => {GetInvocation(rootServiceModelCollection, serviceModel)};");
             }
             else
             {
                 sourceCodeWriter.WriteLine("[field: AllowNull, MaybeNull]");
                 sourceCodeWriter.WriteLine(
-                    $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => field ??= {GetInvocation(tenantedServiceModelCollection, serviceModel)};");
+                    $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => field ??= {GetInvocation(rootServiceModelCollection, serviceModel)};");
             }
         }
         
         sourceCodeWriter.WriteLine();
         sourceCodeWriter.WriteLine("public override object? GetService(ServiceKey serviceKey, IServiceScope originatingScope)");
         sourceCodeWriter.WriteLine("{");
-        foreach (var (_, serviceModels) in tenantedServiceModelCollection.Services)
+        foreach (var (_, serviceModels) in rootServiceModelCollection.Services)
         {
             var serviceModel = serviceModels[^1];
             
@@ -68,14 +66,14 @@ internal static class ScopeWriter
         sourceCodeWriter.WriteLine("}");
     }
 
-    private static string GetInvocation(TenantedServiceModelCollection tenantedServiceModelCollection,
+    private static string GetInvocation(RootServiceModelCollection rootServiceModelCollection,
         ServiceModel serviceModel)
     {
         if (serviceModel.Lifetime == Lifetime.Scoped)
         {
             return
-                $"Register({serviceModel.GetNewServiceKeyInvocation()}, {ObjectConstructionHelper.ConstructNewObject(tenantedServiceModelCollection.ServiceProviderType,
-                    tenantedServiceModelCollection.Services, serviceModel, Lifetime.Scoped)})";
+                $"Register({serviceModel.GetNewServiceKeyInvocation()}, {ObjectConstructionHelper.ConstructNewObject(rootServiceModelCollection.ServiceProviderType,
+                    rootServiceModelCollection.Services, serviceModel, Lifetime.Scoped)})";
         }
         
         if (serviceModel.Lifetime == Lifetime.Singleton)
@@ -83,7 +81,7 @@ internal static class ScopeWriter
             return $"Singletons.{PropertyNameHelper.Format(serviceModel)}";
         }
         
-        return ObjectConstructionHelper.ConstructNewObject(tenantedServiceModelCollection.ServiceProviderType,
-            tenantedServiceModelCollection.Services, serviceModel, Lifetime.Transient);
+        return ObjectConstructionHelper.ConstructNewObject(rootServiceModelCollection.ServiceProviderType,
+            rootServiceModelCollection.Services, serviceModel, Lifetime.Transient);
     }
 }

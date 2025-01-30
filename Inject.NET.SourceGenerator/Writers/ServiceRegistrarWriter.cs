@@ -5,8 +5,7 @@ namespace Inject.NET.SourceGenerator.Writers;
 
 internal static class ServiceRegistrarWriter
 {
-    public static void Write(SourceProductionContext sourceProductionContext, SourceCodeWriter sourceCodeWriter,
-        Compilation compilation, TypedServiceProviderModel serviceProviderModel,
+    public static void Write(SourceCodeWriter sourceCodeWriter, TypedServiceProviderModel serviceProviderModel,
         IDictionary<ServiceModelCollection.ServiceKey, List<ServiceModel>> dependencyDictionary)
     {
         sourceCodeWriter.WriteLine(

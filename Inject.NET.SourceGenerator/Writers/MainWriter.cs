@@ -84,17 +84,19 @@ internal static class MainWriter
         sourceCodeWriter.WriteLine($"public partial class {serviceProviderType.Name}");
         sourceCodeWriter.WriteLine("{");
         
-        ServiceRegistrarWriter.Write(sourceProductionContext, sourceCodeWriter, compilation, serviceProviderModel, rootDependencies);
-        SingletonScopeWriter.Write(sourceProductionContext, sourceCodeWriter, compilation, serviceProviderModel, serviceModelCollection);
-        ScopeWriter.Write(sourceProductionContext, sourceCodeWriter, compilation, serviceProviderModel, serviceModelCollection);
+        ServiceRegistrarWriter.Write(sourceCodeWriter, serviceProviderModel, rootDependencies);
+        SingletonScopeWriter.Write(sourceCodeWriter, serviceModelCollection);
+        ScopeWriter.Write(sourceCodeWriter, serviceModelCollection);
         ServiceProviderWriter.Write(sourceProductionContext, sourceCodeWriter, serviceProviderModel, serviceModelCollection, tenants);
         
         foreach (var tenant in tenants)
         {
-            TenantServiceRegistrarWriter.Write(sourceProductionContext, sourceCodeWriter, compilation, serviceProviderModel, tenant);
-            TenantSingletonScopeWriter.Write(sourceProductionContext, sourceCodeWriter, compilation, serviceProviderModel, serviceModelCollection, tenant);
-            TenantScopeWriter.Write(sourceProductionContext, sourceCodeWriter, compilation, serviceProviderModel, serviceModelCollection, tenant);
-            TenantServiceProviderWriter.Write(sourceProductionContext, sourceCodeWriter, serviceProviderModel, serviceModelCollection, tenant);
+            var tenantServices = serviceModelCollection.Tenants[tenant.TenantDefinition.GloballyQualified()];
+
+            TenantServiceRegistrarWriter.Write(sourceCodeWriter, tenantServices);
+            TenantSingletonScopeWriter.Write(sourceCodeWriter, serviceProviderModel, tenantServices);
+            TenantScopeWriter.Write(sourceCodeWriter, serviceProviderModel, tenantServices);
+            TenantServiceProviderWriter.Write(sourceCodeWriter, serviceModelCollection, tenant);
         }
         
         sourceCodeWriter.WriteLine(

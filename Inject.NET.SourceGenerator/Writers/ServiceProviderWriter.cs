@@ -7,10 +7,10 @@ namespace Inject.NET.SourceGenerator.Writers;
 internal static class ServiceProviderWriter
 {
     public static void Write(SourceProductionContext sourceProductionContext, SourceCodeWriter sourceCodeWriter,
-        TypedServiceProviderModel serviceProviderModel, TenantedServiceModelCollection tenantedServiceModelCollection,
+        TypedServiceProviderModel serviceProviderModel, RootServiceModelCollection rootServiceModelCollection,
         Tenant[] tenants)
     {
-        var serviceProviderType = tenantedServiceModelCollection.ServiceProviderType;
+        var serviceProviderType = rootServiceModelCollection.ServiceProviderType;
                 
         sourceCodeWriter.WriteLine(
             $"{serviceProviderType.DeclaredAccessibility.ToString().ToLower(CultureInfo.InvariantCulture)} class ServiceProvider_(global::Inject.NET.Models.ServiceFactories serviceFactories) : global::Inject.NET.Services.ServiceProvider<ServiceProvider_, SingletonScope_, ServiceScope_, ServiceProvider_, SingletonScope_, ServiceScope_>(serviceFactories, null)");
@@ -30,13 +30,13 @@ internal static class ServiceProviderWriter
             sourceCodeWriter.WriteLine($$"""public ServiceProvider_{{tenant.TenantDefinition.Name}} Tenant_{{tenant.TenantDefinition.Name}} { get; private set; } = null!;""");
         }
                 
-        WriteInitializeAsync(sourceCodeWriter, tenantedServiceModelCollection, tenants);
+        WriteInitializeAsync(sourceCodeWriter, rootServiceModelCollection, tenants);
 
         sourceCodeWriter.WriteLine("}");
     }
 
     private static void WriteInitializeAsync(SourceCodeWriter sourceCodeWriter,
-        TenantedServiceModelCollection tenantedServiceModelCollection, Tenant[] tenants)
+        RootServiceModelCollection rootServiceModelCollection, Tenant[] tenants)
     {
         sourceCodeWriter.WriteLine("public override async ValueTask InitializeAsync()");
         sourceCodeWriter.WriteLine("{");
@@ -45,7 +45,7 @@ internal static class ServiceProviderWriter
 
         sourceCodeWriter.WriteLine("await using var scope = CreateTypedScope();");
         
-        foreach (var serviceModel in tenantedServiceModelCollection.Services.Where(x => x.Key.Type is INamedTypeSymbol { IsUnboundGenericType: false }).Select(x => x.Value[^1]))
+        foreach (var serviceModel in rootServiceModelCollection.Services.Where(x => x.Key.Type is INamedTypeSymbol { IsUnboundGenericType: false }).Select(x => x.Value[^1]))
         {
             if(serviceModel.Lifetime == Lifetime.Singleton)
             {

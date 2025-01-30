@@ -1,16 +1,14 @@
 ﻿using System.Globalization;
-using Inject.NET.SourceGenerator.Models;
 using Microsoft.CodeAnalysis;
 
 namespace Inject.NET.SourceGenerator.Writers;
 
 internal static class TenantServiceProviderWriter
 {
-    public static void Write(SourceProductionContext sourceProductionContext, SourceCodeWriter sourceCodeWriter,
-        TypedServiceProviderModel serviceProviderModel, TenantedServiceModelCollection tenantedServiceModelCollection,
+    public static void Write(SourceCodeWriter sourceCodeWriter, RootServiceModelCollection rootServiceModelCollection,
         Tenant tenant)
     {
-        var serviceProviderType = tenantedServiceModelCollection.ServiceProviderType;
+        var serviceProviderType = rootServiceModelCollection.ServiceProviderType;
 
         var className = $"ServiceProvider_{tenant.TenantDefinition.Name}";
                 

@@ -5,7 +5,7 @@ namespace Inject.NET.SourceGenerator;
 
 public class TypeCollector
 {
-    public static TenantedServiceModelCollection Collect(TypedServiceProviderModel serviceProviderModel, Compilation compilation)
+    public static RootServiceModelCollection Collect(TypedServiceProviderModel serviceProviderModel, Compilation compilation)
     {
         var dependencyInjectionAttributeType = compilation.GetTypeByMetadataName("Inject.NET.Attributes.IDependencyInjectionAttribute");
 
@@ -27,6 +27,6 @@ public class TypeCollector
 
         var tenants = TenantHelper.ConstructTenants(compilation, withTenantAttributes, rootDependencies);
         
-        return new TenantedServiceModelCollection(serviceProviderModel.Type, rootDependencies.SelectMany(x => x.Value).ToArray(), tenants);
+        return new RootServiceModelCollection(serviceProviderModel.Type, rootDependencies.SelectMany(x => x.Value).ToArray(), tenants);
     }
 }

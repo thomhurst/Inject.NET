@@ -1,25 +1,23 @@
 using Inject.NET.SourceGenerator.Models;
-using Microsoft.CodeAnalysis;
 
 namespace Inject.NET.SourceGenerator.Writers;
 
 internal static class TenantScopeWriter
 {
-    public static void Write(SourceProductionContext sourceProductionContext, SourceCodeWriter sourceCodeWriter,
-        Compilation compilation, TypedServiceProviderModel serviceProviderModel, TenantedServiceModelCollection tenantedServiceModelCollection, Tenant tenant)
+    public static void Write(SourceCodeWriter sourceCodeWriter, TypedServiceProviderModel serviceProviderModel, TenantServiceModelCollection tenantServices)
     {
-        var className = $"ServiceScope_{tenant.TenantDefinition.Name}";
+        var tenantName = tenantServices.TenantName;
+        
+        var className = $"ServiceScope_{tenantName}";
                 
         sourceCodeWriter.WriteLine(
-            $"public class {className} : global::Inject.NET.Services.ServiceScope<{className}, ServiceProvider_{tenant.TenantDefinition.Name}, SingletonScope_{tenant.TenantDefinition.Name}, ServiceScope_, SingletonScope_, ServiceProvider_>");
+            $"public class {className} : global::Inject.NET.Services.ServiceScope<{className}, ServiceProvider_{tenantName}, SingletonScope_{tenantName}, ServiceScope_, SingletonScope_, ServiceProvider_>");
         sourceCodeWriter.WriteLine("{");
-
-        var tenantServices = tenantedServiceModelCollection.Tenants[tenant.TenantDefinition.GloballyQualified()].Services;
         
-        var models = GetModels(tenantServices).ToArray();
+        var models = GetModels(tenantServices.Services).ToArray();
 
         sourceCodeWriter.WriteLine(
-            $"public {className}(ServiceProvider_{tenant.TenantDefinition.Name} serviceProvider, ServiceFactories serviceFactories, ServiceScope_ parentScope) : base(serviceProvider, serviceFactories, parentScope)");
+            $"public {className}(ServiceProvider_{tenantName} serviceProvider, ServiceFactories serviceFactories, ServiceScope_ parentScope) : base(serviceProvider, serviceFactories, parentScope)");
         sourceCodeWriter.WriteLine("{");
         
         sourceCodeWriter.WriteLine("}");
@@ -37,7 +35,7 @@ internal static class TenantScopeWriter
                 sourceCodeWriter.WriteLine(
                     serviceModel.ResolvedFromParent
                         ? $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => field ??= Register({serviceModel.GetNewServiceKeyInvocation()}, ParentScope.{propertyName});"
-                        : $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => field ??= Register({serviceModel.GetNewServiceKeyInvocation()}, {ObjectConstructionHelper.ConstructNewObject(tenantedServiceModelCollection.ServiceProviderType, tenantServices, serviceModel, Lifetime.Scoped)});");
+                        : $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => field ??= Register({serviceModel.GetNewServiceKeyInvocation()}, {ObjectConstructionHelper.ConstructNewObject(serviceProviderModel.Type, tenantServices.Services, serviceModel, Lifetime.Scoped)});");
             }
 
             if (serviceModel.Lifetime == Lifetime.Singleton)
@@ -51,14 +49,14 @@ internal static class TenantScopeWriter
             if (serviceModel.Lifetime == Lifetime.Transient)
             {
                 sourceCodeWriter.WriteLine(
-                    $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => {ObjectConstructionHelper.ConstructNewObject(tenantedServiceModelCollection.ServiceProviderType, tenantServices, serviceModel, Lifetime.Transient)};");
+                    $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => {ObjectConstructionHelper.ConstructNewObject(serviceProviderModel.Type, tenantServices.Services, serviceModel, Lifetime.Transient)};");
             }
         }
         
         sourceCodeWriter.WriteLine();
         sourceCodeWriter.WriteLine("public override object? GetService(ServiceKey serviceKey, IServiceScope originatingScope)");
         sourceCodeWriter.WriteLine("{");
-        foreach (var (_, serviceModels) in tenantServices)
+        foreach (var (_, serviceModels) in tenantServices.Services)
         {
             var serviceModel = serviceModels[^1];
             

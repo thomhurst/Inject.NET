@@ -5,25 +5,37 @@ using Microsoft.CodeAnalysis;
 
 namespace Inject.NET.SourceGenerator;
 
-public class TenantedServiceModelCollection : ServiceModelCollection
+public class RootServiceModelCollection : ServiceModelCollection
 {
     public INamedTypeSymbol ServiceProviderType { get; }
 
-    public readonly ConcurrentDictionary<string, ServiceModelCollection> Tenants = [];
+    public readonly ConcurrentDictionary<string, TenantServiceModelCollection> Tenants = [];
 
-    public TenantedServiceModelCollection(INamedTypeSymbol serviceProviderType, ServiceModel[] dependencies, Tenant[] tenants) : base(dependencies, [])
+    public RootServiceModelCollection(INamedTypeSymbol serviceProviderType, ServiceModel[] dependencies, Tenant[] tenants) : base(dependencies, [])
     {
         ServiceProviderType = serviceProviderType;
         
         foreach (var tenant in tenants)
         {
             Tenants.TryAdd(tenant.TenantDefinition.GloballyQualified(),
-                new ServiceModelCollection(tenant.TenantDependencies.SelectMany(x => x.Value).ToArray(), dependencies));
+                new TenantServiceModelCollection(tenant.TenantDefinition, tenant.TenantDependencies.SelectMany(x => x.Value).ToArray(), dependencies));
         }
     }
 }
 
-public class ServiceModelCollection
+public class TenantServiceModelCollection : ServiceModelCollection
+{
+    public INamedTypeSymbol TenantDefinition { get; }
+    public string TenantName => TenantDefinition.Name;
+
+    public TenantServiceModelCollection(INamedTypeSymbol tenantDefinition, ServiceModel[] dependencies, ServiceModel[] parentDependencies) : base(dependencies, parentDependencies)
+    {
+        TenantDefinition = tenantDefinition;
+    }
+}
+
+
+public abstract class ServiceModelCollection
 {
     public readonly SortedDictionary<ServiceKey, List<ServiceModel>> Services = new();
     

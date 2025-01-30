@@ -1,24 +1,22 @@
 using Inject.NET.SourceGenerator.Models;
-using Microsoft.CodeAnalysis;
 
 namespace Inject.NET.SourceGenerator.Writers;
 
 internal static class TenantSingletonScopeWriter
 {
-    public static void Write(SourceProductionContext sourceProductionContext, SourceCodeWriter sourceCodeWriter,
-        Compilation compilation, TypedServiceProviderModel serviceProviderModel, TenantedServiceModelCollection tenantedServiceModelCollection, Tenant tenant)
+    public static void Write(SourceCodeWriter sourceCodeWriter, TypedServiceProviderModel serviceProviderModel, TenantServiceModelCollection tenantServices)
     {
-        var className = $"SingletonScope_{tenant.TenantDefinition.Name}";
-
-        var tenantedServices = tenantedServiceModelCollection.Tenants[tenant.TenantDefinition.GloballyQualified()];
-
-        sourceCodeWriter.WriteLine($"public class {className} : global::Inject.NET.Services.SingletonScope<{className}, ServiceProvider_{tenant.TenantDefinition.Name}, ServiceScope_{tenant.TenantDefinition.Name}, SingletonScope_, ServiceScope_, ServiceProvider_>");
+        var tenantName = tenantServices.TenantName;
+        
+        var className = $"SingletonScope_{tenantName}";
+        
+        sourceCodeWriter.WriteLine($"public class {className} : global::Inject.NET.Services.SingletonScope<{className}, ServiceProvider_{tenantName}, ServiceScope_{tenantName}, SingletonScope_, ServiceScope_, ServiceProvider_>");
         sourceCodeWriter.WriteLine("{");
 
-        var singletonModels = GetSingletonModels(tenantedServices.Services).ToArray();
+        var singletonModels = GetSingletonModels(tenantServices.Services).ToArray();
         
         sourceCodeWriter.WriteLine(
-            $"public {className}(ServiceProvider_{tenant.TenantDefinition.Name} serviceProvider, ServiceFactories serviceFactories, SingletonScope_ parentScope) : base(serviceProvider, serviceFactories, parentScope)");
+            $"public {className}(ServiceProvider_{tenantName} serviceProvider, ServiceFactories serviceFactories, SingletonScope_ parentScope) : base(serviceProvider, serviceFactories, parentScope)");
         sourceCodeWriter.WriteLine("{");
         
         sourceCodeWriter.WriteLine("}");
@@ -32,7 +30,7 @@ internal static class TenantSingletonScopeWriter
 
             sourceCodeWriter.WriteLine(serviceModel.ResolvedFromParent
                 ? $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => field ??= ParentScope.{propertyName};"
-                : $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => field ??= Register({ObjectConstructionHelper.ConstructNewObject(serviceProviderModel.Type, tenantedServices.Services, serviceModel, Lifetime.Singleton)});");
+                : $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => field ??= Register({ObjectConstructionHelper.ConstructNewObject(serviceProviderModel.Type, tenantServices.Services, serviceModel, Lifetime.Singleton)});");
         }
         
         sourceCodeWriter.WriteLine();
@@ -40,8 +38,6 @@ internal static class TenantSingletonScopeWriter
         sourceCodeWriter.WriteLine("{");
         foreach (var serviceModel in singletonModels)
         {
-            var propertyName = PropertyNameHelper.Format(serviceModel);
-            
             sourceCodeWriter.WriteLine($"if (serviceKey == {serviceModel.GetNewServiceKeyInvocation()})");
             sourceCodeWriter.WriteLine("{");
             sourceCodeWriter.WriteLine($"return {serviceModel.GetPropertyName()};");

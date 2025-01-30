@@ -1,11 +1,12 @@
 ﻿using System.Globalization;
+using Inject.NET.SourceGenerator.Models;
 using Microsoft.CodeAnalysis;
 
 namespace Inject.NET.SourceGenerator.Writers;
 
 internal static class TenantServiceProviderWriter
 {
-    public static void Write(SourceCodeWriter sourceCodeWriter, RootServiceModelCollection rootServiceModelCollection,
+    public static void Write(SourceCodeWriter sourceCodeWriter, TypedServiceProviderModel serviceProviderModel, RootServiceModelCollection rootServiceModelCollection,
         Tenant tenant)
     {
         var serviceProviderType = rootServiceModelCollection.ServiceProviderType;
@@ -13,7 +14,7 @@ internal static class TenantServiceProviderWriter
         var className = $"ServiceProvider_{tenant.TenantDefinition.Name}";
                 
         sourceCodeWriter.WriteLine(
-            $"{serviceProviderType.DeclaredAccessibility.ToString().ToLower(CultureInfo.InvariantCulture)} partial class {className}(ServiceFactories serviceFactories, ServiceProvider_ parent) : global::Inject.NET.Services.ServiceProvider<{className}, SingletonScope_{tenant.TenantDefinition.Name}, ServiceScope_{tenant.TenantDefinition.Name}, ServiceProvider_, SingletonScope_, ServiceScope_>(serviceFactories, parent)");
+            $"{serviceProviderType.DeclaredAccessibility.ToString().ToLower(CultureInfo.InvariantCulture)} partial class {className}(ServiceFactories serviceFactories, {serviceProviderModel.Prefix}ServiceProvider_ parent) : global::Inject.NET.Services.ServiceProvider<{className}, SingletonScope_{tenant.TenantDefinition.Name}, ServiceScope_{tenant.TenantDefinition.Name}, {serviceProviderModel.Prefix}ServiceProvider_, {serviceProviderModel.Prefix}SingletonScope_, {serviceProviderModel.Prefix}ServiceScope_>(serviceFactories, parent)");
         sourceCodeWriter.WriteLine("{");
                 
         sourceCodeWriter.WriteLine("[field: AllowNull, MaybeNull]");
@@ -24,7 +25,7 @@ internal static class TenantServiceProviderWriter
             $"public override ServiceScope_{tenant.TenantDefinition.Name} CreateTypedScope() => new ServiceScope_{tenant.TenantDefinition.Name}(this, serviceFactories, parent.CreateTypedScope());");
                 
         sourceCodeWriter.WriteLine(
-            $"public static ValueTask<{className}> BuildAsync(ServiceProvider_ serviceProvider) =>");
+            $"public static ValueTask<{className}> BuildAsync({serviceProviderModel.Prefix}ServiceProvider_ serviceProvider) =>");
         sourceCodeWriter.WriteLine($"\tnew ServiceRegistrar{tenant.TenantDefinition.Name}().BuildAsync(serviceProvider);");
 
         WriteInitializeAsync(sourceCodeWriter, tenant);

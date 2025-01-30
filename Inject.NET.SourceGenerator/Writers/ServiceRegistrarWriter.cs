@@ -1,5 +1,4 @@
 using Inject.NET.SourceGenerator.Models;
-using Microsoft.CodeAnalysis;
 
 namespace Inject.NET.SourceGenerator.Writers;
 
@@ -9,40 +8,39 @@ internal static class ServiceRegistrarWriter
         IDictionary<ServiceModelCollection.ServiceKey, List<ServiceModel>> dependencyDictionary)
     {
         sourceCodeWriter.WriteLine(
-            "public class ServiceRegistrar_ : global::Inject.NET.Services.ServiceRegistrar<ServiceProvider_, ServiceProvider_>");
+            $"public class ServiceRegistrar_ : global::Inject.NET.Services.ServiceRegistrar<{serviceProviderModel.Prefix}ServiceProvider_, {serviceProviderModel.Prefix}ServiceProvider_>");
                 
         sourceCodeWriter.WriteLine("{");
 
         sourceCodeWriter.WriteLine("public ServiceRegistrar_()");
         sourceCodeWriter.WriteLine("{");
 
-        WriteRegistration(sourceCodeWriter, serviceProviderModel.Type, dependencyDictionary, string.Empty);
+        WriteRegistration(sourceCodeWriter, dependencyDictionary, string.Empty);
 
         sourceCodeWriter.WriteLine("}");
 
         sourceCodeWriter.WriteLine();
 
-        sourceCodeWriter.WriteLine("""
-                                   public override async ValueTask<ServiceProvider_> BuildAsync(ServiceProvider_? parent)
-                                   {
-                                       var serviceProvider = new ServiceProvider_(ServiceFactoryBuilders.AsReadOnly());
-                                       
-                                       var vt = serviceProvider.InitializeAsync();
-                                   
-                                       if (!vt.IsCompletedSuccessfully)
-                                       {
-                                           await vt.ConfigureAwait(false);
-                                       }
-                                       
-                                       return serviceProvider;
-                                   }
-                                   """);
+        sourceCodeWriter.WriteLine($$"""
+                                     public override async ValueTask<{{serviceProviderModel.Prefix}}ServiceProvider_> BuildAsync({{serviceProviderModel.Prefix}}ServiceProvider_ parent)
+                                     {
+                                         var serviceProvider = new {{serviceProviderModel.Prefix}}ServiceProvider_(ServiceFactoryBuilders.AsReadOnly());
+                                         
+                                         var vt = serviceProvider.InitializeAsync();
+                                     
+                                         if (!vt.IsCompletedSuccessfully)
+                                         {
+                                             await vt.ConfigureAwait(false);
+                                         }
+                                         
+                                         return serviceProvider;
+                                     }
+                                     """);
 
         sourceCodeWriter.WriteLine("}");
     }
 
-    private static void WriteRegistration(SourceCodeWriter sourceCodeWriter,
-        INamedTypeSymbol serviceProviderType, IDictionary<ServiceModelCollection.ServiceKey, List<ServiceModel>> dependencyDictionary, string prefix)
+    private static void WriteRegistration(SourceCodeWriter sourceCodeWriter, IDictionary<ServiceModelCollection.ServiceKey, List<ServiceModel>> dependencyDictionary, string prefix)
     {
         foreach (var (_, serviceModels) in dependencyDictionary)
         {

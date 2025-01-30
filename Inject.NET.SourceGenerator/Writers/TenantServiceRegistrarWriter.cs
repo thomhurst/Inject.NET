@@ -4,12 +4,12 @@ namespace Inject.NET.SourceGenerator.Writers;
 
 internal static class TenantServiceRegistrarWriter
 {
-    public static void Write(SourceCodeWriter sourceCodeWriter, TenantServiceModelCollection tenantServices)
+    public static void Write(SourceCodeWriter sourceCodeWriter, TypedServiceProviderModel serviceProviderModel, TenantServiceModelCollection tenantServices)
     {
         var tenantName = tenantServices.TenantName;
         
         sourceCodeWriter.WriteLine(
-            $"public class ServiceRegistrar{tenantName} : global::Inject.NET.Services.ServiceRegistrar<ServiceProvider_{tenantName}, ServiceProvider_>");
+            $"public class ServiceRegistrar{tenantName} : global::Inject.NET.Services.ServiceRegistrar<ServiceProvider_{tenantName}, {serviceProviderModel.Prefix}ServiceProvider_>");
 
         sourceCodeWriter.WriteLine("{");
 
@@ -23,7 +23,7 @@ internal static class TenantServiceRegistrarWriter
         sourceCodeWriter.WriteLine();
 
         sourceCodeWriter.WriteLine($$"""
-                                     public override async ValueTask<ServiceProvider_{{tenantName}}> BuildAsync(ServiceProvider_? parentServiceProvider)
+                                     public override async ValueTask<ServiceProvider_{{tenantName}}> BuildAsync({{serviceProviderModel.Prefix}}ServiceProvider_ parentServiceProvider)
                                      {
                                          var serviceProvider = new ServiceProvider_{{tenantName}}(ServiceFactoryBuilders.AsReadOnly(), parentServiceProvider!);
                                          

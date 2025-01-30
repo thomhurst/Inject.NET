@@ -43,9 +43,9 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
 
     public TServiceProvider ServiceProvider { get; }
 
-    public T Register<T>(ServiceKey key, T obj) where T : notnull
+    public T Register<T>(ServiceKey key, T obj)
     {
-        (_forDisposal ??= Pools.DisposalTracker.Get()).Add(obj);
+        (_forDisposal ??= Pools.DisposalTracker.Get()).Add(obj!);
 
         return obj;
     }

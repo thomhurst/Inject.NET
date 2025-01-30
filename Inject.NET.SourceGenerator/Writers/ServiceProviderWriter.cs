@@ -13,15 +13,15 @@ internal static class ServiceProviderWriter
         var serviceProviderType = rootServiceModelCollection.ServiceProviderType;
                 
         sourceCodeWriter.WriteLine(
-            $"{serviceProviderType.DeclaredAccessibility.ToString().ToLower(CultureInfo.InvariantCulture)} class ServiceProvider_(global::Inject.NET.Models.ServiceFactories serviceFactories) : global::Inject.NET.Services.ServiceProvider<ServiceProvider_, SingletonScope_, ServiceScope_, ServiceProvider_, SingletonScope_, ServiceScope_>(serviceFactories, null)");
+            $"{serviceProviderType.DeclaredAccessibility.ToString().ToLower(CultureInfo.InvariantCulture)} class ServiceProvider_(global::Inject.NET.Models.ServiceFactories serviceFactories) : global::Inject.NET.Services.ServiceProvider<{serviceProviderModel.Prefix}ServiceProvider_, {serviceProviderModel.Prefix}SingletonScope_, {serviceProviderModel.Prefix}ServiceScope_, {serviceProviderModel.Prefix}ServiceProvider_, {serviceProviderModel.Prefix}SingletonScope_, {serviceProviderModel.Prefix}ServiceScope_>(serviceFactories, null)");
         sourceCodeWriter.WriteLine("{");
 
         sourceCodeWriter.WriteLine("[field: AllowNull, MaybeNull]");
         sourceCodeWriter.WriteLine(
-            "public override SingletonScope_ Singletons => field ??= new(this, serviceFactories);");
+            $"public override {serviceProviderModel.Prefix}SingletonScope_ Singletons => field ??= new(this, serviceFactories);");
 
         sourceCodeWriter.WriteLine(
-            "public override ServiceScope_ CreateTypedScope() => new ServiceScope_(this, serviceFactories);");
+            $"public override {serviceProviderModel.Prefix}ServiceScope_ CreateTypedScope() => new(this, serviceFactories);");
                 
         foreach (var tenant in tenants)
         {

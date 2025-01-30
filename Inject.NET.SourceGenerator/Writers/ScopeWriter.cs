@@ -4,14 +4,14 @@ namespace Inject.NET.SourceGenerator.Writers;
 
 internal static class ScopeWriter
 {
-    public static void Write(SourceCodeWriter sourceCodeWriter, RootServiceModelCollection rootServiceModelCollection)
+    public static void Write(SourceCodeWriter sourceCodeWriter, TypedServiceProviderModel serviceProviderModel, RootServiceModelCollection rootServiceModelCollection)
     {
         sourceCodeWriter.WriteLine(
-            "public class ServiceScope_ : global::Inject.NET.Services.ServiceScope<ServiceScope_, ServiceProvider_, SingletonScope_, ServiceScope_, SingletonScope_, ServiceProvider_>");
+            $"public class ServiceScope_ : global::Inject.NET.Services.ServiceScope<{serviceProviderModel.Prefix}ServiceScope_, {serviceProviderModel.Prefix}ServiceProvider_, {serviceProviderModel.Prefix}SingletonScope_, {serviceProviderModel.Prefix}ServiceScope_, {serviceProviderModel.Prefix}SingletonScope_, {serviceProviderModel.Prefix}ServiceProvider_>");
         sourceCodeWriter.WriteLine("{");
         
         sourceCodeWriter.WriteLine(
-            "public ServiceScope_(ServiceProvider_ serviceProvider, ServiceFactories serviceFactories) : base(serviceProvider, serviceFactories, null)");
+            $"public ServiceScope_({serviceProviderModel.Prefix}ServiceProvider_ serviceProvider, ServiceFactories serviceFactories) : base(serviceProvider, serviceFactories, null)");
         sourceCodeWriter.WriteLine("{");
 
         sourceCodeWriter.WriteLine("}");
@@ -42,7 +42,7 @@ internal static class ScopeWriter
         }
         
         sourceCodeWriter.WriteLine();
-        sourceCodeWriter.WriteLine("public override object? GetService(ServiceKey serviceKey, IServiceScope originatingScope)");
+        sourceCodeWriter.WriteLine("public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)");
         sourceCodeWriter.WriteLine("{");
         foreach (var (_, serviceModels) in rootServiceModelCollection.Services)
         {
@@ -72,7 +72,7 @@ internal static class ScopeWriter
         if (serviceModel.Lifetime == Lifetime.Scoped)
         {
             return
-                $"Register({serviceModel.GetNewServiceKeyInvocation()}, {ObjectConstructionHelper.ConstructNewObject(rootServiceModelCollection.ServiceProviderType,
+                $"Register<{serviceModel.ServiceType.GloballyQualified()}>({serviceModel.GetNewServiceKeyInvocation()}, {ObjectConstructionHelper.ConstructNewObject(rootServiceModelCollection.ServiceProviderType,
                     rootServiceModelCollection.Services, serviceModel, Lifetime.Scoped)})";
         }
         

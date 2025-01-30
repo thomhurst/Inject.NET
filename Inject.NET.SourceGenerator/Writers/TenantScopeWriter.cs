@@ -11,13 +11,13 @@ internal static class TenantScopeWriter
         var className = $"ServiceScope_{tenantName}";
                 
         sourceCodeWriter.WriteLine(
-            $"public class {className} : global::Inject.NET.Services.ServiceScope<{className}, ServiceProvider_{tenantName}, SingletonScope_{tenantName}, ServiceScope_, SingletonScope_, ServiceProvider_>");
+            $"public class {className} : global::Inject.NET.Services.ServiceScope<{className}, ServiceProvider_{tenantName}, SingletonScope_{tenantName}, {serviceProviderModel.Prefix}ServiceScope_, {serviceProviderModel.Prefix}SingletonScope_, {serviceProviderModel.Prefix}ServiceProvider_>");
         sourceCodeWriter.WriteLine("{");
         
         var models = GetModels(tenantServices.Services).ToArray();
 
         sourceCodeWriter.WriteLine(
-            $"public {className}(ServiceProvider_{tenantName} serviceProvider, ServiceFactories serviceFactories, ServiceScope_ parentScope) : base(serviceProvider, serviceFactories, parentScope)");
+            $"public {className}(ServiceProvider_{tenantName} serviceProvider, ServiceFactories serviceFactories, {serviceProviderModel.Prefix}ServiceScope_ parentScope) : base(serviceProvider, serviceFactories, parentScope)");
         sourceCodeWriter.WriteLine("{");
         
         sourceCodeWriter.WriteLine("}");
@@ -34,8 +34,8 @@ internal static class TenantScopeWriter
 
                 sourceCodeWriter.WriteLine(
                     serviceModel.ResolvedFromParent
-                        ? $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => field ??= Register({serviceModel.GetNewServiceKeyInvocation()}, ParentScope.{propertyName});"
-                        : $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => field ??= Register({serviceModel.GetNewServiceKeyInvocation()}, {ObjectConstructionHelper.ConstructNewObject(serviceProviderModel.Type, tenantServices.Services, serviceModel, Lifetime.Scoped)});");
+                        ? $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => field ??= Register<{serviceModel.ServiceType.GloballyQualified()}>({serviceModel.GetNewServiceKeyInvocation()}, ParentScope.{propertyName});"
+                        : $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => field ??= Register<{serviceModel.ServiceType.GloballyQualified()}>({serviceModel.GetNewServiceKeyInvocation()}, {ObjectConstructionHelper.ConstructNewObject(serviceProviderModel.Type, tenantServices.Services, serviceModel, Lifetime.Scoped)});");
             }
 
             if (serviceModel.Lifetime == Lifetime.Singleton)
@@ -43,7 +43,7 @@ internal static class TenantScopeWriter
                 sourceCodeWriter.WriteLine("[field: AllowNull, MaybeNull]");
 
                 sourceCodeWriter.WriteLine(
-                    $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => field ??= Register({serviceModel.GetNewServiceKeyInvocation()}, Singletons.{propertyName});");
+                    $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => field ??= Register<{serviceModel.ServiceType.GloballyQualified()}>({serviceModel.GetNewServiceKeyInvocation()}, Singletons.{propertyName});");
             }
 
             if (serviceModel.Lifetime == Lifetime.Transient)
@@ -54,7 +54,7 @@ internal static class TenantScopeWriter
         }
         
         sourceCodeWriter.WriteLine();
-        sourceCodeWriter.WriteLine("public override object? GetService(ServiceKey serviceKey, IServiceScope originatingScope)");
+        sourceCodeWriter.WriteLine("public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)");
         sourceCodeWriter.WriteLine("{");
         foreach (var (_, serviceModels) in tenantServices.Services)
         {

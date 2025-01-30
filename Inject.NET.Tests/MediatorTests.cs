@@ -1,4 +1,5 @@
 ﻿using Inject.NET.Attributes;
+using Inject.NET.Extensions;
 using MediatR;
 
 namespace Inject.NET.Tests;
@@ -10,7 +11,7 @@ public partial class MediatorTests
     {
         var serviceProvider = await MediatorServiceProvider.BuildAsync();
         
-        var mediator = serviceProvider.GetRequiredService<IMediator>();
+        var mediator = serviceProvider.CreateScope().GetRequiredService<IMediator>();
         
         var response = await mediator.Send(new Ping { Message = "Ping" });
         

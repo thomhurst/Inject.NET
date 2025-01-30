@@ -19,6 +19,8 @@ public class PropertyNameHelper
             .Replace('<', '_')
             .Replace('>', '_')
             .Replace(".", "__")
+            .Replace(',', '_')
+            .Replace(" ", "_")
             .Replace("?", string.Empty);
     }
 }

@@ -184,6 +184,15 @@ public partial class Transient
 			{
 				Register(new global::Inject.NET.Models.ServiceDescriptor
 				{
+					ServiceType = typeof(global::Inject.NET.Tests.Transient.ClassContainingTransient),
+					ImplementationType = typeof(global::Inject.NET.Tests.Transient.ClassContainingTransient),
+					Lifetime = Inject.NET.Enums.Lifetime.Transient,
+					Factory = (scope, type, key) =>
+					new global::Inject.NET.Tests.Transient.ClassContainingTransient(scope.GetRequiredService<global::Inject.NET.Tests.Transient.TransientClass>())
+				});
+
+				Register(new global::Inject.NET.Models.ServiceDescriptor
+				{
 					ServiceType = typeof(global::Inject.NET.Tests.Transient.TransientClass),
 					ImplementationType = typeof(global::Inject.NET.Tests.Transient.TransientClass),
 					Lifetime = Inject.NET.Enums.Lifetime.Transient,

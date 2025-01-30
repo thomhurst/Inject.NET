@@ -116,6 +116,15 @@ public partial class WithTenantOverridingType
 				new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.TenantChild1()
 			});
 
+			Register(new global::Inject.NET.Models.ServiceDescriptor
+			{
+				ServiceType = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.Parent),
+				ImplementationType = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.Parent),
+				Lifetime = Inject.NET.Enums.Lifetime.Transient,
+				Factory = (scope, type, key) =>
+				new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.Parent(scope.GetRequiredService<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.IChild>())
+			});
+
 		}
 
 		public override async ValueTask<ServiceProvider_Tenant> BuildAsync(ServiceProvider_? parentServiceProvider)

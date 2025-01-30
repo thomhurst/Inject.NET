@@ -56,6 +56,10 @@
         <ParentFile>Scoped</ParentFile>
         <DependentUpon>Transient.cs</DependentUpon>
       </None>
+      <None Remove="WithTenantTests.WithTenant.received.txt" />
+      <None Remove="Transient.Test.received.txt" />
+      <None Remove="Singletons.Test.received.txt" />
+      <None Remove="Scoped.Test.received.txt" />
     </ItemGroup>
 
 

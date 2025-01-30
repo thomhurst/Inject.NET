@@ -46,14 +46,14 @@ internal static class ServiceRegistrarWriter
     {
         foreach (var (_, serviceModels) in dependencyDictionary)
         {
-            foreach (var serviceModel in serviceModels)
+            foreach (var serviceModel in serviceModels.Where(x => !x.ResolvedFromParent))
             {
-                WriteRegistration(sourceCodeWriter, serviceProviderType, dependencyDictionary, prefix, serviceModel);
+                WriteRegistration(sourceCodeWriter, dependencyDictionary, prefix, serviceModel);
             }
         }
     }
 
-    private static void WriteRegistration(SourceCodeWriter sourceCodeWriter, INamedTypeSymbol serviceProviderType, IDictionary<ServiceModelCollection.ServiceKey, List<ServiceModel>> dependencyDictionary, string prefix,
+    private static void WriteRegistration(SourceCodeWriter sourceCodeWriter, IDictionary<ServiceModelCollection.ServiceKey, List<ServiceModel>> dependencyDictionary, string prefix,
         ServiceModel serviceModel)
     {
         sourceCodeWriter.WriteLine($"{prefix}Register(new global::Inject.NET.Models.ServiceDescriptor");

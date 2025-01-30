@@ -46,7 +46,7 @@ internal static class TenantServiceRegistrarWriter
     {
         foreach (var (_, serviceModels) in tenantServices.Services)
         {
-            foreach (var serviceModel in serviceModels)
+            foreach (var serviceModel in serviceModels.Where(x => !x.ResolvedFromParent))
             {
                 WriteRegistration(sourceCodeWriter, tenantServices, prefix, serviceModel);
             }

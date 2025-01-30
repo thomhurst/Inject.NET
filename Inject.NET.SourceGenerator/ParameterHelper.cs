@@ -51,8 +51,8 @@ internal static class ParameterHelper
                     }
                     
                     return parameter.IsOptional
-                        ? $"scope.GetOptionalService<{subtitutedType.GloballyQualified()}>({key})"
-                        : $"scope.GetRequiredService<{subtitutedType.GloballyQualified()}>({key})";
+                        ? $"this.GetOptionalService<{subtitutedType.GloballyQualified()}>({key})"
+                        : $"this.GetRequiredService<{subtitutedType.GloballyQualified()}>({key})";
                 }
             }
         }
@@ -64,13 +64,16 @@ internal static class ParameterHelper
             {
                 if (parameter.IsOptional)
                 {
-                    return null;
+                    return $"this.GetOptionalService<{parameter.Type.GloballyQualified()}>() ?? {parameter.DefaultValue ?? "default"}";;
                 }
 
                 if (parameter.IsNullable)
                 {
-                    return "null";
+                    return $"this.GetOptionalService<{parameter.Type.GloballyQualified()}>()";
                 }
+
+                return
+                    $"this.GetRequiredService<{parameter.Type.GloballyQualified()}>()";
 
                 return $"global::Inject.NET.ThrowHelpers.Throw<{parameter.Type.GloballyQualified()}>(\"No dependency found for {parameter.Type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)} when trying to construct {serviceModel.ImplementationType.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)}\")";
             }
@@ -83,7 +86,7 @@ internal static class ParameterHelper
                 return $"ParentScope.GetServices<{parameter.Type.GloballyQualified()}>({parameter.Key})";
             }
 
-            return $"scope.GetServices<{parameter.Type.GloballyQualified()}>({parameter.Key})";
+            return $"this.GetServices<{parameter.Type.GloballyQualified()}>({parameter.Key})";
         }
 
         var lastModel = models.Last();

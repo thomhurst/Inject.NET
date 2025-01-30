@@ -51,6 +51,7 @@ public class Service
 public record Parameter
 {
     public required ITypeSymbol Type { get; init; }
+    public required object? DefaultValue { get; init; }
     public required bool IsOptional { get; init; }
     public required bool IsNullable { get; init; }
     public required bool IsEnumerable { get; init; }

@@ -10,6 +10,9 @@ internal static class ObjectConstructionHelper
         if (!dependencies.TryGetValue(serviceModel.ServiceKey, out _))
         {
             return
+                $"this.GetRequiredService<{serviceModel.ServiceType.GloballyQualified()}>()";
+            
+            return
                 $"global::Inject.NET.ThrowHelpers.Throw<{serviceModel.ServiceType.GloballyQualified()}>(\"No dependency found for {serviceModel.ServiceType.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)}\")";
         }
 

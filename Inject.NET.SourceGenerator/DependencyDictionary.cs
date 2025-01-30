@@ -197,6 +197,7 @@ internal static class DependencyDictionary
         return new Parameter
         {
             Type = parameterSymbol.Type,
+            DefaultValue = !parameterSymbol.HasExplicitDefaultValue ? null : parameterSymbol.ExplicitDefaultValue,
             IsEnumerable = parameterSymbol.Type.AllInterfaces.Any(x => SymbolEqualityComparer.Default.Equals(x.OriginalDefinition, compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T))),
             IsOptional = parameterSymbol.IsOptional,
             IsNullable = parameterSymbol.NullableAnnotation == NullableAnnotation.Annotated,

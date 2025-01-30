@@ -19,10 +19,12 @@ public partial class MediatorTests
     }
 
     [ServiceProvider]
-    [Singleton<IMediator, Mediator>]
-    [Scoped(typeof(IRequestHandler<,>), typeof(PingHandler))]
-    [Scoped(typeof(INotificationHandler<>), typeof(PingedHandler))]
-    [Scoped(typeof(INotificationHandler<>), typeof(PingedAlsoHandler))]
+    [Transient<IMediator, Mediator>]
+    [Transient<ISender, Mediator>]
+    [Transient<IPublisher, Mediator>]
+    [Transient(typeof(IRequestHandler<Ping, Pong>), typeof(PingHandler))]
+    [Transient(typeof(INotificationHandler<Pinged>), typeof(PingedHandler))]
+    [Transient(typeof(INotificationHandler<Pinged>), typeof(PingedAlsoHandler))]
     public partial class MediatorServiceProvider;
 
     public class Ping : IRequest<Pong>

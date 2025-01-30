@@ -79,7 +79,7 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
             return this;
         }
         
-        if (serviceKey.Type == Types.ServiceProvider)
+        if (serviceKey.Type == Types.ServiceProvider || serviceKey.Type == Types.SystemServiceProvider)
         {
             return ServiceProvider;
         }

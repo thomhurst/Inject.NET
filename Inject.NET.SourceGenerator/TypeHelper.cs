@@ -19,6 +19,9 @@ internal static class TypeHelper
 
         if (!dependencies.Keys.Select(k => k.Type).Contains(serviceModel.ServiceType, SymbolEqualityComparer.Default))
         {
+            
+            return
+                $"this.GetRequiredService<{serviceModel.ServiceType.GloballyQualified()}>()";
             return
                 $"global::Inject.NET.ThrowHelpers.Throw<{serviceModel.ServiceType.GloballyQualified()}>(\"No dependency found for {serviceModel.ServiceType.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)}\")";
         }

@@ -8,7 +8,7 @@ namespace Benchmarks.Benchmarks.Singleton;
 
 [MarkdownExporterAttribute.GitHub]
 [SimpleJob(RuntimeMoniker.Net90)]
-[BenchmarkCategory("Assortment")]
+[BenchmarkCategory("Singleton")]
 public class SimpleInjectorBenchmark
 {
     private Container _serviceProvider = null!;

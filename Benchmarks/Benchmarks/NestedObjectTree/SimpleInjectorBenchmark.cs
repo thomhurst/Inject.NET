@@ -8,7 +8,7 @@ namespace Benchmarks.Benchmarks.NestedObjectTree;
 
 [MarkdownExporterAttribute.GitHub]
 [SimpleJob(RuntimeMoniker.Net90)]
-[BenchmarkCategory("Assortment")]
+[BenchmarkCategory("NestedObjectTree")]
 public class SimpleInjectorBenchmark
 {
     private Container _serviceProvider = null!;

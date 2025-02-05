@@ -8,7 +8,7 @@ namespace Benchmarks.Benchmarks.TransientWithInterface;
 
 [MarkdownExporterAttribute.GitHub]
 [SimpleJob(RuntimeMoniker.Net90)]
-[BenchmarkCategory("Assortment")]
+[BenchmarkCategory("TransientWithInterface")]
 public class SimpleInjectorBenchmark
 {
     private Container _serviceProvider = null!;

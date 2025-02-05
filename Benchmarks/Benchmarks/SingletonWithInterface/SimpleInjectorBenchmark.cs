@@ -8,7 +8,7 @@ namespace Benchmarks.Benchmarks.SingletonWithInterface;
 
 [MarkdownExporterAttribute.GitHub]
 [SimpleJob(RuntimeMoniker.Net90)]
-[BenchmarkCategory("Assortment")]
+[BenchmarkCategory("SingletonWithInterface")]
 public class SimpleInjectorBenchmark
 {
     private Container _serviceProvider = null!;

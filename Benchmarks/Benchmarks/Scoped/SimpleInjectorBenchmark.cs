@@ -8,7 +8,7 @@ namespace Benchmarks.Benchmarks.Scoped;
 
 [MarkdownExporterAttribute.GitHub]
 [SimpleJob(RuntimeMoniker.Net90)]
-[BenchmarkCategory("Assortment")]
+[BenchmarkCategory("Scoped")]
 public class SimpleInjectorBenchmark
 {
     private Container _serviceProvider = null!;

@@ -8,7 +8,7 @@ namespace Benchmarks.Benchmarks.ScopedWithInterface;
 
 [MarkdownExporterAttribute.GitHub]
 [SimpleJob(RuntimeMoniker.Net90)]
-[BenchmarkCategory("Assortment")]
+[BenchmarkCategory("ScopedWithInterface")]
 public class SimpleInjectorBenchmark
 {
     private Container _serviceProvider = null!;

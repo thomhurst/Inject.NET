@@ -8,7 +8,7 @@ namespace Benchmarks.Benchmarks.WrappedOpenGeneric;
 
 [MarkdownExporterAttribute.GitHub]
 [SimpleJob(RuntimeMoniker.Net90)]
-[BenchmarkCategory("Assortment")]
+[BenchmarkCategory("WrappedOpenGeneric")]
 public class SimpleInjectorBenchmark
 {
     private Container _serviceProvider = null!;

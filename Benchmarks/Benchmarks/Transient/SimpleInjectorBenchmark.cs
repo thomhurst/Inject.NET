@@ -8,7 +8,7 @@ namespace Benchmarks.Benchmarks.Transient;
 
 [MarkdownExporterAttribute.GitHub]
 [SimpleJob(RuntimeMoniker.Net90)]
-[BenchmarkCategory("Assortment")]
+[BenchmarkCategory("Transient")]
 public class SimpleInjectorBenchmark
 {
     private Container _serviceProvider = null!;

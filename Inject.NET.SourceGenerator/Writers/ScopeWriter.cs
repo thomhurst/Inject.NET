@@ -98,19 +98,14 @@ internal static class ScopeWriter
     private static string GetInvocation(RootServiceModelCollection rootServiceModelCollection,
         ServiceModel serviceModel)
     {
-        if (serviceModel.Lifetime == Lifetime.Scoped)
-        {
-            return
-                $"Register<{serviceModel.ServiceType.GloballyQualified()}>({ObjectConstructionHelper.ConstructNewObject(rootServiceModelCollection.ServiceProviderType,
-                    rootServiceModelCollection.Services, serviceModel, Lifetime.Scoped)})";
-        }
-        
         if (serviceModel.Lifetime == Lifetime.Singleton)
         {
             return $"Singletons.{NameHelper.AsProperty(serviceModel)}";
         }
+
+        var constructNewObject = ObjectConstructionHelper.ConstructNewObject(rootServiceModelCollection.ServiceProviderType,
+            rootServiceModelCollection.Services, serviceModel, serviceModel.Lifetime);
         
-        return $"Register<{serviceModel.ServiceType.GloballyQualified()}>({ObjectConstructionHelper.ConstructNewObject(rootServiceModelCollection.ServiceProviderType,
-            rootServiceModelCollection.Services, serviceModel, Lifetime.Transient)})";
+        return $"Register<{serviceModel.ServiceType.GloballyQualified()}>({constructNewObject})";
     }
 }

@@ -19,26 +19,6 @@ public class TypedServiceProviderModel
     private string GetPrefix()
     {
         return $"{Type.GloballyQualified()}.";
-        var parent = Type;
-
-        List<string> parts = [];
-        
-        while (parent is not null)
-        {
-            parts.Add(parent.Name);
-            parent = parent.ContainingType;
-        }
-
-        parts.Reverse();
-        
-        var prefix = string.Join(".", parts);
-        
-        if (Type.ContainingNamespace is { IsGlobalNamespace: true } or null)
-        {
-            return $"{prefix}.";
-        }
-        
-        return $"global::{Type.ContainingNamespace.ToDisplayString()}.{prefix}.";
     }
 
     public override bool Equals(object? obj)

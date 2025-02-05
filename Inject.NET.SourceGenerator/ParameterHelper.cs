@@ -74,8 +74,6 @@ internal static class ParameterHelper
 
                 return
                     $"this.GetRequiredService<{parameter.Type.GloballyQualified()}>()";
-
-                return $"global::Inject.NET.ThrowHelpers.Throw<{parameter.Type.GloballyQualified()}>(\"No dependency found for {parameter.Type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)} when trying to construct {serviceModel.ImplementationType.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)}\")";
             }
         }
 

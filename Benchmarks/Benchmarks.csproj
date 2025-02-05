@@ -10,8 +10,11 @@
     <ItemGroup>
       <PackageReference Include="Autofac" Version="8.2.0" />
       <PackageReference Include="BenchmarkDotNet" Version="0.14.0" />
+      <PackageReference Include="DryIoc" Version="5.4.3" />
+      <PackageReference Include="Lamar" Version="14.0.1" />
       <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.0" />
       <PackageReference Include="Ninject" Version="3.3.6" />
+      <PackageReference Include="SimpleInjector" Version="5.5.0" />
     </ItemGroup>
 
     <PropertyGroup>

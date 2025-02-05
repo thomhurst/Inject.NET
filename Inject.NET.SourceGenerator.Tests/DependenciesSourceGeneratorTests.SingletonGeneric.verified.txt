@@ -16,8 +16,8 @@ public partial class SingletonGeneric
 {
 	public class ServiceProvider_(global::Inject.NET.Models.ServiceFactories serviceFactories) : global::Inject.NET.Services.ServiceProvider<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonGeneric.ServiceProvider_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonGeneric.SingletonScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonGeneric.ServiceScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonGeneric.ServiceProvider_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonGeneric.SingletonScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonGeneric.ServiceScope_>(serviceFactories, null)
 	{
-		[field: AllowNull, MaybeNull]
-		public override global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonGeneric.SingletonScope_ Singletons => field ??= new(this, serviceFactories);
+		private global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonGeneric.SingletonScope_? _singletons;
+		public override global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonGeneric.SingletonScope_ Singletons => _singletons ??= new(this, serviceFactories);
 		public override global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonGeneric.ServiceScope_ CreateTypedScope() => new(this, serviceFactories);
 		public override async ValueTask InitializeAsync()
 		{
@@ -43,8 +43,8 @@ public partial class SingletonGeneric
 			return base.GetService(serviceKey, originatingScope);
 		}
 
-		[field: AllowNull, MaybeNull]
-		public Generic<> Generic______0 => field ??= Register<Generic<>>(new Generic<>());
+		private Generic<>? _generic______0;
+		public Generic<> Generic______0 => _generic______0 ??= Register<Generic<>>(new Generic<>());
 	}
 	public class ServiceScope_ : global::Inject.NET.Services.ServiceScope<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonGeneric.ServiceScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonGeneric.ServiceProvider_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonGeneric.SingletonScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonGeneric.ServiceScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonGeneric.SingletonScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonGeneric.ServiceProvider_>
 	{
@@ -52,7 +52,6 @@ public partial class SingletonGeneric
 		{
 		}
 
-		[field: AllowNull, MaybeNull]
 		public Generic<> Generic______0 => Singletons.Generic______0;
 
 		public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)

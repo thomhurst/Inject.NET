@@ -16,8 +16,8 @@ public partial class OpenGeneric
 {
 	public class ServiceProvider_(global::Inject.NET.Models.ServiceFactories serviceFactories) : global::Inject.NET.Services.ServiceProvider<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.ServiceProvider_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.SingletonScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.ServiceScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.ServiceProvider_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.SingletonScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.ServiceScope_>(serviceFactories, null)
 	{
-		[field: AllowNull, MaybeNull]
-		public override global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.SingletonScope_ Singletons => field ??= new(this, serviceFactories);
+		private global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.SingletonScope_? _singletons;
+		public override global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.SingletonScope_ Singletons => _singletons ??= new(this, serviceFactories);
 		public override global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.ServiceScope_ CreateTypedScope() => new(this, serviceFactories);
 		public override async ValueTask InitializeAsync()
 		{

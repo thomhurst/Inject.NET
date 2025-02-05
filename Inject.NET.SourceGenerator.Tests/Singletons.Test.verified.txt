@@ -18,12 +18,10 @@ public partial class Singletons
 	{
 		public class ServiceProvider_(global::Inject.NET.Models.ServiceFactories serviceFactories) : global::Inject.NET.Services.ServiceProvider<global::Inject.NET.Tests.Singletons.SingletonServiceProvider.ServiceProvider_, global::Inject.NET.Tests.Singletons.SingletonServiceProvider.SingletonScope_, global::Inject.NET.Tests.Singletons.SingletonServiceProvider.ServiceScope_, global::Inject.NET.Tests.Singletons.SingletonServiceProvider.ServiceProvider_, global::Inject.NET.Tests.Singletons.SingletonServiceProvider.SingletonScope_, global::Inject.NET.Tests.Singletons.SingletonServiceProvider.ServiceScope_>(serviceFactories, null)
 		{
-			[field: AllowNull, MaybeNull]
-			public override global::Inject.NET.Tests.Singletons.SingletonServiceProvider.SingletonScope_ Singletons => field ??= new(this, serviceFactories);
+			private global::Inject.NET.Tests.Singletons.SingletonServiceProvider.SingletonScope_? _singletons;
+			public override global::Inject.NET.Tests.Singletons.SingletonServiceProvider.SingletonScope_ Singletons => _singletons ??= new(this, serviceFactories);
 			public override global::Inject.NET.Tests.Singletons.SingletonServiceProvider.ServiceScope_ CreateTypedScope() => new(this, serviceFactories);
-			[field: AllowNull, MaybeNull]
 			public ServiceProvider_NonOverridingTenant Tenant_NonOverridingTenant { get; private set; } = null!;
-			[field: AllowNull, MaybeNull]
 			public ServiceProvider_OverridingTenant Tenant_OverridingTenant { get; private set; } = null!;
 			public override async ValueTask InitializeAsync()
 			{
@@ -53,8 +51,8 @@ public partial class Singletons
 				return base.GetService(serviceKey, originatingScope);
 			}
 
-			[field: AllowNull, MaybeNull]
-			public global::Inject.NET.Tests.Singletons.SingletonClass Inject__NET__Tests__Singletons__SingletonClass____0 => field ??= Register<global::Inject.NET.Tests.Singletons.SingletonClass>(new global::Inject.NET.Tests.Singletons.SingletonClass());
+			private global::Inject.NET.Tests.Singletons.SingletonClass? _inject__NET__Tests__Singletons__SingletonClass____0;
+			public global::Inject.NET.Tests.Singletons.SingletonClass Inject__NET__Tests__Singletons__SingletonClass____0 => _inject__NET__Tests__Singletons__SingletonClass____0 ??= Register<global::Inject.NET.Tests.Singletons.SingletonClass>(new global::Inject.NET.Tests.Singletons.SingletonClass());
 		}
 		public class ServiceScope_ : global::Inject.NET.Services.ServiceScope<global::Inject.NET.Tests.Singletons.SingletonServiceProvider.ServiceScope_, global::Inject.NET.Tests.Singletons.SingletonServiceProvider.ServiceProvider_, global::Inject.NET.Tests.Singletons.SingletonServiceProvider.SingletonScope_, global::Inject.NET.Tests.Singletons.SingletonServiceProvider.ServiceScope_, global::Inject.NET.Tests.Singletons.SingletonServiceProvider.SingletonScope_, global::Inject.NET.Tests.Singletons.SingletonServiceProvider.ServiceProvider_>
 		{
@@ -62,7 +60,6 @@ public partial class Singletons
 			{
 			}
 
-			[field: AllowNull, MaybeNull]
 			public global::Inject.NET.Tests.Singletons.SingletonClass Inject__NET__Tests__Singletons__SingletonClass____0 => Singletons.Inject__NET__Tests__Singletons__SingletonClass____0;
 
 			public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
@@ -114,8 +111,8 @@ public partial class Singletons
 		}
 		public partial class ServiceProvider_NonOverridingTenant(ServiceFactories serviceFactories, global::Inject.NET.Tests.Singletons.SingletonServiceProvider.ServiceProvider_ parent) : global::Inject.NET.Services.ServiceProvider<ServiceProvider_NonOverridingTenant, SingletonScope_NonOverridingTenant, ServiceScope_NonOverridingTenant, global::Inject.NET.Tests.Singletons.SingletonServiceProvider.ServiceProvider_, global::Inject.NET.Tests.Singletons.SingletonServiceProvider.SingletonScope_, global::Inject.NET.Tests.Singletons.SingletonServiceProvider.ServiceScope_>(serviceFactories, parent)
 		{
-			[field: AllowNull, MaybeNull]
-			public override SingletonScope_NonOverridingTenant Singletons => field ??= new(this, serviceFactories, parent.Singletons);
+			private SingletonScope_NonOverridingTenant? _singletons;
+			public override SingletonScope_NonOverridingTenant Singletons => _singletons ??= new(this, serviceFactories, parent.Singletons);
 			public override ServiceScope_NonOverridingTenant CreateTypedScope() => new ServiceScope_NonOverridingTenant(this, serviceFactories, parent.CreateTypedScope());
 			public static ValueTask<ServiceProvider_NonOverridingTenant> BuildAsync(global::Inject.NET.Tests.Singletons.SingletonServiceProvider.ServiceProvider_ serviceProvider) =>
 				new ServiceRegistrarNonOverridingTenant().BuildAsync(serviceProvider);
@@ -133,7 +130,6 @@ public partial class Singletons
 			{
 			}
 
-			[field: AllowNull, MaybeNull]
 			public global::Inject.NET.Tests.Singletons.SingletonClass Inject__NET__Tests__Singletons__SingletonClass____0 => ParentScope.Inject__NET__Tests__Singletons__SingletonClass____0;
 
 			public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
@@ -151,7 +147,6 @@ public partial class Singletons
 			{
 			}
 
-			[field: AllowNull, MaybeNull]
 			public global::Inject.NET.Tests.Singletons.SingletonClass Inject__NET__Tests__Singletons__SingletonClass____0 => Singletons.Inject__NET__Tests__Singletons__SingletonClass____0;
 
 			public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
@@ -194,8 +189,8 @@ public partial class Singletons
 		}
 		public partial class ServiceProvider_OverridingTenant(ServiceFactories serviceFactories, global::Inject.NET.Tests.Singletons.SingletonServiceProvider.ServiceProvider_ parent) : global::Inject.NET.Services.ServiceProvider<ServiceProvider_OverridingTenant, SingletonScope_OverridingTenant, ServiceScope_OverridingTenant, global::Inject.NET.Tests.Singletons.SingletonServiceProvider.ServiceProvider_, global::Inject.NET.Tests.Singletons.SingletonServiceProvider.SingletonScope_, global::Inject.NET.Tests.Singletons.SingletonServiceProvider.ServiceScope_>(serviceFactories, parent)
 		{
-			[field: AllowNull, MaybeNull]
-			public override SingletonScope_OverridingTenant Singletons => field ??= new(this, serviceFactories, parent.Singletons);
+			private SingletonScope_OverridingTenant? _singletons;
+			public override SingletonScope_OverridingTenant Singletons => _singletons ??= new(this, serviceFactories, parent.Singletons);
 			public override ServiceScope_OverridingTenant CreateTypedScope() => new ServiceScope_OverridingTenant(this, serviceFactories, parent.CreateTypedScope());
 			public static ValueTask<ServiceProvider_OverridingTenant> BuildAsync(global::Inject.NET.Tests.Singletons.SingletonServiceProvider.ServiceProvider_ serviceProvider) =>
 				new ServiceRegistrarOverridingTenant().BuildAsync(serviceProvider);
@@ -214,11 +209,10 @@ public partial class Singletons
 			{
 			}
 
-			[field: AllowNull, MaybeNull]
 			public global::Inject.NET.Tests.Singletons.SingletonClass Inject__NET__Tests__Singletons__SingletonClass____0 => ParentScope.Inject__NET__Tests__Singletons__SingletonClass____0;
 
-			[field: AllowNull, MaybeNull]
-			public global::Inject.NET.Tests.Singletons.SingletonClass Inject__NET__Tests__Singletons__SingletonClass__OverridingTenant__0 => field ??= Register<global::Inject.NET.Tests.Singletons.SingletonClass>(new global::Inject.NET.Tests.Singletons.SingletonClass());
+			private global::Inject.NET.Tests.Singletons.SingletonClass? _inject__NET__Tests__Singletons__SingletonClass__OverridingTenant__0;
+			public global::Inject.NET.Tests.Singletons.SingletonClass Inject__NET__Tests__Singletons__SingletonClass__OverridingTenant__0 => _inject__NET__Tests__Singletons__SingletonClass__OverridingTenant__0 ??= Register<global::Inject.NET.Tests.Singletons.SingletonClass>(new global::Inject.NET.Tests.Singletons.SingletonClass());
 
 			public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
 			{
@@ -239,10 +233,8 @@ public partial class Singletons
 			{
 			}
 
-			[field: AllowNull, MaybeNull]
 			public global::Inject.NET.Tests.Singletons.SingletonClass Inject__NET__Tests__Singletons__SingletonClass____0 => Singletons.Inject__NET__Tests__Singletons__SingletonClass____0;
 
-			[field: AllowNull, MaybeNull]
 			public global::Inject.NET.Tests.Singletons.SingletonClass Inject__NET__Tests__Singletons__SingletonClass__OverridingTenant__0 => Singletons.Inject__NET__Tests__Singletons__SingletonClass__OverridingTenant__0;
 
 			public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)

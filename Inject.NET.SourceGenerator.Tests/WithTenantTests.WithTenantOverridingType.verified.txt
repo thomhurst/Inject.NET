@@ -16,10 +16,9 @@ public partial class WithTenantOverridingType
 {
 	public class ServiceProvider_(global::Inject.NET.Models.ServiceFactories serviceFactories) : global::Inject.NET.Services.ServiceProvider<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.ServiceProvider_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.SingletonScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.ServiceScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.ServiceProvider_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.SingletonScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.ServiceScope_>(serviceFactories, null)
 	{
-		[field: AllowNull, MaybeNull]
-		public override global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.SingletonScope_ Singletons => field ??= new(this, serviceFactories);
+		private global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.SingletonScope_? _singletons;
+		public override global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.SingletonScope_ Singletons => _singletons ??= new(this, serviceFactories);
 		public override global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.ServiceScope_ CreateTypedScope() => new(this, serviceFactories);
-		[field: AllowNull, MaybeNull]
 		public ServiceProvider_Tenant Tenant_Tenant { get; private set; } = null!;
 		public override async ValueTask InitializeAsync()
 		{
@@ -118,8 +117,8 @@ public partial class WithTenantOverridingType
 	}
 	public partial class ServiceProvider_Tenant(ServiceFactories serviceFactories, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.ServiceProvider_ parent) : global::Inject.NET.Services.ServiceProvider<ServiceProvider_Tenant, SingletonScope_Tenant, ServiceScope_Tenant, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.ServiceProvider_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.SingletonScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.ServiceScope_>(serviceFactories, parent)
 	{
-		[field: AllowNull, MaybeNull]
-		public override SingletonScope_Tenant Singletons => field ??= new(this, serviceFactories, parent.Singletons);
+		private SingletonScope_Tenant? _singletons;
+		public override SingletonScope_Tenant Singletons => _singletons ??= new(this, serviceFactories, parent.Singletons);
 		public override ServiceScope_Tenant CreateTypedScope() => new ServiceScope_Tenant(this, serviceFactories, parent.CreateTypedScope());
 		public static ValueTask<ServiceProvider_Tenant> BuildAsync(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.ServiceProvider_ serviceProvider) =>
 			new ServiceRegistrarTenant().BuildAsync(serviceProvider);

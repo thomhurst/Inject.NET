@@ -16,8 +16,8 @@ public partial class AssortmentServiceProvider
 {
 	public class ServiceProvider_(global::Inject.NET.Models.ServiceFactories serviceFactories) : global::Inject.NET.Services.ServiceProvider<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.AssortmentServiceProvider.ServiceProvider_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.AssortmentServiceProvider.SingletonScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.AssortmentServiceProvider.ServiceScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.AssortmentServiceProvider.ServiceProvider_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.AssortmentServiceProvider.SingletonScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.AssortmentServiceProvider.ServiceScope_>(serviceFactories, null)
 	{
-		[field: AllowNull, MaybeNull]
-		public override global::Inject.NET.SourceGenerator.Sample.ServiceProviders.AssortmentServiceProvider.SingletonScope_ Singletons => field ??= new(this, serviceFactories);
+		private global::Inject.NET.SourceGenerator.Sample.ServiceProviders.AssortmentServiceProvider.SingletonScope_? _singletons;
+		public override global::Inject.NET.SourceGenerator.Sample.ServiceProviders.AssortmentServiceProvider.SingletonScope_ Singletons => _singletons ??= new(this, serviceFactories);
 		public override global::Inject.NET.SourceGenerator.Sample.ServiceProviders.AssortmentServiceProvider.ServiceScope_ CreateTypedScope() => new(this, serviceFactories);
 		public override async ValueTask InitializeAsync()
 		{
@@ -54,14 +54,14 @@ public partial class AssortmentServiceProvider
 			return base.GetService(serviceKey, originatingScope);
 		}
 
-		[field: AllowNull, MaybeNull]
-		public global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface1 Inject__NET__SourceGenerator__Sample__ServiceProviders__Interface1____0 => field ??= Register<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface1>(new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Class1());
+		private global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface1? _inject__NET__SourceGenerator__Sample__ServiceProviders__Interface1____0;
+		public global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface1 Inject__NET__SourceGenerator__Sample__ServiceProviders__Interface1____0 => _inject__NET__SourceGenerator__Sample__ServiceProviders__Interface1____0 ??= Register<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface1>(new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Class1());
 
-		[field: AllowNull, MaybeNull]
-		public global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface2 Inject__NET__SourceGenerator__Sample__ServiceProviders__Interface2____0 => field ??= Register<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface2>(new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Class2(Singletons.Inject__NET__SourceGenerator__Sample__ServiceProviders__Interface1____0));
+		private global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface2? _inject__NET__SourceGenerator__Sample__ServiceProviders__Interface2____0;
+		public global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface2 Inject__NET__SourceGenerator__Sample__ServiceProviders__Interface2____0 => _inject__NET__SourceGenerator__Sample__ServiceProviders__Interface2____0 ??= Register<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface2>(new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Class2(Singletons.Inject__NET__SourceGenerator__Sample__ServiceProviders__Interface1____0));
 
-		[field: AllowNull, MaybeNull]
-		public global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface3 Inject__NET__SourceGenerator__Sample__ServiceProviders__Interface3____0 => field ??= Register<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface3>(new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Class3(Singletons.Inject__NET__SourceGenerator__Sample__ServiceProviders__Interface2____0));
+		private global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface3? _inject__NET__SourceGenerator__Sample__ServiceProviders__Interface3____0;
+		public global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface3 Inject__NET__SourceGenerator__Sample__ServiceProviders__Interface3____0 => _inject__NET__SourceGenerator__Sample__ServiceProviders__Interface3____0 ??= Register<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface3>(new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Class3(Singletons.Inject__NET__SourceGenerator__Sample__ServiceProviders__Interface2____0));
 	}
 	public class ServiceScope_ : global::Inject.NET.Services.ServiceScope<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.AssortmentServiceProvider.ServiceScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.AssortmentServiceProvider.ServiceProvider_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.AssortmentServiceProvider.SingletonScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.AssortmentServiceProvider.ServiceScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.AssortmentServiceProvider.SingletonScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.AssortmentServiceProvider.ServiceProvider_>
 	{
@@ -71,19 +71,16 @@ public partial class AssortmentServiceProvider
 
 		public global::Inject.NET.SourceGenerator.Sample.ServiceProviders.IGeneric<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Class1> Inject__NET__SourceGenerator__Sample__ServiceProviders__IGeneric_Inject__NET__SourceGenerator__Sample__ServiceProviders__Class1_____0 => Register<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.IGeneric<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Class1>>(new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Generic<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Class1>(this.GetRequiredService<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Class1>()));
 
-		[field: AllowNull, MaybeNull]
 		public global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface1 Inject__NET__SourceGenerator__Sample__ServiceProviders__Interface1____0 => Singletons.Inject__NET__SourceGenerator__Sample__ServiceProviders__Interface1____0;
 
-		[field: AllowNull, MaybeNull]
 		public global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface2 Inject__NET__SourceGenerator__Sample__ServiceProviders__Interface2____0 => Singletons.Inject__NET__SourceGenerator__Sample__ServiceProviders__Interface2____0;
 
-		[field: AllowNull, MaybeNull]
 		public global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface3 Inject__NET__SourceGenerator__Sample__ServiceProviders__Interface3____0 => Singletons.Inject__NET__SourceGenerator__Sample__ServiceProviders__Interface3____0;
 
 		public global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface4 Inject__NET__SourceGenerator__Sample__ServiceProviders__Interface4____0 => Register<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface4>(new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Class4(Singletons.Inject__NET__SourceGenerator__Sample__ServiceProviders__Interface3____0));
 
-		[field: AllowNull, MaybeNull]
-		public global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface5 Inject__NET__SourceGenerator__Sample__ServiceProviders__Interface5____0 => field ??= Register<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface5>(new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Class5(global::Inject.NET.ThrowHelpers.Throw<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface4>("Injecting type Class4 with a lifetime of Transient into an object with a lifetime of Scoped will cause it to also be Scoped")));
+		private global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface5? _inject__NET__SourceGenerator__Sample__ServiceProviders__Interface5____0;
+		public global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface5 Inject__NET__SourceGenerator__Sample__ServiceProviders__Interface5____0 => _inject__NET__SourceGenerator__Sample__ServiceProviders__Interface5____0 ??= Register<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface5>(new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Class5(global::Inject.NET.ThrowHelpers.Throw<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface4>("Injecting type Class4 with a lifetime of Transient into an object with a lifetime of Scoped will cause it to also be Scoped")));
 
 		public global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Wrapper Inject__NET__SourceGenerator__Sample__ServiceProviders__Wrapper____0 => Register<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Wrapper>(new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Wrapper(new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Generic<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Class1>(this.GetRequiredService<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Class1>())));
 

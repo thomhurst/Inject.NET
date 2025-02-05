@@ -16,8 +16,8 @@ public partial class ScopedServiceImplementation
 {
 	public class ServiceProvider_(global::Inject.NET.Models.ServiceFactories serviceFactories) : global::Inject.NET.Services.ServiceProvider<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.ScopedServiceImplementation.ServiceProvider_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.ScopedServiceImplementation.SingletonScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.ScopedServiceImplementation.ServiceScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.ScopedServiceImplementation.ServiceProvider_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.ScopedServiceImplementation.SingletonScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.ScopedServiceImplementation.ServiceScope_>(serviceFactories, null)
 	{
-		[field: AllowNull, MaybeNull]
-		public override global::Inject.NET.SourceGenerator.Sample.ServiceProviders.ScopedServiceImplementation.SingletonScope_ Singletons => field ??= new(this, serviceFactories);
+		private global::Inject.NET.SourceGenerator.Sample.ServiceProviders.ScopedServiceImplementation.SingletonScope_? _singletons;
+		public override global::Inject.NET.SourceGenerator.Sample.ServiceProviders.ScopedServiceImplementation.SingletonScope_ Singletons => _singletons ??= new(this, serviceFactories);
 		public override global::Inject.NET.SourceGenerator.Sample.ServiceProviders.ScopedServiceImplementation.ServiceScope_ CreateTypedScope() => new(this, serviceFactories);
 		public override async ValueTask InitializeAsync()
 		{
@@ -45,8 +45,8 @@ public partial class ScopedServiceImplementation
 		{
 		}
 
-		[field: AllowNull, MaybeNull]
-		public Interface1 Interface1____0 => field ??= Register<Interface1>(new Class1());
+		private Interface1? _interface1____0;
+		public Interface1 Interface1____0 => _interface1____0 ??= Register<Interface1>(new Class1());
 
 		public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
 		{

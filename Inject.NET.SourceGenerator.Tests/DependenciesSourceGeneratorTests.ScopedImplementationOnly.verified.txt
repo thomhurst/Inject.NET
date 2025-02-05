@@ -16,8 +16,8 @@ public partial class ScopedImplementationOnly
 {
 	public class ServiceProvider_(global::Inject.NET.Models.ServiceFactories serviceFactories) : global::Inject.NET.Services.ServiceProvider<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.ScopedImplementationOnly.ServiceProvider_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.ScopedImplementationOnly.SingletonScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.ScopedImplementationOnly.ServiceScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.ScopedImplementationOnly.ServiceProvider_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.ScopedImplementationOnly.SingletonScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.ScopedImplementationOnly.ServiceScope_>(serviceFactories, null)
 	{
-		[field: AllowNull, MaybeNull]
-		public override global::Inject.NET.SourceGenerator.Sample.ServiceProviders.ScopedImplementationOnly.SingletonScope_ Singletons => field ??= new(this, serviceFactories);
+		private global::Inject.NET.SourceGenerator.Sample.ServiceProviders.ScopedImplementationOnly.SingletonScope_? _singletons;
+		public override global::Inject.NET.SourceGenerator.Sample.ServiceProviders.ScopedImplementationOnly.SingletonScope_ Singletons => _singletons ??= new(this, serviceFactories);
 		public override global::Inject.NET.SourceGenerator.Sample.ServiceProviders.ScopedImplementationOnly.ServiceScope_ CreateTypedScope() => new(this, serviceFactories);
 		public override async ValueTask InitializeAsync()
 		{
@@ -45,8 +45,8 @@ public partial class ScopedImplementationOnly
 		{
 		}
 
-		[field: AllowNull, MaybeNull]
-		public Class1 Class1____0 => field ??= Register<Class1>(new Class1());
+		private Class1? _class1____0;
+		public Class1 Class1____0 => _class1____0 ??= Register<Class1>(new Class1());
 
 		public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
 		{

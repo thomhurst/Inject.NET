@@ -56,7 +56,7 @@ internal static class TenantSingletonScopeWriter
     {
         foreach (var (_, serviceModels) in dependencies)
         {
-            foreach (var serviceModel in serviceModels)
+            foreach (var serviceModel in serviceModels.OrderBy(x => x.ResolvedFromParent ? 0 : 1))
             {
                 if (serviceModel.Lifetime != Lifetime.Singleton || serviceModel.IsOpenGeneric)
                 {

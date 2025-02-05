@@ -59,8 +59,10 @@ internal static class TenantScopeWriter
         sourceCodeWriter.WriteLine(
             "public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)");
         sourceCodeWriter.WriteLine("{");
-        foreach (var serviceModel in models)
+        foreach (var serviceModels in models.GroupBy(x => x.ServiceKey))
         {
+            var serviceModel = serviceModels.Last();
+            
             sourceCodeWriter.WriteLine($"if (serviceKey == {serviceModel.GetNewServiceKeyInvocation()})");
             sourceCodeWriter.WriteLine("{");
             sourceCodeWriter.WriteLine($"return {serviceModel.GetPropertyName()};");
@@ -82,7 +84,9 @@ internal static class TenantScopeWriter
             {
                 sourceCodeWriter.WriteLine($"if (serviceKey == {first.GetNewServiceKeyInvocation()})");
                 sourceCodeWriter.WriteLine("{");
+                
                 var arrayParts = serviceModels
+                    .OrderBy(x => x.ResolvedFromParent ? 0 : 1)
                     .Where(serviceModel => !serviceModel.IsOpenGeneric)
                     .Select(serviceModel => serviceModel.GetPropertyName());
 
@@ -102,7 +106,9 @@ internal static class TenantScopeWriter
     {
         foreach (var (_, serviceModels) in dependencies)
         {
-            foreach (var serviceModel in serviceModels.Where(serviceModel => !serviceModel.IsOpenGeneric))
+            foreach (var serviceModel in serviceModels
+                         .OrderBy(x => x.ResolvedFromParent ? 0 : 1)
+                         .Where(serviceModel => !serviceModel.IsOpenGeneric))
             {
                 yield return serviceModel;
             }

@@ -1,3 +1,4 @@
+using System.Text;
 using Inject.NET.SourceGenerator.Models;
 
 namespace Inject.NET.SourceGenerator.Writers;
@@ -18,29 +19,31 @@ internal static class ScopeWriter
 
         foreach (var (_, serviceModels) in rootServiceModelCollection.Services)
         {
-            var serviceModel = serviceModels[^1];
+            foreach (var serviceModel in serviceModels)
+            {
+                if (serviceModel.IsOpenGeneric)
+                {
+                    continue;
+                }
 
-            if (serviceModel.IsOpenGeneric)
-            {
-                continue;
-            }
-            
-            sourceCodeWriter.WriteLine();
-            var propertyName = PropertyNameHelper.Format(serviceModel);
+                sourceCodeWriter.WriteLine();
+                var propertyName = PropertyNameHelper.Format(serviceModel);
 
-            if (serviceModel.Lifetime == Lifetime.Transient)
-            {
-                sourceCodeWriter.WriteLine(
-                    $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => {GetInvocation(rootServiceModelCollection, serviceModel)};");
-            }
-            else
-            {
-                sourceCodeWriter.WriteLine("[field: AllowNull, MaybeNull]");
-                sourceCodeWriter.WriteLine(
-                    $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => field ??= {GetInvocation(rootServiceModelCollection, serviceModel)};");
+                if (serviceModel.Lifetime == Lifetime.Transient)
+                {
+                    sourceCodeWriter.WriteLine(
+                        $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => {GetInvocation(rootServiceModelCollection, serviceModel)};");
+                }
+                else
+                {
+                    sourceCodeWriter.WriteLine("[field: AllowNull, MaybeNull]");
+                    sourceCodeWriter.WriteLine(
+                        $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => {GetInvocation(rootServiceModelCollection, serviceModel)};");
+                }
             }
         }
         
+        // GetService
         sourceCodeWriter.WriteLine();
         sourceCodeWriter.WriteLine("public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)");
         sourceCodeWriter.WriteLine("{");
@@ -63,6 +66,30 @@ internal static class ScopeWriter
         sourceCodeWriter.WriteLine("return base.GetService(serviceKey, originatingScope);");
         sourceCodeWriter.WriteLine("}");
 
+        // GetServices
+        sourceCodeWriter.WriteLine();
+        sourceCodeWriter.WriteLine("public override IReadOnlyList<object> GetServices(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)");
+        sourceCodeWriter.WriteLine("{");
+        
+        foreach (var (_, serviceModels) in rootServiceModelCollection.Services)
+        {
+            var first = serviceModels[0];
+            
+            sourceCodeWriter.WriteLine($"if (serviceKey == {first.GetNewServiceKeyInvocation()})");
+            sourceCodeWriter.WriteLine("{");
+
+            var arrayParts = serviceModels
+                .Where(serviceModel => !serviceModel.IsOpenGeneric)
+                .Select(serviceModel => serviceModel.GetPropertyName());
+
+            sourceCodeWriter.WriteLine($"return [{string.Join(", ", arrayParts)}];");
+            
+            sourceCodeWriter.WriteLine("}");
+        }
+
+        sourceCodeWriter.WriteLine("return base.GetServices(serviceKey, originatingScope);");
+        sourceCodeWriter.WriteLine("}");
+        
         sourceCodeWriter.WriteLine("}");
     }
 
@@ -72,7 +99,7 @@ internal static class ScopeWriter
         if (serviceModel.Lifetime == Lifetime.Scoped)
         {
             return
-                $"Register<{serviceModel.ServiceType.GloballyQualified()}>({serviceModel.GetNewServiceKeyInvocation()}, {ObjectConstructionHelper.ConstructNewObject(rootServiceModelCollection.ServiceProviderType,
+                $"field ??= Register<{serviceModel.ServiceType.GloballyQualified()}>({ObjectConstructionHelper.ConstructNewObject(rootServiceModelCollection.ServiceProviderType,
                     rootServiceModelCollection.Services, serviceModel, Lifetime.Scoped)})";
         }
         
@@ -81,7 +108,7 @@ internal static class ScopeWriter
             return $"Singletons.{PropertyNameHelper.Format(serviceModel)}";
         }
         
-        return ObjectConstructionHelper.ConstructNewObject(rootServiceModelCollection.ServiceProviderType,
-            rootServiceModelCollection.Services, serviceModel, Lifetime.Transient);
+        return $"Register<{serviceModel.ServiceType.GloballyQualified()}>({ObjectConstructionHelper.ConstructNewObject(rootServiceModelCollection.ServiceProviderType,
+            rootServiceModelCollection.Services, serviceModel, Lifetime.Transient)})";
     }
 }

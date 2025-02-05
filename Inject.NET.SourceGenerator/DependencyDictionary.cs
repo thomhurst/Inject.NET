@@ -6,7 +6,8 @@ namespace Inject.NET.SourceGenerator;
 
 internal static class DependencyDictionary
 {
-    public static IDictionary<ServiceModelCollection.ServiceKey, List<ServiceModel>> Create(Compilation compilation, AttributeData[] dependencyAttributes)
+    public static IDictionary<ServiceModelCollection.ServiceKey, List<ServiceModel>> Create(Compilation compilation,
+        AttributeData[] dependencyAttributes, string? tenantName)
     {
         var list = new List<ServiceModelBuilder>();
         
@@ -37,7 +38,8 @@ internal static class DependencyDictionary
                 implementationType, 
                 list,
                 key,
-                lifetime);
+                lifetime,
+                tenantName);
 
             if (isGenericDefinition)
             {
@@ -54,7 +56,7 @@ internal static class DependencyDictionary
                                 : implementationType,
                             list,
                             key,
-                            lifetime);
+                            lifetime, tenantName);
                     }
                 }
             }
@@ -100,7 +102,7 @@ internal static class DependencyDictionary
         var enumerableDictionary = enumerableDictionaryBuilder
             .ToDictionary(
                 x => x.Key,
-                x => x.Value.Select(smb => new ServiceModel
+                x => x.Value.Select((smb, index) => new ServiceModel
                 {
                     ServiceType = smb.ServiceType,
                     ImplementationType = smb.ImplementationType,
@@ -108,14 +110,16 @@ internal static class DependencyDictionary
                     Key = smb.Key,
                     Lifetime = smb.Lifetime,
                     IsOpenGeneric = smb.IsOpenGeneric,
-                    Parameters = smb.Parameters.ToArray()
+                    Parameters = smb.Parameters.ToArray(),
+                    Index = index,
+                    TenantName = smb.TenantName
                 }).ToList());
         
         return enumerableDictionary;
     }
 
     private static void Add(Compilation compilation, INamedTypeSymbol serviceType, INamedTypeSymbol implementationType,
-        List<ServiceModelBuilder> list, string? key, Lifetime lifetime)
+        List<ServiceModelBuilder> list, string? key, Lifetime lifetime, string? tenantName)
     {
         var isGenericDefinition = serviceType.IsGenericDefinition();
 
@@ -128,7 +132,8 @@ internal static class DependencyDictionary
             IsOpenGeneric = isGenericDefinition,
             Parameters = parameters,
             Key = key,
-            Lifetime = lifetime
+            Lifetime = lifetime,
+            TenantName = tenantName
         });
     }
 

@@ -18,7 +18,10 @@ public record ServiceModel
     
     public required Parameter[] Parameters { get; init; }
     
+    public required int Index { get; init; }
+    
     public ServiceModelCollection.ServiceKey ServiceKey => new(ServiceType, Key);
+    public required string? TenantName { get; init; }
 
     public IEnumerable<ServiceModel> GetAllNestedParameters(IDictionary<ServiceModelCollection.ServiceKey, List<ServiceModel>> dependencyDictionary)
     {
@@ -41,16 +44,6 @@ public record ServiceModel
         return $$"""new ServiceKey { Type = typeof({{ServiceType.GloballyQualified()}}), Key = {{key}} }""";
     }
     
-    public string GetWrittenType()
-    {
-        if (Key is null)
-        {
-            return $"global::Inject.NET.Models.KeyedType<{ServiceType.GloballyQualified()}>";
-        }
-
-        return ServiceType.GloballyQualified();
-    }
-
     public string GetPropertyName()
     {
         return PropertyNameHelper.Format(this);

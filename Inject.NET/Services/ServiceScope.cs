@@ -43,7 +43,7 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
 
     public TServiceProvider ServiceProvider { get; }
 
-    public T Register<T>(ServiceKey key, T obj)
+    public T Register<T>(T obj)
     {
         (_forDisposal ??= Pools.DisposalTracker.Get()).Add(obj!);
 
@@ -130,7 +130,6 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
         return GetServices(serviceKey, this);
     }
     
-    [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
     public virtual IReadOnlyList<object> GetServices(ServiceKey serviceKey, IServiceScope originatingScope)
     {
         if (_cachedEnumerables?.TryGetValue(serviceKey, out var cachedObjects) == true)
@@ -221,6 +220,11 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
             return default;
         }
         
+        if(ParentScope?.DisposeAsync() is { IsCompleted: false } valueTask)
+        {
+            return Await(forDisposal.Count, valueTask, forDisposal);
+        }
+        
         for (var i = forDisposal.Count - 1; i >= 0; i--)
         {
             var obj = forDisposal[i];
@@ -267,6 +271,8 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
 
     public void Dispose()
     {
+        ParentScope?.Dispose();
+        
         if(_cachedObjects != null)
         {
             Pools.Objects.Return(_cachedObjects);

@@ -27,7 +27,7 @@ internal static class TenantHelper
                     SymbolEqualityComparer.Default) == true)
                 .ToArray();
 
-            var dependencies = DependencyDictionary.Create(compilation, dependencyAttributes);
+            var dependencies = DependencyDictionary.Create(compilation, dependencyAttributes, definitionType.Name);
             
             yield return new Tenant
             {

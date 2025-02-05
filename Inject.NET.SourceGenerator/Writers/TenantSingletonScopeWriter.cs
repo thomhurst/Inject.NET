@@ -36,6 +36,7 @@ internal static class TenantSingletonScopeWriter
         sourceCodeWriter.WriteLine();
         sourceCodeWriter.WriteLine("public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)");
         sourceCodeWriter.WriteLine("{");
+        
         foreach (var serviceModel in singletonModels)
         {
             sourceCodeWriter.WriteLine($"if (serviceKey == {serviceModel.GetNewServiceKeyInvocation()})");
@@ -43,6 +44,7 @@ internal static class TenantSingletonScopeWriter
             sourceCodeWriter.WriteLine($"return {serviceModel.GetPropertyName()};");
             sourceCodeWriter.WriteLine("}");
         }
+
         sourceCodeWriter.WriteLine("return base.GetService(serviceKey, originatingScope);");
         sourceCodeWriter.WriteLine("}");
 
@@ -54,14 +56,15 @@ internal static class TenantSingletonScopeWriter
     {
         foreach (var (_, serviceModels) in dependencies)
         {
-            var serviceModel = serviceModels[^1];
-
-            if (serviceModel.Lifetime != Lifetime.Singleton || serviceModel.IsOpenGeneric)
+            foreach (var serviceModel in serviceModels)
             {
-                continue;
-            }
+                if (serviceModel.Lifetime != Lifetime.Singleton || serviceModel.IsOpenGeneric)
+                {
+                    continue;
+                }
 
-            yield return serviceModel;
+                yield return serviceModel;
+            }
         }
     }
 }

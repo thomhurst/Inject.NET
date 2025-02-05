@@ -4,22 +4,23 @@ namespace Inject.NET.SourceGenerator.Writers;
 
 internal static class TenantScopeWriter
 {
-    public static void Write(SourceCodeWriter sourceCodeWriter, TypedServiceProviderModel serviceProviderModel, TenantServiceModelCollection tenantServices)
+    public static void Write(SourceCodeWriter sourceCodeWriter, TypedServiceProviderModel serviceProviderModel,
+        TenantServiceModelCollection tenantServices)
     {
         var tenantName = tenantServices.TenantName;
-        
+
         var className = $"ServiceScope_{tenantName}";
-                
+
         sourceCodeWriter.WriteLine(
             $"public class {className} : global::Inject.NET.Services.ServiceScope<{className}, ServiceProvider_{tenantName}, SingletonScope_{tenantName}, {serviceProviderModel.Prefix}ServiceScope_, {serviceProviderModel.Prefix}SingletonScope_, {serviceProviderModel.Prefix}ServiceProvider_>");
         sourceCodeWriter.WriteLine("{");
-        
+
         var models = GetModels(tenantServices.Services).ToArray();
 
         sourceCodeWriter.WriteLine(
             $"public {className}(ServiceProvider_{tenantName} serviceProvider, ServiceFactories serviceFactories, {serviceProviderModel.Prefix}ServiceScope_ parentScope) : base(serviceProvider, serviceFactories, parentScope)");
         sourceCodeWriter.WriteLine("{");
-        
+
         sourceCodeWriter.WriteLine("}");
 
         foreach (var serviceModel in models)
@@ -34,8 +35,8 @@ internal static class TenantScopeWriter
 
                 sourceCodeWriter.WriteLine(
                     serviceModel.ResolvedFromParent
-                        ? $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => field ??= Register<{serviceModel.ServiceType.GloballyQualified()}>({serviceModel.GetNewServiceKeyInvocation()}, ParentScope.{propertyName});"
-                        : $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => field ??= Register<{serviceModel.ServiceType.GloballyQualified()}>({serviceModel.GetNewServiceKeyInvocation()}, {ObjectConstructionHelper.ConstructNewObject(serviceProviderModel.Type, tenantServices.Services, serviceModel, Lifetime.Scoped)});");
+                        ? $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => ParentScope.{propertyName};"
+                        : $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => field ??= Register<{serviceModel.ServiceType.GloballyQualified()}>({ObjectConstructionHelper.ConstructNewObject(serviceProviderModel.Type, tenantServices.Services, serviceModel, Lifetime.Scoped)});");
             }
 
             if (serviceModel.Lifetime == Lifetime.Singleton)
@@ -43,7 +44,7 @@ internal static class TenantScopeWriter
                 sourceCodeWriter.WriteLine("[field: AllowNull, MaybeNull]");
 
                 sourceCodeWriter.WriteLine(
-                    $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => field ??= Register<{serviceModel.ServiceType.GloballyQualified()}>({serviceModel.GetNewServiceKeyInvocation()}, Singletons.{propertyName});");
+                    $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => Singletons.{propertyName};");
             }
 
             if (serviceModel.Lifetime == Lifetime.Transient)
@@ -52,43 +53,59 @@ internal static class TenantScopeWriter
                     $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => {ObjectConstructionHelper.ConstructNewObject(serviceProviderModel.Type, tenantServices.Services, serviceModel, Lifetime.Transient)};");
             }
         }
-        
+
+        // GetService
         sourceCodeWriter.WriteLine();
-        sourceCodeWriter.WriteLine("public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)");
+        sourceCodeWriter.WriteLine(
+            "public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)");
         sourceCodeWriter.WriteLine("{");
-        foreach (var (_, serviceModels) in tenantServices.Services)
+        foreach (var serviceModel in models)
         {
-            var serviceModel = serviceModels[^1];
-            
-            if (serviceModel.IsOpenGeneric)
-            {
-                continue;
-            }
-            
             sourceCodeWriter.WriteLine($"if (serviceKey == {serviceModel.GetNewServiceKeyInvocation()})");
             sourceCodeWriter.WriteLine("{");
             sourceCodeWriter.WriteLine($"return {serviceModel.GetPropertyName()};");
             sourceCodeWriter.WriteLine("}");
         }
+
         sourceCodeWriter.WriteLine("return base.GetService(serviceKey, originatingScope);");
         sourceCodeWriter.WriteLine("}");
 
 
+        // GetServices
+        sourceCodeWriter.WriteLine();
+        sourceCodeWriter.WriteLine(
+            "public override IReadOnlyList<object> GetServices(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)");
+        sourceCodeWriter.WriteLine("{");
+        foreach (var (_, serviceModels) in tenantServices.Services)
+        {
+            var first = serviceModels[0];
+            {
+                sourceCodeWriter.WriteLine($"if (serviceKey == {first.GetNewServiceKeyInvocation()})");
+                sourceCodeWriter.WriteLine("{");
+                var arrayParts = serviceModels
+                    .Where(serviceModel => !serviceModel.IsOpenGeneric)
+                    .Select(serviceModel => serviceModel.GetPropertyName());
+
+                sourceCodeWriter.WriteLine($"return [{string.Join(", ", arrayParts)}];");
+                sourceCodeWriter.WriteLine("}");
+            }
+        }
+
+        sourceCodeWriter.WriteLine("return base.GetServices(serviceKey, originatingScope);");
+        sourceCodeWriter.WriteLine("}");
+
         sourceCodeWriter.WriteLine("}");
     }
-    
-    private static IEnumerable<ServiceModel> GetModels(IDictionary<ServiceModelCollection.ServiceKey, List<ServiceModel>> dependencies)
+
+    private static IEnumerable<ServiceModel> GetModels(
+        IDictionary<ServiceModelCollection.ServiceKey, List<ServiceModel>> dependencies)
     {
         foreach (var (_, serviceModels) in dependencies)
         {
-            var serviceModel = serviceModels.Last();
-
-            if (serviceModel.IsOpenGeneric)
+            foreach (var serviceModel in serviceModels.Where(serviceModel => !serviceModel.IsOpenGeneric))
             {
-                continue;
+                yield return serviceModel;
             }
-
-            yield return serviceModel;
         }
     }
 }

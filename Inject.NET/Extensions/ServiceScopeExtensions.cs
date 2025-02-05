@@ -22,27 +22,13 @@ public static class ServiceScopeExtensions
         return scope.GetService(new ServiceKey(typeof(T), key)) as T ??
                ThrowMissingDependencyError<T>(key, scope);
     }
+
+    public static IEnumerable<T> GetServices<T>(this IServiceScope scope) where T : class =>
+        GetServices<T>(scope, null);
     
-    public static IEnumerable<T> GetServices<T>(this IServiceScope scope, string key) where T : class
+    public static IEnumerable<T> GetServices<T>(this IServiceScope scope, string? key) where T : class
     {
-        var enumerable = scope.GetService(new ServiceKey(typeof(T), key));
-
-        if (enumerable is null)
-        {
-            return [];
-        }
-
-        if (enumerable.GetType().IsIEnumerable())
-        {
-            return (enumerable as IEnumerable<object>)?.Cast<T>() ?? [];
-        }
-
-        if (enumerable is T t)
-        {
-            return [t];
-        }
-        
-        return [];
+        return scope.GetServices(new ServiceKey(typeof(T), key)).OfType<T>();
     }
     
     public static T? GetOptionalService<T>(this IServiceScope scope) where T : class

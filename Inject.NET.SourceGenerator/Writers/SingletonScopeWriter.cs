@@ -31,14 +31,17 @@ internal static class SingletonScopeWriter
         sourceCodeWriter.WriteLine("}");
 
 
-        foreach (var serviceModel in singletonModels)
+        foreach (var (_, serviceModels) in rootServiceModelCollection.Services)
         {
-            sourceCodeWriter.WriteLine();
-            sourceCodeWriter.WriteLine("[field: AllowNull, MaybeNull]");
-            var propertyName = PropertyNameHelper.Format(serviceModel);
-                    
-            sourceCodeWriter.WriteLine(
-                $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => field ??= Register<{serviceModel.ServiceType.GloballyQualified()}>({ObjectConstructionHelper.ConstructNewObject(rootServiceModelCollection.ServiceProviderType, rootServiceModelCollection.Services, serviceModel, Lifetime.Singleton)});");
+            foreach (var serviceModel in serviceModels.Where(serviceModel => serviceModel.Lifetime == Lifetime.Singleton && !serviceModel.IsOpenGeneric))
+            {
+                sourceCodeWriter.WriteLine();
+                sourceCodeWriter.WriteLine("[field: AllowNull, MaybeNull]");
+                var propertyName = PropertyNameHelper.Format(serviceModel);
+
+                sourceCodeWriter.WriteLine(
+                    $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => field ??= Register<{serviceModel.ServiceType.GloballyQualified()}>({ObjectConstructionHelper.ConstructNewObject(rootServiceModelCollection.ServiceProviderType, rootServiceModelCollection.Services, serviceModel, Lifetime.Singleton)});");
+            }
         }
 
         sourceCodeWriter.WriteLine("}");

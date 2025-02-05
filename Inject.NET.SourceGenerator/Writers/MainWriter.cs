@@ -56,7 +56,7 @@ internal static class MainWriter
             .Where(x => x.AttributeClass?.IsGenericType is true && SymbolEqualityComparer.Default.Equals(withTenantAttributeType, x.AttributeClass.OriginalDefinition))
             .ToArray();
 
-        var rootDependencies = DependencyDictionary.Create(compilation, dependencyAttributes);
+        var rootDependencies = DependencyDictionary.Create(compilation, dependencyAttributes, null);
 
         var tenants = TenantHelper.ConstructTenants(compilation, withTenantAttributes, rootDependencies);
 

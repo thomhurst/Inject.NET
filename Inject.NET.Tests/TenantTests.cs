@@ -55,10 +55,10 @@ public partial class TenantTests
         // await Assert.That(defaultScope.GetRequiredService<Parent>().Get())
         //     .IsEqualTo("DefaultChild");
 
-        await Assert.That(tenant1Scope.Inject__NET__Tests__TenantTests__Parent.Get())
+        await Assert.That(tenant1Scope.Inject__NET__Tests__TenantTests__Parent____0.Get())
             .IsEqualTo("Tenant1Child");
         
-        await Assert.That(tenant2Scope.Inject__NET__Tests__TenantTests__IChild.Get())
+        await Assert.That(tenant2Scope.Inject__NET__Tests__TenantTests__IChild____0.Get())
             .IsEqualTo("Tenant2Child");
     }
 

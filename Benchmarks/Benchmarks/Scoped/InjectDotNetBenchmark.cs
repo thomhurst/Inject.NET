@@ -28,6 +28,6 @@ public partial class InjectDotNetBenchmark
     {
         await using var scope = _serviceProviderRoot.CreateTypedScope();
 
-        _ = scope.Benchmarks__Models__Class1;
+        _ = scope.Benchmarks__Models__Class1____0;
     }
 }

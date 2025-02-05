@@ -25,7 +25,7 @@ public partial class WithTenant
 		{
 			await Singletons.InitializeAsync();
 			await using var scope = CreateTypedScope();
-			_ = Singletons.Inject__NET__SourceGenerator__Sample__Models__Class1;
+			_ = Singletons.Inject__NET__SourceGenerator__Sample__Models__Class1____0;
 			Tenant_Tenant = await ServiceProvider_Tenant.BuildAsync(this);
 			Register<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenant.Tenant>(Tenant_Tenant);
 
@@ -41,14 +41,14 @@ public partial class WithTenant
 		{
 			if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.Models.Class1), Key = null })
 			{
-				return Inject__NET__SourceGenerator__Sample__Models__Class1;
+				return Inject__NET__SourceGenerator__Sample__Models__Class1____0;
 			}
 
 			return base.GetService(serviceKey, originatingScope);
 		}
 
 		[field: AllowNull, MaybeNull]
-		public global::Inject.NET.SourceGenerator.Sample.Models.Class1 Inject__NET__SourceGenerator__Sample__Models__Class1 => field ??= Register<global::Inject.NET.SourceGenerator.Sample.Models.Class1>(new global::Inject.NET.SourceGenerator.Sample.Models.Class1());
+		public global::Inject.NET.SourceGenerator.Sample.Models.Class1 Inject__NET__SourceGenerator__Sample__Models__Class1____0 => field ??= Register<global::Inject.NET.SourceGenerator.Sample.Models.Class1>(new global::Inject.NET.SourceGenerator.Sample.Models.Class1());
 	}
 	public class ServiceScope_ : global::Inject.NET.Services.ServiceScope<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenant.ServiceScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenant.ServiceProvider_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenant.SingletonScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenant.ServiceScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenant.SingletonScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenant.ServiceProvider_>
 	{
@@ -57,15 +57,24 @@ public partial class WithTenant
 		}
 
 		[field: AllowNull, MaybeNull]
-		public global::Inject.NET.SourceGenerator.Sample.Models.Class1 Inject__NET__SourceGenerator__Sample__Models__Class1 => field ??= Singletons.Inject__NET__SourceGenerator__Sample__Models__Class1;
+		public global::Inject.NET.SourceGenerator.Sample.Models.Class1 Inject__NET__SourceGenerator__Sample__Models__Class1____0 => Singletons.Inject__NET__SourceGenerator__Sample__Models__Class1____0;
 
 		public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
 		{
 			if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.Models.Class1), Key = null })
 			{
-				return Inject__NET__SourceGenerator__Sample__Models__Class1;
+				return Inject__NET__SourceGenerator__Sample__Models__Class1____0;
 			}
 			return base.GetService(serviceKey, originatingScope);
+		}
+
+		public override IReadOnlyList<object> GetServices(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
+		{
+			if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.Models.Class1), Key = null })
+			{
+				return [Inject__NET__SourceGenerator__Sample__Models__Class1____0];
+			}
+			return base.GetServices(serviceKey, originatingScope);
 		}
 	}
 	public class ServiceRegistrar_ : global::Inject.NET.Services.ServiceRegistrar<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenant.ServiceProvider_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenant.ServiceProvider_>
@@ -108,7 +117,7 @@ public partial class WithTenant
 		{
 			await Singletons.InitializeAsync();
 			await using var scope = CreateTypedScope();
-			_ = Singletons.Inject__NET__SourceGenerator__Sample__Models__InheritsFromClass1;
+			_ = Singletons.Inject__NET__SourceGenerator__Sample__Models__InheritsFromClass1__Tenant__0;
 
 			await base.InitializeAsync();
 		}
@@ -120,20 +129,20 @@ public partial class WithTenant
 		}
 
 		[field: AllowNull, MaybeNull]
-		public global::Inject.NET.SourceGenerator.Sample.Models.Class1 Inject__NET__SourceGenerator__Sample__Models__Class1 => field ??= ParentScope.Inject__NET__SourceGenerator__Sample__Models__Class1;
+		public global::Inject.NET.SourceGenerator.Sample.Models.Class1 Inject__NET__SourceGenerator__Sample__Models__Class1____0 => ParentScope.Inject__NET__SourceGenerator__Sample__Models__Class1____0;
 
 		[field: AllowNull, MaybeNull]
-		public global::Inject.NET.SourceGenerator.Sample.Models.InheritsFromClass1 Inject__NET__SourceGenerator__Sample__Models__InheritsFromClass1 => field ??= Register<global::Inject.NET.SourceGenerator.Sample.Models.InheritsFromClass1>(new global::Inject.NET.SourceGenerator.Sample.Models.InheritsFromClass1());
+		public global::Inject.NET.SourceGenerator.Sample.Models.InheritsFromClass1 Inject__NET__SourceGenerator__Sample__Models__InheritsFromClass1__Tenant__0 => field ??= Register<global::Inject.NET.SourceGenerator.Sample.Models.InheritsFromClass1>(new global::Inject.NET.SourceGenerator.Sample.Models.InheritsFromClass1());
 
 		public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
 		{
 			if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.Models.Class1), Key = null })
 			{
-				return Inject__NET__SourceGenerator__Sample__Models__Class1;
+				return Inject__NET__SourceGenerator__Sample__Models__Class1____0;
 			}
 			if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.Models.InheritsFromClass1), Key = null })
 			{
-				return Inject__NET__SourceGenerator__Sample__Models__InheritsFromClass1;
+				return Inject__NET__SourceGenerator__Sample__Models__InheritsFromClass1__Tenant__0;
 			}
 			return base.GetService(serviceKey, originatingScope);
 		}
@@ -145,22 +154,35 @@ public partial class WithTenant
 		}
 
 		[field: AllowNull, MaybeNull]
-		public global::Inject.NET.SourceGenerator.Sample.Models.Class1 Inject__NET__SourceGenerator__Sample__Models__Class1 => field ??= Register<global::Inject.NET.SourceGenerator.Sample.Models.Class1>(new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.Models.Class1), Key = null }, Singletons.Inject__NET__SourceGenerator__Sample__Models__Class1);
+		public global::Inject.NET.SourceGenerator.Sample.Models.Class1 Inject__NET__SourceGenerator__Sample__Models__Class1____0 => Singletons.Inject__NET__SourceGenerator__Sample__Models__Class1____0;
 
 		[field: AllowNull, MaybeNull]
-		public global::Inject.NET.SourceGenerator.Sample.Models.InheritsFromClass1 Inject__NET__SourceGenerator__Sample__Models__InheritsFromClass1 => field ??= Register<global::Inject.NET.SourceGenerator.Sample.Models.InheritsFromClass1>(new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.Models.InheritsFromClass1), Key = null }, Singletons.Inject__NET__SourceGenerator__Sample__Models__InheritsFromClass1);
+		public global::Inject.NET.SourceGenerator.Sample.Models.InheritsFromClass1 Inject__NET__SourceGenerator__Sample__Models__InheritsFromClass1__Tenant__0 => Singletons.Inject__NET__SourceGenerator__Sample__Models__InheritsFromClass1__Tenant__0;
 
 		public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
 		{
 			if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.Models.Class1), Key = null })
 			{
-				return Inject__NET__SourceGenerator__Sample__Models__Class1;
+				return Inject__NET__SourceGenerator__Sample__Models__Class1____0;
 			}
 			if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.Models.InheritsFromClass1), Key = null })
 			{
-				return Inject__NET__SourceGenerator__Sample__Models__InheritsFromClass1;
+				return Inject__NET__SourceGenerator__Sample__Models__InheritsFromClass1__Tenant__0;
 			}
 			return base.GetService(serviceKey, originatingScope);
+		}
+
+		public override IReadOnlyList<object> GetServices(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
+		{
+			if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.Models.Class1), Key = null })
+			{
+				return [Inject__NET__SourceGenerator__Sample__Models__Class1____0];
+			}
+			if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.Models.InheritsFromClass1), Key = null })
+			{
+				return [Inject__NET__SourceGenerator__Sample__Models__InheritsFromClass1__Tenant__0];
+			}
+			return base.GetServices(serviceKey, originatingScope);
 		}
 	}
 	public class ServiceRegistrarTenant : global::Inject.NET.Services.ServiceRegistrar<ServiceProvider_Tenant, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenant.ServiceProvider_>

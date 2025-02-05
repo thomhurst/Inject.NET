@@ -44,27 +44,48 @@ public partial class OpenGeneric
 		{
 		}
 
-		public global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.Class1 Inject__NET__SourceGenerator__Sample__ServiceProviders__OpenGeneric__Class1 => new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.Class1();
+		public global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.Class1 Inject__NET__SourceGenerator__Sample__ServiceProviders__OpenGeneric__Class1____0 => Register<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.Class1>(new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.Class1());
 
-		public global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.IGeneric<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.Class1> Inject__NET__SourceGenerator__Sample__ServiceProviders__OpenGeneric__IGeneric_Inject__NET__SourceGenerator__Sample__ServiceProviders__OpenGeneric__Class1_ => new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.Generic<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.Class1>(new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.Class1());
+		public global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.IGeneric<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.Class1> Inject__NET__SourceGenerator__Sample__ServiceProviders__OpenGeneric__IGeneric_Inject__NET__SourceGenerator__Sample__ServiceProviders__OpenGeneric__Class1_____0 => Register<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.IGeneric<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.Class1>>(new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.Generic<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.Class1>(new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.Class1()));
 
-		public global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.Wrapper Inject__NET__SourceGenerator__Sample__ServiceProviders__OpenGeneric__Wrapper => new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.Wrapper(new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.Generic<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.Class1>(new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.Class1()));
+		public global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.Wrapper Inject__NET__SourceGenerator__Sample__ServiceProviders__OpenGeneric__Wrapper____0 => Register<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.Wrapper>(new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.Wrapper(new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.Generic<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.Class1>(new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.Class1())));
 
 		public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
 		{
 			if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.Class1), Key = null })
 			{
-				return Inject__NET__SourceGenerator__Sample__ServiceProviders__OpenGeneric__Class1;
+				return Inject__NET__SourceGenerator__Sample__ServiceProviders__OpenGeneric__Class1____0;
 			}
 			if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.IGeneric<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.Class1>), Key = null })
 			{
-				return Inject__NET__SourceGenerator__Sample__ServiceProviders__OpenGeneric__IGeneric_Inject__NET__SourceGenerator__Sample__ServiceProviders__OpenGeneric__Class1_;
+				return Inject__NET__SourceGenerator__Sample__ServiceProviders__OpenGeneric__IGeneric_Inject__NET__SourceGenerator__Sample__ServiceProviders__OpenGeneric__Class1_____0;
 			}
 			if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.Wrapper), Key = null })
 			{
-				return Inject__NET__SourceGenerator__Sample__ServiceProviders__OpenGeneric__Wrapper;
+				return Inject__NET__SourceGenerator__Sample__ServiceProviders__OpenGeneric__Wrapper____0;
 			}
 			return base.GetService(serviceKey, originatingScope);
+		}
+
+		public override IReadOnlyList<object> GetServices(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
+		{
+			if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.Class1), Key = null })
+			{
+				return [Inject__NET__SourceGenerator__Sample__ServiceProviders__OpenGeneric__Class1____0];
+			}
+			if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.IGeneric<>), Key = null })
+			{
+				return [];
+			}
+			if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.IGeneric<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.Class1>), Key = null })
+			{
+				return [Inject__NET__SourceGenerator__Sample__ServiceProviders__OpenGeneric__IGeneric_Inject__NET__SourceGenerator__Sample__ServiceProviders__OpenGeneric__Class1_____0];
+			}
+			if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.Wrapper), Key = null })
+			{
+				return [Inject__NET__SourceGenerator__Sample__ServiceProviders__OpenGeneric__Wrapper____0];
+			}
+			return base.GetServices(serviceKey, originatingScope);
 		}
 	}
 	public class ServiceRegistrar_ : global::Inject.NET.Services.ServiceRegistrar<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.ServiceProvider_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.ServiceProvider_>

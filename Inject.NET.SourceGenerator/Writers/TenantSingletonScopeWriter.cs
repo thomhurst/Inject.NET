@@ -29,7 +29,7 @@ internal static class TenantSingletonScopeWriter
             var propertyName = PropertyNameHelper.Format(serviceModel);
 
             sourceCodeWriter.WriteLine(serviceModel.ResolvedFromParent
-                ? $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => field ??= ParentScope.{propertyName};"
+                ? $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => ParentScope.{propertyName};"
                 : $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => field ??= Register<{serviceModel.ServiceType.GloballyQualified()}>({ObjectConstructionHelper.ConstructNewObject(serviceProviderModel.Type, tenantServices.Services, serviceModel, Lifetime.Singleton)});");
         }
         

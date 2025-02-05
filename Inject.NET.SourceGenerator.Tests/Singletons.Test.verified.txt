@@ -29,7 +29,7 @@ public partial class Singletons
 			{
 				await Singletons.InitializeAsync();
 				await using var scope = CreateTypedScope();
-				_ = Singletons.Inject__NET__Tests__Singletons__SingletonClass;
+				_ = Singletons.Inject__NET__Tests__Singletons__SingletonClass____0;
 				Tenant_NonOverridingTenant = await ServiceProvider_NonOverridingTenant.BuildAsync(this);
 				Register<global::Inject.NET.Tests.Singletons.SingletonServiceProvider.NonOverridingTenant>(Tenant_NonOverridingTenant);
 				Tenant_OverridingTenant = await ServiceProvider_OverridingTenant.BuildAsync(this);
@@ -47,14 +47,14 @@ public partial class Singletons
 			{
 				if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.Tests.Singletons.SingletonClass), Key = null })
 				{
-					return Inject__NET__Tests__Singletons__SingletonClass;
+					return Inject__NET__Tests__Singletons__SingletonClass____0;
 				}
 
 				return base.GetService(serviceKey, originatingScope);
 			}
 
 			[field: AllowNull, MaybeNull]
-			public global::Inject.NET.Tests.Singletons.SingletonClass Inject__NET__Tests__Singletons__SingletonClass => field ??= Register<global::Inject.NET.Tests.Singletons.SingletonClass>(new global::Inject.NET.Tests.Singletons.SingletonClass());
+			public global::Inject.NET.Tests.Singletons.SingletonClass Inject__NET__Tests__Singletons__SingletonClass____0 => field ??= Register<global::Inject.NET.Tests.Singletons.SingletonClass>(new global::Inject.NET.Tests.Singletons.SingletonClass());
 		}
 		public class ServiceScope_ : global::Inject.NET.Services.ServiceScope<global::Inject.NET.Tests.Singletons.SingletonServiceProvider.ServiceScope_, global::Inject.NET.Tests.Singletons.SingletonServiceProvider.ServiceProvider_, global::Inject.NET.Tests.Singletons.SingletonServiceProvider.SingletonScope_, global::Inject.NET.Tests.Singletons.SingletonServiceProvider.ServiceScope_, global::Inject.NET.Tests.Singletons.SingletonServiceProvider.SingletonScope_, global::Inject.NET.Tests.Singletons.SingletonServiceProvider.ServiceProvider_>
 		{
@@ -63,15 +63,24 @@ public partial class Singletons
 			}
 
 			[field: AllowNull, MaybeNull]
-			public global::Inject.NET.Tests.Singletons.SingletonClass Inject__NET__Tests__Singletons__SingletonClass => field ??= Singletons.Inject__NET__Tests__Singletons__SingletonClass;
+			public global::Inject.NET.Tests.Singletons.SingletonClass Inject__NET__Tests__Singletons__SingletonClass____0 => Singletons.Inject__NET__Tests__Singletons__SingletonClass____0;
 
 			public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
 			{
 				if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.Tests.Singletons.SingletonClass), Key = null })
 				{
-					return Inject__NET__Tests__Singletons__SingletonClass;
+					return Inject__NET__Tests__Singletons__SingletonClass____0;
 				}
 				return base.GetService(serviceKey, originatingScope);
+			}
+
+			public override IReadOnlyList<object> GetServices(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
+			{
+				if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.Tests.Singletons.SingletonClass), Key = null })
+				{
+					return [Inject__NET__Tests__Singletons__SingletonClass____0];
+				}
+				return base.GetServices(serviceKey, originatingScope);
 			}
 		}
 		public class ServiceRegistrar_ : global::Inject.NET.Services.ServiceRegistrar<global::Inject.NET.Tests.Singletons.SingletonServiceProvider.ServiceProvider_, global::Inject.NET.Tests.Singletons.SingletonServiceProvider.ServiceProvider_>
@@ -125,13 +134,13 @@ public partial class Singletons
 			}
 
 			[field: AllowNull, MaybeNull]
-			public global::Inject.NET.Tests.Singletons.SingletonClass Inject__NET__Tests__Singletons__SingletonClass => field ??= ParentScope.Inject__NET__Tests__Singletons__SingletonClass;
+			public global::Inject.NET.Tests.Singletons.SingletonClass Inject__NET__Tests__Singletons__SingletonClass____0 => ParentScope.Inject__NET__Tests__Singletons__SingletonClass____0;
 
 			public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
 			{
 				if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.Tests.Singletons.SingletonClass), Key = null })
 				{
-					return Inject__NET__Tests__Singletons__SingletonClass;
+					return Inject__NET__Tests__Singletons__SingletonClass____0;
 				}
 				return base.GetService(serviceKey, originatingScope);
 			}
@@ -143,15 +152,24 @@ public partial class Singletons
 			}
 
 			[field: AllowNull, MaybeNull]
-			public global::Inject.NET.Tests.Singletons.SingletonClass Inject__NET__Tests__Singletons__SingletonClass => field ??= Register<global::Inject.NET.Tests.Singletons.SingletonClass>(new ServiceKey { Type = typeof(global::Inject.NET.Tests.Singletons.SingletonClass), Key = null }, Singletons.Inject__NET__Tests__Singletons__SingletonClass);
+			public global::Inject.NET.Tests.Singletons.SingletonClass Inject__NET__Tests__Singletons__SingletonClass____0 => Singletons.Inject__NET__Tests__Singletons__SingletonClass____0;
 
 			public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
 			{
 				if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.Tests.Singletons.SingletonClass), Key = null })
 				{
-					return Inject__NET__Tests__Singletons__SingletonClass;
+					return Inject__NET__Tests__Singletons__SingletonClass____0;
 				}
 				return base.GetService(serviceKey, originatingScope);
+			}
+
+			public override IReadOnlyList<object> GetServices(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
+			{
+				if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.Tests.Singletons.SingletonClass), Key = null })
+				{
+					return [Inject__NET__Tests__Singletons__SingletonClass____0];
+				}
+				return base.GetServices(serviceKey, originatingScope);
 			}
 		}
 		public class ServiceRegistrarNonOverridingTenant : global::Inject.NET.Services.ServiceRegistrar<ServiceProvider_NonOverridingTenant, global::Inject.NET.Tests.Singletons.SingletonServiceProvider.ServiceProvider_>
@@ -185,7 +203,7 @@ public partial class Singletons
 			{
 				await Singletons.InitializeAsync();
 				await using var scope = CreateTypedScope();
-				_ = Singletons.Inject__NET__Tests__Singletons__SingletonClass;
+				_ = Singletons.Inject__NET__Tests__Singletons__SingletonClass__OverridingTenant__0;
 
 				await base.InitializeAsync();
 			}
@@ -197,13 +215,20 @@ public partial class Singletons
 			}
 
 			[field: AllowNull, MaybeNull]
-			public global::Inject.NET.Tests.Singletons.SingletonClass Inject__NET__Tests__Singletons__SingletonClass => field ??= Register<global::Inject.NET.Tests.Singletons.SingletonClass>(new global::Inject.NET.Tests.Singletons.SingletonClass());
+			public global::Inject.NET.Tests.Singletons.SingletonClass Inject__NET__Tests__Singletons__SingletonClass____0 => ParentScope.Inject__NET__Tests__Singletons__SingletonClass____0;
+
+			[field: AllowNull, MaybeNull]
+			public global::Inject.NET.Tests.Singletons.SingletonClass Inject__NET__Tests__Singletons__SingletonClass__OverridingTenant__0 => field ??= Register<global::Inject.NET.Tests.Singletons.SingletonClass>(new global::Inject.NET.Tests.Singletons.SingletonClass());
 
 			public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
 			{
 				if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.Tests.Singletons.SingletonClass), Key = null })
 				{
-					return Inject__NET__Tests__Singletons__SingletonClass;
+					return Inject__NET__Tests__Singletons__SingletonClass____0;
+				}
+				if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.Tests.Singletons.SingletonClass), Key = null })
+				{
+					return Inject__NET__Tests__Singletons__SingletonClass__OverridingTenant__0;
 				}
 				return base.GetService(serviceKey, originatingScope);
 			}
@@ -215,15 +240,31 @@ public partial class Singletons
 			}
 
 			[field: AllowNull, MaybeNull]
-			public global::Inject.NET.Tests.Singletons.SingletonClass Inject__NET__Tests__Singletons__SingletonClass => field ??= Register<global::Inject.NET.Tests.Singletons.SingletonClass>(new ServiceKey { Type = typeof(global::Inject.NET.Tests.Singletons.SingletonClass), Key = null }, Singletons.Inject__NET__Tests__Singletons__SingletonClass);
+			public global::Inject.NET.Tests.Singletons.SingletonClass Inject__NET__Tests__Singletons__SingletonClass____0 => Singletons.Inject__NET__Tests__Singletons__SingletonClass____0;
+
+			[field: AllowNull, MaybeNull]
+			public global::Inject.NET.Tests.Singletons.SingletonClass Inject__NET__Tests__Singletons__SingletonClass__OverridingTenant__0 => Singletons.Inject__NET__Tests__Singletons__SingletonClass__OverridingTenant__0;
 
 			public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
 			{
 				if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.Tests.Singletons.SingletonClass), Key = null })
 				{
-					return Inject__NET__Tests__Singletons__SingletonClass;
+					return Inject__NET__Tests__Singletons__SingletonClass____0;
+				}
+				if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.Tests.Singletons.SingletonClass), Key = null })
+				{
+					return Inject__NET__Tests__Singletons__SingletonClass__OverridingTenant__0;
 				}
 				return base.GetService(serviceKey, originatingScope);
+			}
+
+			public override IReadOnlyList<object> GetServices(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
+			{
+				if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.Tests.Singletons.SingletonClass), Key = null })
+				{
+					return [Inject__NET__Tests__Singletons__SingletonClass____0, Inject__NET__Tests__Singletons__SingletonClass__OverridingTenant__0];
+				}
+				return base.GetServices(serviceKey, originatingScope);
 			}
 		}
 		public class ServiceRegistrarOverridingTenant : global::Inject.NET.Services.ServiceRegistrar<ServiceProvider_OverridingTenant, global::Inject.NET.Tests.Singletons.SingletonServiceProvider.ServiceProvider_>

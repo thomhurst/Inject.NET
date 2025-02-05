@@ -23,7 +23,7 @@ public partial class ScopedImplementationOnly
 		{
 			await Singletons.InitializeAsync();
 			await using var scope = CreateTypedScope();
-			_ = scope.Class1;
+			_ = scope.Class1____0;
 
 			await base.InitializeAsync();
 		}
@@ -46,15 +46,24 @@ public partial class ScopedImplementationOnly
 		}
 
 		[field: AllowNull, MaybeNull]
-		public Class1 Class1 => field ??= Register<Class1>(new ServiceKey { Type = typeof(Class1), Key = null }, new Class1());
+		public Class1 Class1____0 => field ??= Register<Class1>(new Class1());
 
 		public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
 		{
 			if (serviceKey == new ServiceKey { Type = typeof(Class1), Key = null })
 			{
-				return Class1;
+				return Class1____0;
 			}
 			return base.GetService(serviceKey, originatingScope);
+		}
+
+		public override IReadOnlyList<object> GetServices(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
+		{
+			if (serviceKey == new ServiceKey { Type = typeof(Class1), Key = null })
+			{
+				return [Class1____0];
+			}
+			return base.GetServices(serviceKey, originatingScope);
 		}
 	}
 	public class ServiceRegistrar_ : global::Inject.NET.Services.ServiceRegistrar<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.ScopedImplementationOnly.ServiceProvider_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.ScopedImplementationOnly.ServiceProvider_>

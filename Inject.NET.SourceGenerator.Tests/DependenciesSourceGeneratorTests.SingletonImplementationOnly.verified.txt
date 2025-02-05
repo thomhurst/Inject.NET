@@ -23,7 +23,7 @@ public partial class SingletonImplementationOnly
 		{
 			await Singletons.InitializeAsync();
 			await using var scope = CreateTypedScope();
-			_ = Singletons.Class1;
+			_ = Singletons.Class1____0;
 
 			await base.InitializeAsync();
 		}
@@ -37,14 +37,14 @@ public partial class SingletonImplementationOnly
 		{
 			if (serviceKey == new ServiceKey { Type = typeof(Class1), Key = null })
 			{
-				return Class1;
+				return Class1____0;
 			}
 
 			return base.GetService(serviceKey, originatingScope);
 		}
 
 		[field: AllowNull, MaybeNull]
-		public Class1 Class1 => field ??= Register<Class1>(new Class1());
+		public Class1 Class1____0 => field ??= Register<Class1>(new Class1());
 	}
 	public class ServiceScope_ : global::Inject.NET.Services.ServiceScope<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonImplementationOnly.ServiceScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonImplementationOnly.ServiceProvider_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonImplementationOnly.SingletonScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonImplementationOnly.ServiceScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonImplementationOnly.SingletonScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonImplementationOnly.ServiceProvider_>
 	{
@@ -53,15 +53,24 @@ public partial class SingletonImplementationOnly
 		}
 
 		[field: AllowNull, MaybeNull]
-		public Class1 Class1 => field ??= Singletons.Class1;
+		public Class1 Class1____0 => Singletons.Class1____0;
 
 		public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
 		{
 			if (serviceKey == new ServiceKey { Type = typeof(Class1), Key = null })
 			{
-				return Class1;
+				return Class1____0;
 			}
 			return base.GetService(serviceKey, originatingScope);
+		}
+
+		public override IReadOnlyList<object> GetServices(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
+		{
+			if (serviceKey == new ServiceKey { Type = typeof(Class1), Key = null })
+			{
+				return [Class1____0];
+			}
+			return base.GetServices(serviceKey, originatingScope);
 		}
 	}
 	public class ServiceRegistrar_ : global::Inject.NET.Services.ServiceRegistrar<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonImplementationOnly.ServiceProvider_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonImplementationOnly.ServiceProvider_>

@@ -44,15 +44,24 @@ public partial class TransientImplementationOnly
 		{
 		}
 
-		public Class1 Class1 => new Class1();
+		public Class1 Class1____0 => Register<Class1>(new Class1());
 
 		public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
 		{
 			if (serviceKey == new ServiceKey { Type = typeof(Class1), Key = null })
 			{
-				return Class1;
+				return Class1____0;
 			}
 			return base.GetService(serviceKey, originatingScope);
+		}
+
+		public override IReadOnlyList<object> GetServices(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
+		{
+			if (serviceKey == new ServiceKey { Type = typeof(Class1), Key = null })
+			{
+				return [Class1____0];
+			}
+			return base.GetServices(serviceKey, originatingScope);
 		}
 	}
 	public class ServiceRegistrar_ : global::Inject.NET.Services.ServiceRegistrar<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.TransientImplementationOnly.ServiceProvider_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.TransientImplementationOnly.ServiceProvider_>

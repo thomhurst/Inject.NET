@@ -221,10 +221,6 @@ public partial class Scoped
 			{
 				if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.Tests.Scoped.ScopedClass), Key = null })
 				{
-					return Inject__NET__Tests__Scoped__ScopedClass____0;
-				}
-				if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.Tests.Scoped.ScopedClass), Key = null })
-				{
 					return Inject__NET__Tests__Scoped__ScopedClass__OverridingTenant__0;
 				}
 				return base.GetService(serviceKey, originatingScope);

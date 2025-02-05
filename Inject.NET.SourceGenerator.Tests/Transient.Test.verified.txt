@@ -250,10 +250,6 @@ public partial class Transient
 				}
 				if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.Tests.Transient.TransientClass), Key = null })
 				{
-					return Inject__NET__Tests__Transient__TransientClass____0;
-				}
-				if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.Tests.Transient.TransientClass), Key = null })
-				{
 					return Inject__NET__Tests__Transient__TransientClass__OverridingTenant__0;
 				}
 				return base.GetService(serviceKey, originatingScope);

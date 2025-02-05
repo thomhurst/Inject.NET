@@ -249,10 +249,6 @@ public partial class Singletons
 			{
 				if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.Tests.Singletons.SingletonClass), Key = null })
 				{
-					return Inject__NET__Tests__Singletons__SingletonClass____0;
-				}
-				if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.Tests.Singletons.SingletonClass), Key = null })
-				{
 					return Inject__NET__Tests__Singletons__SingletonClass__OverridingTenant__0;
 				}
 				return base.GetService(serviceKey, originatingScope);

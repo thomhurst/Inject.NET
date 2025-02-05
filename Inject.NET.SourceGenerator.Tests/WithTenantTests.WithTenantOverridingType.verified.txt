@@ -158,10 +158,6 @@ public partial class WithTenantOverridingType
 		{
 			if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.IChild), Key = null })
 			{
-				return Inject__NET__SourceGenerator__Sample__ServiceProviders__WithTenantOverridingType__IChild____0;
-			}
-			if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.IChild), Key = null })
-			{
 				return Inject__NET__SourceGenerator__Sample__ServiceProviders__WithTenantOverridingType__IChild__Tenant__0;
 			}
 			if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.Parent), Key = null })

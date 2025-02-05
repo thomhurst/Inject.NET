@@ -16,17 +16,15 @@ internal static class ServiceProviderWriter
             $"{serviceProviderType.DeclaredAccessibility.ToString().ToLower(CultureInfo.InvariantCulture)} class ServiceProvider_(global::Inject.NET.Models.ServiceFactories serviceFactories) : global::Inject.NET.Services.ServiceProvider<{serviceProviderModel.Prefix}ServiceProvider_, {serviceProviderModel.Prefix}SingletonScope_, {serviceProviderModel.Prefix}ServiceScope_, {serviceProviderModel.Prefix}ServiceProvider_, {serviceProviderModel.Prefix}SingletonScope_, {serviceProviderModel.Prefix}ServiceScope_>(serviceFactories, null)");
         sourceCodeWriter.WriteLine("{");
 
-        sourceCodeWriter.WriteLine("[field: AllowNull, MaybeNull]");
+        sourceCodeWriter.WriteLine($"private {serviceProviderModel.Prefix}SingletonScope_? _singletons;");
         sourceCodeWriter.WriteLine(
-            $"public override {serviceProviderModel.Prefix}SingletonScope_ Singletons => field ??= new(this, serviceFactories);");
+            $"public override {serviceProviderModel.Prefix}SingletonScope_ Singletons => _singletons ??= new(this, serviceFactories);");
 
         sourceCodeWriter.WriteLine(
             $"public override {serviceProviderModel.Prefix}ServiceScope_ CreateTypedScope() => new(this, serviceFactories);");
                 
         foreach (var tenant in tenants)
         {
-            sourceCodeWriter.WriteLine("[field: AllowNull, MaybeNull]");
-            
             sourceCodeWriter.WriteLine($$"""public ServiceProvider_{{tenant.TenantDefinition.Name}} Tenant_{{tenant.TenantDefinition.Name}} { get; private set; } = null!;""");
         }
                 
@@ -49,11 +47,11 @@ internal static class ServiceProviderWriter
         {
             if(serviceModel.Lifetime == Lifetime.Singleton)
             {
-                sourceCodeWriter.WriteLine($"_ = Singletons.{PropertyNameHelper.Format(serviceModel)};");
+                sourceCodeWriter.WriteLine($"_ = Singletons.{NameHelper.AsProperty(serviceModel)};");
             }
             else if(serviceModel.Lifetime == Lifetime.Scoped)
             {
-                sourceCodeWriter.WriteLine($"_ = scope.{PropertyNameHelper.Format(serviceModel)};");
+                sourceCodeWriter.WriteLine($"_ = scope.{NameHelper.AsProperty(serviceModel)};");
             }
         }
 

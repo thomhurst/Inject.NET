@@ -27,22 +27,27 @@ internal static class TenantScopeWriter
         {
             sourceCodeWriter.WriteLine();
 
-            var propertyName = PropertyNameHelper.Format(serviceModel);
+            var propertyName = NameHelper.AsProperty(serviceModel);
 
             if (serviceModel.Lifetime == Lifetime.Scoped)
             {
-                sourceCodeWriter.WriteLine("[field: AllowNull, MaybeNull]");
-
-                sourceCodeWriter.WriteLine(
-                    serviceModel.ResolvedFromParent
-                        ? $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => ParentScope.{propertyName};"
-                        : $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => field ??= Register<{serviceModel.ServiceType.GloballyQualified()}>({ObjectConstructionHelper.ConstructNewObject(serviceProviderModel.Type, tenantServices.Services, serviceModel, Lifetime.Scoped)});");
+                if (serviceModel.ResolvedFromParent)
+                {
+                    sourceCodeWriter.WriteLine(
+                        $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => ParentScope.{propertyName};");
+                }
+                else
+                {
+                    var fieldName = NameHelper.AsField(serviceModel);
+                    sourceCodeWriter.WriteLine($"private {serviceModel.ServiceType.GloballyQualified()}? {fieldName};");
+                    
+                    sourceCodeWriter.WriteLine(
+                        $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => {fieldName} ??= Register<{serviceModel.ServiceType.GloballyQualified()}>({ObjectConstructionHelper.ConstructNewObject(serviceProviderModel.Type, tenantServices.Services, serviceModel, Lifetime.Scoped)});");
+                }
             }
 
             if (serviceModel.Lifetime == Lifetime.Singleton)
             {
-                sourceCodeWriter.WriteLine("[field: AllowNull, MaybeNull]");
-
                 sourceCodeWriter.WriteLine(
                     $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => Singletons.{propertyName};");
             }

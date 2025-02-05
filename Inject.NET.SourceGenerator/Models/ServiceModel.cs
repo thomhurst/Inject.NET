@@ -46,6 +46,6 @@ public record ServiceModel
     
     public string GetPropertyName()
     {
-        return PropertyNameHelper.Format(this);
+        return NameHelper.AsProperty(this);
     }
 }

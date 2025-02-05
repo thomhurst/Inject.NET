@@ -17,9 +17,9 @@ internal static class TenantServiceProviderWriter
             $"{serviceProviderType.DeclaredAccessibility.ToString().ToLower(CultureInfo.InvariantCulture)} partial class {className}(ServiceFactories serviceFactories, {serviceProviderModel.Prefix}ServiceProvider_ parent) : global::Inject.NET.Services.ServiceProvider<{className}, SingletonScope_{tenant.TenantDefinition.Name}, ServiceScope_{tenant.TenantDefinition.Name}, {serviceProviderModel.Prefix}ServiceProvider_, {serviceProviderModel.Prefix}SingletonScope_, {serviceProviderModel.Prefix}ServiceScope_>(serviceFactories, parent)");
         sourceCodeWriter.WriteLine("{");
                 
-        sourceCodeWriter.WriteLine("[field: AllowNull, MaybeNull]");
+        sourceCodeWriter.WriteLine($"private SingletonScope_{tenant.TenantDefinition.Name}? _singletons;");
         sourceCodeWriter.WriteLine(
-            $"public override SingletonScope_{tenant.TenantDefinition.Name} Singletons => field ??= new(this, serviceFactories, parent.Singletons);");
+            $"public override SingletonScope_{tenant.TenantDefinition.Name} Singletons => _singletons ??= new(this, serviceFactories, parent.Singletons);");
 
         sourceCodeWriter.WriteLine(
             $"public override ServiceScope_{tenant.TenantDefinition.Name} CreateTypedScope() => new ServiceScope_{tenant.TenantDefinition.Name}(this, serviceFactories, parent.CreateTypedScope());");
@@ -46,11 +46,11 @@ internal static class TenantServiceProviderWriter
         {
             if(serviceModel.Lifetime == Lifetime.Singleton)
             {
-                sourceCodeWriter.WriteLine($"_ = Singletons.{PropertyNameHelper.Format(serviceModel)};");
+                sourceCodeWriter.WriteLine($"_ = Singletons.{NameHelper.AsProperty(serviceModel)};");
             }
             else if(serviceModel.Lifetime == Lifetime.Scoped)
             {
-                sourceCodeWriter.WriteLine($"_ = scope.{PropertyNameHelper.Format(serviceModel)};");
+                sourceCodeWriter.WriteLine($"_ = scope.{NameHelper.AsProperty(serviceModel)};");
             }
         }
         

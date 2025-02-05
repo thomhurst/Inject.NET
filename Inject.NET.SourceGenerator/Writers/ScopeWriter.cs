@@ -27,18 +27,20 @@ internal static class ScopeWriter
                 }
 
                 sourceCodeWriter.WriteLine();
-                var propertyName = PropertyNameHelper.Format(serviceModel);
+                var propertyName = NameHelper.AsProperty(serviceModel);
 
-                if (serviceModel.Lifetime == Lifetime.Transient)
+                if (serviceModel.Lifetime != Lifetime.Scoped)
                 {
                     sourceCodeWriter.WriteLine(
                         $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => {GetInvocation(rootServiceModelCollection, serviceModel)};");
                 }
                 else
                 {
-                    sourceCodeWriter.WriteLine("[field: AllowNull, MaybeNull]");
+                    var fieldName = NameHelper.AsField(serviceModel);
+                    sourceCodeWriter.WriteLine($"private {serviceModel.ServiceType.GloballyQualified()}? {fieldName};");
+                    
                     sourceCodeWriter.WriteLine(
-                        $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => {GetInvocation(rootServiceModelCollection, serviceModel)};");
+                        $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => {fieldName} ??= {GetInvocation(rootServiceModelCollection, serviceModel)};");
                 }
             }
         }
@@ -99,13 +101,13 @@ internal static class ScopeWriter
         if (serviceModel.Lifetime == Lifetime.Scoped)
         {
             return
-                $"field ??= Register<{serviceModel.ServiceType.GloballyQualified()}>({ObjectConstructionHelper.ConstructNewObject(rootServiceModelCollection.ServiceProviderType,
+                $"Register<{serviceModel.ServiceType.GloballyQualified()}>({ObjectConstructionHelper.ConstructNewObject(rootServiceModelCollection.ServiceProviderType,
                     rootServiceModelCollection.Services, serviceModel, Lifetime.Scoped)})";
         }
         
         if (serviceModel.Lifetime == Lifetime.Singleton)
         {
-            return $"Singletons.{PropertyNameHelper.Format(serviceModel)}";
+            return $"Singletons.{NameHelper.AsProperty(serviceModel)}";
         }
         
         return $"Register<{serviceModel.ServiceType.GloballyQualified()}>({ObjectConstructionHelper.ConstructNewObject(rootServiceModelCollection.ServiceProviderType,

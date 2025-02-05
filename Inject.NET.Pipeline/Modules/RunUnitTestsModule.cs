@@ -17,7 +17,10 @@ public class RunUnitTestsModule : Module<CommandResult[]>
             Sourcy.DotNet.Projects.Inject_NET_Tests.FullName
         ];
 
-        return await projects.SelectAsync(x => context.DotNet().Test(new DotNetTestOptions(x), cancellationToken),
+        return await projects.SelectAsync(project => context.DotNet().Run(new DotNetRunOptions
+            {
+                Project = project
+            }, cancellationToken),
             cancellationToken: cancellationToken).ProcessOneAtATime();
     }
 }

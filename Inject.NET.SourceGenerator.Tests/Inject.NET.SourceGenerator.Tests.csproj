@@ -1,13 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
+        <TargetFramework>net9.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
-
         <IsPackable>false</IsPackable>
-
-        <RootNamespace>Inject.NET.SourceGenerator.Tests</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
@@ -25,36 +22,20 @@
 
     <ItemGroup>
       <None Update="WrappedOpenGeneric.WithTenant.verified.txt">
-        <ParentFile>WithTenantTests</ParentFile>
-        <DependentUpon>WrappedOpenGeneric.cs</DependentUpon>
       </None>
       <None Update="AssortmentTests.WithTenant.verified.txt">
-        <ParentFile>WithTenantTests</ParentFile>
-        <DependentUpon>AssortmentTests.cs</DependentUpon>
       </None>
       <None Update="Singletons.WithTenant.verified.txt">
-        <ParentFile>WithTenantTests</ParentFile>
-        <DependentUpon>Singletons.cs</DependentUpon>
       </None>
       <None Update="Singletons.WithTenantOverridingType.verified.txt">
-        <ParentFile>WithTenantTests</ParentFile>
-        <DependentUpon>Singletons.cs</DependentUpon>
       </None>
       <None Update="Scoped.WithTenant.verified.txt">
-        <ParentFile>Singletons</ParentFile>
-        <DependentUpon>Scoped.cs</DependentUpon>
       </None>
       <None Update="Scoped.WithTenantOverridingType.verified.txt">
-        <ParentFile>Singletons</ParentFile>
-        <DependentUpon>Scoped.cs</DependentUpon>
       </None>
       <None Update="Transient.WithTenant.verified.txt">
-        <ParentFile>Scoped</ParentFile>
-        <DependentUpon>Transient.cs</DependentUpon>
       </None>
       <None Update="Transient.WithTenantOverridingType.verified.txt">
-        <ParentFile>Scoped</ParentFile>
-        <DependentUpon>Transient.cs</DependentUpon>
       </None>
       <None Remove="WithTenantTests.WithTenant.received.txt" />
       <None Remove="Transient.Test.received.txt" />

@@ -76,13 +76,13 @@ public partial class AITests
     [Transient<NestedService>]
     public partial class MyServiceProvider;
 
-    public class SingletonService { }
+    public class SingletonService;
 
-    public class ScopedService { }
+    public class ScopedService;
 
-    public class TransientService { }
+    public class TransientService;
 
-    public interface IGeneric<T> { }
+    public interface IGeneric<T>;
 
     public class Generic<T> : IGeneric<T>
     {

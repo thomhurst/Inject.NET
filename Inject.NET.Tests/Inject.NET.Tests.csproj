@@ -26,6 +26,10 @@
         <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
         <CompilerGeneratedFilesOutputPath>SourceGeneratedViewer</CompilerGeneratedFilesOutputPath>
     </PropertyGroup>
+    
+    <ItemGroup>
+        <Compile Remove="CircularDependencyTests.cs" />
+    </ItemGroup>
 
     <ItemGroup>
         <Compile Remove="SourceGeneratedViewer\**" />

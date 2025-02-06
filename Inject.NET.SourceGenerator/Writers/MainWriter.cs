@@ -62,25 +62,29 @@ internal static class MainWriter
 
         var serviceModelCollection = TypeCollector.Collect(serviceProviderModel, compilation);
         
-        foreach (var (_, value) in serviceModelCollection.Services)
+        if (serviceModelCollection.Services
+            .Select(x => x.Value)
+            .Any(services => 
+                services.Any(serviceModel => sourceProductionContext.HasConflicts(serviceModel, serviceModelCollection.Services))
+            ))
         {
-            foreach (var serviceModel in value)
-            {
-                sourceProductionContext.CheckConflicts(serviceModel, serviceModelCollection.Services);
-            }
+            return;
         }
-        
-        foreach (var (_, value) in serviceModelCollection.Tenants)
+
+        if (serviceModelCollection.Tenants
+            .Select(x => x.Value)
+            .Any(tenant =>
+                tenant.Services
+                    .Select(x => x.Value)
+                    .Any(services =>
+                        services.Any(
+                            serviceModel => sourceProductionContext.HasConflicts(serviceModel, tenant.Services))
+                    )
+            ))
         {
-            foreach (var (_, value2) in value.Services)
-            {
-                foreach (var serviceModel in value2)
-                {
-                    sourceProductionContext.CheckConflicts(serviceModel, value.Services);
-                }
-            }
+            return;
         }
-        
+
         sourceCodeWriter.WriteLine($"public partial class {serviceProviderType.Name}");
         sourceCodeWriter.WriteLine("{");
 

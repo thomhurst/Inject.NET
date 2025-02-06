@@ -77,6 +77,11 @@ public partial class TestsBase<TGenerator> where TGenerator : IIncrementalGenera
         
         foreach (var error in diagnostics.Where(IsError))
         {
+            if (runTestOptions.ExpectedErrors.Any(x => x == error.ToString()))
+            {
+                continue;
+            }
+            
             throw new Exception
             (
                 $"""
@@ -96,12 +101,6 @@ public partial class TestsBase<TGenerator> where TGenerator : IIncrementalGenera
             .Except([source])
             .Except(additionalSources)
             .ToArray();
-
-        foreach (var error in diagnostics.Where(x => x.Severity == DiagnosticSeverity.Error))
-        {
-            throw new Exception(
-                $"There was an error with the generator compilation.{Environment.NewLine}{Environment.NewLine}{error}{Environment.NewLine}{Environment.NewLine}{string.Join(Environment.NewLine, generatedFiles)}");
-        }
 
         await assertions(generatedFiles);
         

@@ -29,10 +29,12 @@
     
     <ItemGroup>
         <Compile Remove="CircularDependencyTests.cs" />
+        <None Include="CircularDependencyTests.cs" />
     </ItemGroup>
 
     <ItemGroup>
         <Compile Remove="SourceGeneratedViewer\**" />
+        <None Include="CircularDependencyTests2.cs" />
         <None Include="SourceGeneratedViewer\**" />
     </ItemGroup>
     

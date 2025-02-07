@@ -28,20 +28,20 @@ internal static class TypeHelper
         {
             if (serviceModel.ResolvedFromParent)
             {
-                return $"Singletons.ParentScope.{NameHelper.AsProperty(serviceModel)}";
+                return $"Singletons.ParentScope.{serviceModel.GetPropertyName()}";
             }
 
-            return $"Singletons.{NameHelper.AsProperty(serviceModel)}";
+            return $"Singletons.{serviceModel.GetPropertyName()}";
         }
 
         if (serviceModel.Lifetime == Lifetime.Scoped)
         {
             if (serviceModel.ResolvedFromParent)
             {
-                return $"ParentScope.{NameHelper.AsProperty(serviceModel)}";
+                return $"ParentScope.{serviceModel.GetPropertyName()}";
             }
 
-            return $"{NameHelper.AsProperty(serviceModel)}";
+            return $"{serviceModel.GetPropertyName()}";
         }
 
         if (serviceModel.Lifetime == Lifetime.Transient)

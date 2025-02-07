@@ -27,7 +27,7 @@ internal static class TenantScopeWriter
         {
             sourceCodeWriter.WriteLine();
 
-            var propertyName = NameHelper.AsProperty(serviceModel);
+            var propertyName = serviceModel.GetPropertyName();
 
             if (serviceModel.Lifetime == Lifetime.Scoped)
             {

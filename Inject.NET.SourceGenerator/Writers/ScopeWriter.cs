@@ -1,16 +1,16 @@
-using System.Text;
 using Inject.NET.SourceGenerator.Models;
 
 namespace Inject.NET.SourceGenerator.Writers;
 
 internal static class ScopeWriter
 {
-    public static void Write(SourceCodeWriter sourceCodeWriter, TypedServiceProviderModel serviceProviderModel, RootServiceModelCollection rootServiceModelCollection)
+    public static void Write(SourceCodeWriter sourceCodeWriter, TypedServiceProviderModel serviceProviderModel,
+        RootServiceModelCollection rootServiceModelCollection)
     {
         sourceCodeWriter.WriteLine(
             $"public class ServiceScope_ : global::Inject.NET.Services.ServiceScope<{serviceProviderModel.Prefix}ServiceScope_, {serviceProviderModel.Prefix}ServiceProvider_, {serviceProviderModel.Prefix}SingletonScope_, {serviceProviderModel.Prefix}ServiceScope_, {serviceProviderModel.Prefix}SingletonScope_, {serviceProviderModel.Prefix}ServiceProvider_>");
         sourceCodeWriter.WriteLine("{");
-        
+
         sourceCodeWriter.WriteLine(
             $"public ServiceScope_({serviceProviderModel.Prefix}ServiceProvider_ serviceProvider, ServiceFactories serviceFactories) : base(serviceProvider, serviceFactories, null)");
         sourceCodeWriter.WriteLine("{");
@@ -19,15 +19,10 @@ internal static class ScopeWriter
 
         foreach (var (_, serviceModels) in rootServiceModelCollection.Services)
         {
-            foreach (var serviceModel in serviceModels)
+            foreach (var serviceModel in serviceModels.Where(serviceModel => !serviceModel.IsOpenGeneric))
             {
-                if (serviceModel.IsOpenGeneric)
-                {
-                    continue;
-                }
-
                 sourceCodeWriter.WriteLine();
-                var propertyName = NameHelper.AsProperty(serviceModel);
+                var propertyName = serviceModel.GetPropertyName();
 
                 if (serviceModel.Lifetime != Lifetime.Scoped)
                 {
@@ -38,18 +33,34 @@ internal static class ScopeWriter
                 {
                     var fieldName = NameHelper.AsField(serviceModel);
                     sourceCodeWriter.WriteLine($"private {serviceModel.ServiceType.GloballyQualified()}? {fieldName};");
-                    
+
                     sourceCodeWriter.WriteLine(
                         $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => {fieldName} ??= {GetInvocation(rootServiceModelCollection, serviceModel)};");
                 }
             }
+
+            var model = serviceModels[^1];
+
+            if (model.IsOpenGeneric)
+            {
+                continue;
+            }
+            
+            var enumerablePropertyName = $"{model.GetPropertyName()}Enumerable";
+            
+            var arrayParts = serviceModels
+                .Where(serviceModel => !serviceModel.IsOpenGeneric)
+                .Select(serviceModel => serviceModel.GetPropertyName());
+            
+            sourceCodeWriter.WriteLine(
+                $"public IReadOnlyList<{model.ServiceType.GloballyQualified()}> {enumerablePropertyName} => [{string.Join(", ", arrayParts)}];");
         }
-        
+
         // GetService
         sourceCodeWriter.WriteLine();
         sourceCodeWriter.WriteLine("public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)");
         sourceCodeWriter.WriteLine("{");
-        foreach (var (_, serviceModels) in rootServiceModelCollection.Services)
+        foreach (var (serviceKey, serviceModels) in rootServiceModelCollection.Services)
         {
             var serviceModel = serviceModels[^1];
             
@@ -62,6 +73,15 @@ internal static class ScopeWriter
             sourceCodeWriter.WriteLine("{");
             
             sourceCodeWriter.WriteLine($"return {serviceModel.GetPropertyName()};");
+
+            sourceCodeWriter.WriteLine("}");
+            
+            var key = serviceKey.Key is null ? "null" : $"\"{serviceKey.Key}\"";
+            sourceCodeWriter.WriteLine($"if (serviceKey.Key == {key} && global::Inject.NET.Helpers.TypeHelper.IsEnumerable<{serviceModel.ServiceType.GloballyQualified()}>(serviceKey.Type))");
+            
+            sourceCodeWriter.WriteLine("{");
+            
+            sourceCodeWriter.WriteLine($"return {serviceModel.GetPropertyName()}Enumerable;");
 
             sourceCodeWriter.WriteLine("}");
         }
@@ -100,7 +120,7 @@ internal static class ScopeWriter
     {
         if (serviceModel.Lifetime == Lifetime.Singleton)
         {
-            return $"Singletons.{NameHelper.AsProperty(serviceModel)}";
+            return $"Singletons.{serviceModel.GetPropertyName()}";
         }
 
         var constructNewObject = ObjectConstructionHelper.ConstructNewObject(rootServiceModelCollection.ServiceProviderType,

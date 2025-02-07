@@ -38,7 +38,7 @@ internal static class SingletonScopeWriter
                 sourceCodeWriter.WriteLine();
                 var fieldName = NameHelper.AsField(serviceModel);
                 sourceCodeWriter.WriteLine($"private {serviceModel.ServiceType.GloballyQualified()}? {fieldName};");
-                var propertyName = NameHelper.AsProperty(serviceModel);
+                var propertyName = serviceModel.GetPropertyName();
 
                 sourceCodeWriter.WriteLine(
                     $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => {fieldName} ??= Register<{serviceModel.ServiceType.GloballyQualified()}>({ObjectConstructionHelper.ConstructNewObject(rootServiceModelCollection.ServiceProviderType, rootServiceModelCollection.Services, serviceModel, Lifetime.Singleton)});");

@@ -46,11 +46,11 @@ internal static class TenantServiceProviderWriter
         {
             if(serviceModel.Lifetime == Lifetime.Singleton)
             {
-                sourceCodeWriter.WriteLine($"_ = Singletons.{NameHelper.AsProperty(serviceModel)};");
+                sourceCodeWriter.WriteLine($"_ = Singletons.{serviceModel.GetPropertyName()};");
             }
             else if(serviceModel.Lifetime == Lifetime.Scoped)
             {
-                sourceCodeWriter.WriteLine($"_ = scope.{NameHelper.AsProperty(serviceModel)};");
+                sourceCodeWriter.WriteLine($"_ = scope.{serviceModel.GetPropertyName()};");
             }
         }
         

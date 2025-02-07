@@ -53,12 +53,17 @@ public partial class SingletonGeneric
 		}
 
 		public Generic<> Generic______0 => Singletons.Generic______0;
+		public IReadOnlyList<Generic<>> Generic______0Enumerable => [Generic______0];
 
 		public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
 		{
 			if (serviceKey == new ServiceKey { Type = typeof(Generic<>), Key = null })
 			{
 				return Generic______0;
+			}
+			if (serviceKey.Key == null && global::Inject.NET.Helpers.TypeHelper.IsEnumerable<Generic<>>(serviceKey.Type))
+			{
+				return Generic______0Enumerable;
 			}
 			return base.GetService(serviceKey, originatingScope);
 		}

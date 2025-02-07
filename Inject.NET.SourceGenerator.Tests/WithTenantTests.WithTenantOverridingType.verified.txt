@@ -48,8 +48,10 @@ public partial class WithTenantOverridingType
 		}
 
 		public global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.IChild Inject__NET__SourceGenerator__Sample__ServiceProviders__WithTenantOverridingType__IChild____0 => Register<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.IChild>(new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.Child1());
+		public IReadOnlyList<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.IChild> Inject__NET__SourceGenerator__Sample__ServiceProviders__WithTenantOverridingType__IChild____0Enumerable => [Inject__NET__SourceGenerator__Sample__ServiceProviders__WithTenantOverridingType__IChild____0];
 
 		public global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.Parent Inject__NET__SourceGenerator__Sample__ServiceProviders__WithTenantOverridingType__Parent____0 => Register<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.Parent>(new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.Parent(new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.Child1()));
+		public IReadOnlyList<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.Parent> Inject__NET__SourceGenerator__Sample__ServiceProviders__WithTenantOverridingType__Parent____0Enumerable => [Inject__NET__SourceGenerator__Sample__ServiceProviders__WithTenantOverridingType__Parent____0];
 
 		public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
 		{
@@ -57,9 +59,17 @@ public partial class WithTenantOverridingType
 			{
 				return Inject__NET__SourceGenerator__Sample__ServiceProviders__WithTenantOverridingType__IChild____0;
 			}
+			if (serviceKey.Key == null && global::Inject.NET.Helpers.TypeHelper.IsEnumerable<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.IChild>(serviceKey.Type))
+			{
+				return Inject__NET__SourceGenerator__Sample__ServiceProviders__WithTenantOverridingType__IChild____0Enumerable;
+			}
 			if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.Parent), Key = null })
 			{
 				return Inject__NET__SourceGenerator__Sample__ServiceProviders__WithTenantOverridingType__Parent____0;
+			}
+			if (serviceKey.Key == null && global::Inject.NET.Helpers.TypeHelper.IsEnumerable<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.Parent>(serviceKey.Type))
+			{
+				return Inject__NET__SourceGenerator__Sample__ServiceProviders__WithTenantOverridingType__Parent____0Enumerable;
 			}
 			return base.GetService(serviceKey, originatingScope);
 		}

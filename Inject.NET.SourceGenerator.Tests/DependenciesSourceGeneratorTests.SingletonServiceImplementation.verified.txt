@@ -53,12 +53,17 @@ public partial class SingletonServiceImplementation
 		}
 
 		public Interface1 Interface1____0 => Singletons.Interface1____0;
+		public IReadOnlyList<Interface1> Interface1____0Enumerable => [Interface1____0];
 
 		public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
 		{
 			if (serviceKey == new ServiceKey { Type = typeof(Interface1), Key = null })
 			{
 				return Interface1____0;
+			}
+			if (serviceKey.Key == null && global::Inject.NET.Helpers.TypeHelper.IsEnumerable<Interface1>(serviceKey.Type))
+			{
+				return Interface1____0Enumerable;
 			}
 			return base.GetService(serviceKey, originatingScope);
 		}

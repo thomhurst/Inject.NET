@@ -61,12 +61,17 @@ public partial class Singletons
 			}
 
 			public global::Inject.NET.Tests.Singletons.SingletonClass Inject__NET__Tests__Singletons__SingletonClass____0 => Singletons.Inject__NET__Tests__Singletons__SingletonClass____0;
+			public IReadOnlyList<global::Inject.NET.Tests.Singletons.SingletonClass> Inject__NET__Tests__Singletons__SingletonClass____0Enumerable => [Inject__NET__Tests__Singletons__SingletonClass____0];
 
 			public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
 			{
 				if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.Tests.Singletons.SingletonClass), Key = null })
 				{
 					return Inject__NET__Tests__Singletons__SingletonClass____0;
+				}
+				if (serviceKey.Key == null && global::Inject.NET.Helpers.TypeHelper.IsEnumerable<global::Inject.NET.Tests.Singletons.SingletonClass>(serviceKey.Type))
+				{
+					return Inject__NET__Tests__Singletons__SingletonClass____0Enumerable;
 				}
 				return base.GetService(serviceKey, originatingScope);
 			}

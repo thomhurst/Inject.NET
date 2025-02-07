@@ -25,7 +25,7 @@ internal static class TenantSingletonScopeWriter
         {
             sourceCodeWriter.WriteLine();
             
-            var propertyName = NameHelper.AsProperty(serviceModel);
+            var propertyName = serviceModel.GetPropertyName();
 
             if (serviceModel.ResolvedFromParent)
             {

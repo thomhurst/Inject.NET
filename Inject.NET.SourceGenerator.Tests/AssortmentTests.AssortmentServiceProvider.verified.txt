@@ -253,7 +253,7 @@ public partial class AssortmentServiceProvider
 				ImplementationType = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Generic<>),
 				Lifetime = Inject.NET.Enums.Lifetime.Transient,
 				Factory = (scope, type, key) =>
-				scope.GetRequiredService(type)
+				Activator.CreateInstance(typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Generic<>).MakeGenericType(type.GenericTypeArguments), scope.GetService(type.GenericTypeArguments[0]))
 			});
 
 			Register(new global::Inject.NET.Models.ServiceDescriptor

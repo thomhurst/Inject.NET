@@ -131,7 +131,7 @@ public partial class OpenGeneric
 				ImplementationType = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.Generic<>),
 				Lifetime = Inject.NET.Enums.Lifetime.Transient,
 				Factory = (scope, type, key) =>
-				scope.GetRequiredService(type)
+				Activator.CreateInstance(typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.OpenGeneric.Generic<>).MakeGenericType(type.GenericTypeArguments), scope.GetService(type.GenericTypeArguments[0]))
 			});
 
 			Register(new global::Inject.NET.Models.ServiceDescriptor

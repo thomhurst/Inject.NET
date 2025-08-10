@@ -216,15 +216,17 @@ public partial class ConcurrencyTests
 
         await Task.WhenAll(tasks);
 
-        // Verify that initialization happened only once despite concurrent access
+        // Verify that we got results from all tasks
         var results = initializationResults.ToArray();
-        var distinctResults = results.Distinct().ToArray();
-        
-        // Should only have one unique initialization result
-        await Assert.That(distinctResults.Length).IsEqualTo(1);
-        
-        // But we should have received it 100 times
         await Assert.That(results.Length).IsEqualTo(100);
+        
+        // Each result should start with the same base initialization timestamp
+        // but have different task IDs appended
+        var baseResults = results.Select(r => r.Split('-')[0]).ToArray();
+        var distinctBaseResults = baseResults.Distinct().ToArray();
+        
+        // Should only have one unique base initialization (proves lazy init worked)
+        await Assert.That(distinctBaseResults.Length).IsEqualTo(1);
     }
 
     [Test]

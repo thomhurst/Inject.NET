@@ -1,4 +1,5 @@
-﻿using Inject.NET.SourceGenerator.Models;
+﻿using Inject.NET.SourceGenerator.Constants;
+using Inject.NET.SourceGenerator.Models;
 using Microsoft.CodeAnalysis;
 
 namespace Inject.NET.SourceGenerator.Helpers;
@@ -31,7 +32,7 @@ public static class ConflictsHelper
             if (SymbolEqualityComparer.Default.Equals(originatingServiceModel.ServiceType, model.ServiceType)
                 || SymbolEqualityComparer.Default.Equals(originatingServiceModel.ImplementationType, model.ImplementationType))
             {
-                context.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor("IJN0001", "Conflict", "Conflict: {0} depends on {1} which depends on {0}", "", DiagnosticSeverity.Error, true), null, originatingServiceModel.ImplementationType, serviceModel.ImplementationType));
+                context.ReportDiagnostic(Diagnostic.Create(new DiagnosticDescriptor(DiagnosticCodes.CircularDependency, "Conflict", "Conflict: {0} depends on {1} which depends on {0}", "", DiagnosticSeverity.Error, true), null, originatingServiceModel.ImplementationType, serviceModel.ImplementationType));
                 return true;
             }
             

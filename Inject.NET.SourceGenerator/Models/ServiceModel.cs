@@ -22,6 +22,10 @@ public record ServiceModel
     
     public ServiceModelCollection.ServiceKey ServiceKey => new(ServiceType, Key);
     public required string? TenantName { get; init; }
+    
+    // Cached property/field names for performance
+    private string? _cachedPropertyName;
+    private string? _cachedFieldName;
 
     public IEnumerable<ServiceModel> GetAllNestedParameters(IDictionary<ServiceModelCollection.ServiceKey, List<ServiceModel>> dependencyDictionary)
     {
@@ -46,6 +50,11 @@ public record ServiceModel
     
     public string GetPropertyName()
     {
-        return NameHelper.AsProperty(this);
+        return _cachedPropertyName ??= NameHelper.AsProperty(this);
+    }
+    
+    public string GetFieldName()
+    {
+        return _cachedFieldName ??= NameHelper.AsField(this);
     }
 }

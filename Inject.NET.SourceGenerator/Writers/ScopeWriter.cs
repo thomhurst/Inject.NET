@@ -4,6 +4,12 @@ namespace Inject.NET.SourceGenerator.Writers;
 
 internal static class ScopeWriter
 {
+    /// <summary>
+    /// Writes the complete ServiceScope_ class implementation.
+    /// </summary>
+    /// <param name="sourceCodeWriter">The source code writer to write to.</param>
+    /// <param name="serviceProviderModel">The service provider model containing type information.</param>
+    /// <param name="rootServiceModelCollection">The collection of all root service models.</param>
     public static void Write(SourceCodeWriter sourceCodeWriter, TypedServiceProviderModel serviceProviderModel,
         RootServiceModelCollection rootServiceModelCollection)
     {
@@ -14,9 +20,22 @@ internal static class ScopeWriter
         sourceCodeWriter.WriteLine(
             $"public ServiceScope_({serviceProviderModel.Prefix}ServiceProvider_ serviceProvider, ServiceFactories serviceFactories) : base(serviceProvider, serviceFactories, null)");
         sourceCodeWriter.WriteLine("{");
-
         sourceCodeWriter.WriteLine("}");
 
+        WriteProperties(sourceCodeWriter, rootServiceModelCollection);
+        WriteGetServiceMethod(sourceCodeWriter, rootServiceModelCollection);
+        WriteGetServicesMethod(sourceCodeWriter, rootServiceModelCollection);
+        
+        sourceCodeWriter.WriteLine("}");
+    }
+
+    /// <summary>
+    /// Writes all service properties for the scope, including individual service properties and enumerable collections.
+    /// </summary>
+    /// <param name="sourceCodeWriter">The source code writer to write to.</param>
+    /// <param name="rootServiceModelCollection">The collection of all root service models.</param>
+    private static void WriteProperties(SourceCodeWriter sourceCodeWriter, RootServiceModelCollection rootServiceModelCollection)
+    {
         foreach (var (_, serviceModels) in rootServiceModelCollection.Services)
         {
             foreach (var serviceModel in serviceModels.Where(serviceModel => !serviceModel.IsOpenGeneric))
@@ -55,11 +74,19 @@ internal static class ScopeWriter
             sourceCodeWriter.WriteLine(
                 $"public IReadOnlyList<{model.ServiceType.GloballyQualified()}> {enumerablePropertyName} => [{string.Join(", ", arrayParts)}];");
         }
+    }
 
-        // GetService
+    /// <summary>
+    /// Writes the GetService method override that resolves individual services by service key.
+    /// </summary>
+    /// <param name="sourceCodeWriter">The source code writer to write to.</param>
+    /// <param name="rootServiceModelCollection">The collection of all root service models.</param>
+    private static void WriteGetServiceMethod(SourceCodeWriter sourceCodeWriter, RootServiceModelCollection rootServiceModelCollection)
+    {
         sourceCodeWriter.WriteLine();
         sourceCodeWriter.WriteLine("public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)");
         sourceCodeWriter.WriteLine("{");
+        
         foreach (var (serviceKey, serviceModels) in rootServiceModelCollection.Services)
         {
             var serviceModel = serviceModels[^1];
@@ -71,24 +98,27 @@ internal static class ScopeWriter
             
             sourceCodeWriter.WriteLine($"if (serviceKey == {serviceModel.GetNewServiceKeyInvocation()})");
             sourceCodeWriter.WriteLine("{");
-            
             sourceCodeWriter.WriteLine($"return {serviceModel.GetPropertyName()};");
-
             sourceCodeWriter.WriteLine("}");
             
             var key = serviceKey.Key is null ? "null" : $"\"{serviceKey.Key}\"";
             sourceCodeWriter.WriteLine($"if (serviceKey.Key == {key} && global::Inject.NET.Helpers.TypeHelper.IsEnumerable<{serviceModel.ServiceType.GloballyQualified()}>(serviceKey.Type))");
-            
             sourceCodeWriter.WriteLine("{");
-            
             sourceCodeWriter.WriteLine($"return {serviceModel.GetPropertyName()}Enumerable;");
-
             sourceCodeWriter.WriteLine("}");
         }
+        
         sourceCodeWriter.WriteLine("return base.GetService(serviceKey, originatingScope);");
         sourceCodeWriter.WriteLine("}");
+    }
 
-        // GetServices
+    /// <summary>
+    /// Writes the GetServices method override that resolves collections of services by service key.
+    /// </summary>
+    /// <param name="sourceCodeWriter">The source code writer to write to.</param>
+    /// <param name="rootServiceModelCollection">The collection of all root service models.</param>
+    private static void WriteGetServicesMethod(SourceCodeWriter sourceCodeWriter, RootServiceModelCollection rootServiceModelCollection)
+    {
         sourceCodeWriter.WriteLine();
         sourceCodeWriter.WriteLine("public override IReadOnlyList<object> GetServices(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)");
         sourceCodeWriter.WriteLine("{");
@@ -105,16 +135,19 @@ internal static class ScopeWriter
                 .Select(serviceModel => serviceModel.GetPropertyName());
 
             sourceCodeWriter.WriteLine($"return [{string.Join(", ", arrayParts)}];");
-            
             sourceCodeWriter.WriteLine("}");
         }
 
         sourceCodeWriter.WriteLine("return base.GetServices(serviceKey, originatingScope);");
         sourceCodeWriter.WriteLine("}");
-        
-        sourceCodeWriter.WriteLine("}");
     }
 
+    /// <summary>
+    /// Gets the appropriate invocation string for creating or accessing a service instance.
+    /// </summary>
+    /// <param name="rootServiceModelCollection">The collection of all root service models.</param>
+    /// <param name="serviceModel">The service model to get invocation for.</param>
+    /// <returns>The invocation string for the service.</returns>
     private static string GetInvocation(RootServiceModelCollection rootServiceModelCollection,
         ServiceModel serviceModel)
     {

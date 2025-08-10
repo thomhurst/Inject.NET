@@ -7,6 +7,16 @@ using Inject.NET.Models;
 
 namespace Inject.NET.Services;
 
+/// <summary>
+/// Represents a service scope that manages the lifetime of scoped and transient services.
+/// Provides service resolution, caching, and proper disposal patterns.
+/// </summary>
+/// <typeparam name="TSelf">The concrete service scope type</typeparam>
+/// <typeparam name="TServiceProvider">The service provider type</typeparam>
+/// <typeparam name="TSingletonScope">The singleton scope type</typeparam>
+/// <typeparam name="TParentScope">The parent scope type</typeparam>
+/// <typeparam name="TParentSingletonScope">The parent singleton scope type</typeparam>
+/// <typeparam name="TParentServiceProvider">The parent service provider type</typeparam>
 public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope, TParentSingletonScope, TParentServiceProvider> : IServiceScope<TSelf, TServiceProvider, TSingletonScope>, IScoped
     where TServiceProvider : ServiceProvider<TServiceProvider, TSingletonScope, TSelf, TParentServiceProvider, TParentSingletonScope, TParentScope>, IServiceProvider<TSelf>
     where TSingletonScope : SingletonScope<TSingletonScope, TServiceProvider, TSelf, TParentSingletonScope, TParentScope, TParentServiceProvider>
@@ -28,6 +38,12 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
     private readonly TServiceProvider _root;
     private readonly ServiceFactories _serviceFactories;
 
+    /// <summary>
+    /// Initializes a new instance of the service scope.
+    /// </summary>
+    /// <param name="serviceProvider">The parent service provider</param>
+    /// <param name="serviceFactories">The service factories for creating instances</param>
+    /// <param name="parentScope">The optional parent scope</param>
     public ServiceScope(TServiceProvider serviceProvider, ServiceFactories serviceFactories, TParentScope? parentScope)
     {
         _root = serviceProvider;
@@ -37,12 +53,27 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
         ServiceProvider = serviceProvider;
     }
 
+    /// <summary>
+    /// Gets the singleton scope for accessing singleton services.
+    /// </summary>
     public TSingletonScope Singletons { get; }
     
+    /// <summary>
+    /// Gets the parent scope, if this is a nested scope.
+    /// </summary>
     public TParentScope? ParentScope { get; }
 
+    /// <summary>
+    /// Gets the service provider that created this scope.
+    /// </summary>
     public TServiceProvider ServiceProvider { get; }
 
+    /// <summary>
+    /// Registers an object for disposal when the scope is disposed.
+    /// </summary>
+    /// <typeparam name="T">The type of object to register</typeparam>
+    /// <param name="obj">The object to register for disposal</param>
+    /// <returns>The same object that was passed in</returns>
     public T Register<T>(T obj)
     {
         (_forDisposal ??= Pools.DisposalTracker.Get()).Add(obj!);
@@ -50,6 +81,11 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
         return obj;
     }
     
+    /// <summary>
+    /// Gets a service instance of the specified type.
+    /// </summary>
+    /// <param name="type">The type of service to retrieve</param>
+    /// <returns>The service instance, or null if not found</returns>
     public object? GetService(Type type)
     {
         var serviceKey = new ServiceKey(type);
@@ -62,11 +98,23 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
         return GetService(serviceKey);
     }
 
+    /// <summary>
+    /// Gets a service instance using the specified service key.
+    /// </summary>
+    /// <param name="serviceKey">The service key containing type and optional key information</param>
+    /// <returns>The service instance, or null if not found</returns>
     public object? GetService(ServiceKey serviceKey)
     {
         return GetService(serviceKey, this);
     }
 
+    /// <summary>
+    /// Gets a service instance using the specified service key and originating scope.
+    /// This method handles service resolution with proper scope chain traversal.
+    /// </summary>
+    /// <param name="serviceKey">The service key containing type and optional key information</param>
+    /// <param name="originatingScope">The scope that initiated the service request</param>
+    /// <returns>The service instance, or null if not found</returns>
     public virtual object? GetService(ServiceKey serviceKey, IServiceScope originatingScope)
     {
         if (_cachedObjects?.TryGetValue(serviceKey, out var cachedObject) == true)
@@ -125,11 +173,23 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
         return obj;
     }
 
+    /// <summary>
+    /// Gets all service instances matching the specified service key.
+    /// </summary>
+    /// <param name="serviceKey">The service key containing type and optional key information</param>
+    /// <returns>A read-only list of all matching service instances</returns>
     public IReadOnlyList<object> GetServices(ServiceKey serviceKey)
     {
         return GetServices(serviceKey, this);
     }
     
+    /// <summary>
+    /// Gets all service instances matching the specified service key and originating scope.
+    /// This method handles collection resolution with proper scope chain traversal.
+    /// </summary>
+    /// <param name="serviceKey">The service key containing type and optional key information</param>
+    /// <param name="originatingScope">The scope that initiated the service request</param>
+    /// <returns>A read-only list of all matching service instances</returns>
     public virtual IReadOnlyList<object> GetServices(ServiceKey serviceKey, IServiceScope originatingScope)
     {
         if (_cachedEnumerables?.TryGetValue(serviceKey, out var cachedObjects) == true)
@@ -191,6 +251,11 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
         }
     }
 
+    /// <summary>
+    /// Asynchronously disposes the service scope and all tracked disposable objects.
+    /// Objects are disposed in reverse order of their registration.
+    /// </summary>
+    /// <returns>A task representing the disposal operation</returns>
     public ValueTask DisposeAsync()
     {
 #if NET9_0_OR_GREATER
@@ -269,6 +334,10 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
         }
     }
 
+    /// <summary>
+    /// Disposes the service scope and all tracked disposable objects.
+    /// Objects are disposed in reverse order of their registration.
+    /// </summary>
     public void Dispose()
     {
         ParentScope?.Dispose();

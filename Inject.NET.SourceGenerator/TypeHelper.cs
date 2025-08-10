@@ -24,32 +24,20 @@ internal static class TypeHelper
                 $"this.GetRequiredService<{serviceModel.ServiceType.GloballyQualified()}>()";
         }
 
-        if (serviceModel.Lifetime == Lifetime.Singleton)
+        return serviceModel.Lifetime switch
         {
-            if (serviceModel.ResolvedFromParent)
-            {
-                return $"Singletons.ParentScope.{serviceModel.GetPropertyName()}";
-            }
-
-            return $"Singletons.{serviceModel.GetPropertyName()}";
-        }
-
-        if (serviceModel.Lifetime == Lifetime.Scoped)
-        {
-            if (serviceModel.ResolvedFromParent)
-            {
-                return $"ParentScope.{serviceModel.GetPropertyName()}";
-            }
-
-            return $"{serviceModel.GetPropertyName()}";
-        }
-
-        if (serviceModel.Lifetime == Lifetime.Transient)
-        {
-            return ObjectConstructionHelper.ConstructNewObject(serviceProviderType, dependencies,
-                serviceModel, currentLifetime);
-        }
-
-        throw new ArgumentOutOfRangeException();
+            Lifetime.Singleton => serviceModel.ResolvedFromParent
+                ? $"Singletons.ParentScope.{serviceModel.GetPropertyName()}"
+                : $"Singletons.{serviceModel.GetPropertyName()}",
+            
+            Lifetime.Scoped => serviceModel.ResolvedFromParent
+                ? $"ParentScope.{serviceModel.GetPropertyName()}"
+                : $"{serviceModel.GetPropertyName()}",
+            
+            Lifetime.Transient => ObjectConstructionHelper.ConstructNewObject(serviceProviderType, dependencies,
+                serviceModel, currentLifetime),
+            
+            _ => throw new ArgumentOutOfRangeException()
+        };
     }
 }

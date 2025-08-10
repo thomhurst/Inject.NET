@@ -1,4 +1,7 @@
 using Inject.NET.SourceGenerator.Models;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.CodeAnalysis;
 
 namespace Inject.NET.SourceGenerator.Writers;
 
@@ -11,7 +14,7 @@ internal static class ScopeWriter
     /// <param name="serviceProviderModel">The service provider model containing type information.</param>
     /// <param name="rootServiceModelCollection">The collection of all root service models.</param>
     public static void Write(SourceCodeWriter sourceCodeWriter, TypedServiceProviderModel serviceProviderModel,
-        RootServiceModelCollection rootServiceModelCollection)
+        RootServiceModelCollection rootServiceModelCollection, IDictionary<ServiceModelCollection.ServiceKey, List<DecoratorModel>> decorators = null)
     {
         sourceCodeWriter.WriteLine(
             $"public class ServiceScope_ : global::Inject.NET.Services.ServiceScope<{serviceProviderModel.Prefix}ServiceScope_, {serviceProviderModel.Prefix}ServiceProvider_, {serviceProviderModel.Prefix}SingletonScope_, {serviceProviderModel.Prefix}ServiceScope_, {serviceProviderModel.Prefix}SingletonScope_, {serviceProviderModel.Prefix}ServiceProvider_>");
@@ -22,7 +25,7 @@ internal static class ScopeWriter
         sourceCodeWriter.WriteLine("{");
         sourceCodeWriter.WriteLine("}");
 
-        WriteProperties(sourceCodeWriter, rootServiceModelCollection);
+        WriteProperties(sourceCodeWriter, rootServiceModelCollection, decorators);
         WriteGetServiceMethod(sourceCodeWriter, rootServiceModelCollection);
         WriteGetServicesMethod(sourceCodeWriter, rootServiceModelCollection);
         
@@ -34,7 +37,7 @@ internal static class ScopeWriter
     /// </summary>
     /// <param name="sourceCodeWriter">The source code writer to write to.</param>
     /// <param name="rootServiceModelCollection">The collection of all root service models.</param>
-    private static void WriteProperties(SourceCodeWriter sourceCodeWriter, RootServiceModelCollection rootServiceModelCollection)
+    private static void WriteProperties(SourceCodeWriter sourceCodeWriter, RootServiceModelCollection rootServiceModelCollection, IDictionary<ServiceModelCollection.ServiceKey, List<DecoratorModel>> decorators)
     {
         foreach (var (_, serviceModels) in rootServiceModelCollection.Services)
         {
@@ -46,7 +49,7 @@ internal static class ScopeWriter
                 if (serviceModel.Lifetime != Lifetime.Scoped)
                 {
                     sourceCodeWriter.WriteLine(
-                        $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => {GetInvocation(rootServiceModelCollection, serviceModel)};");
+                        $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => {GetInvocation(rootServiceModelCollection, serviceModel, decorators)};");
                 }
                 else
                 {
@@ -54,7 +57,7 @@ internal static class ScopeWriter
                     sourceCodeWriter.WriteLine($"private {serviceModel.ServiceType.GloballyQualified()}? {fieldName};");
 
                     sourceCodeWriter.WriteLine(
-                        $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => {fieldName} ??= {GetInvocation(rootServiceModelCollection, serviceModel)};");
+                        $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => {fieldName} ??= {GetInvocation(rootServiceModelCollection, serviceModel, decorators)};");
                 }
             }
 
@@ -149,7 +152,7 @@ internal static class ScopeWriter
     /// <param name="serviceModel">The service model to get invocation for.</param>
     /// <returns>The invocation string for the service.</returns>
     private static string GetInvocation(RootServiceModelCollection rootServiceModelCollection,
-        ServiceModel serviceModel)
+        ServiceModel serviceModel, IDictionary<ServiceModelCollection.ServiceKey, List<DecoratorModel>> decorators)
     {
         if (serviceModel.Lifetime == Lifetime.Singleton)
         {
@@ -159,6 +162,60 @@ internal static class ScopeWriter
         var constructNewObject = ObjectConstructionHelper.ConstructNewObject(rootServiceModelCollection.ServiceProviderType,
             rootServiceModelCollection.Services, serviceModel, serviceModel.Lifetime);
         
+        // Check if there are decorators for this service
+        if (decorators != null && decorators.TryGetValue(serviceModel.ServiceKey, out var decoratorList) && decoratorList.Count > 0)
+        {
+            // Wrap the base implementation with decorators
+            var wrappedInvocation = constructNewObject;
+            
+            foreach (var decorator in decoratorList)
+            {
+                wrappedInvocation = WrapWithDecorator(rootServiceModelCollection, decorator, wrappedInvocation);
+            }
+            
+            return $"Register<{serviceModel.ServiceType.GloballyQualified()}>({wrappedInvocation})";
+        }
+        
         return $"Register<{serviceModel.ServiceType.GloballyQualified()}>({constructNewObject})";
+    }
+    
+    private static string WrapWithDecorator(RootServiceModelCollection rootServiceModelCollection, DecoratorModel decorator, string innerInvocation)
+    {
+        // Build decorator constructor invocation
+        var decoratorParams = new List<string>();
+        
+        foreach (var param in decorator.Parameters)
+        {
+            // Check if this parameter is the decorated service
+            if (SymbolEqualityComparer.Default.Equals(param.Type, decorator.ServiceType))
+            {
+                // This is the inner service parameter
+                decoratorParams.Add(innerInvocation);
+            }
+            else
+            {
+                // This is another dependency - resolve it normally
+                var paramServiceKey = new ServiceModelCollection.ServiceKey(param.Type, param.Key);
+                if (rootServiceModelCollection.Services.TryGetValue(paramServiceKey, out var paramServiceModels))
+                {
+                    var paramServiceModel = paramServiceModels[^1];
+                    if (paramServiceModel.Lifetime == Lifetime.Singleton)
+                    {
+                        decoratorParams.Add($"Singletons.{paramServiceModel.GetPropertyName()}");
+                    }
+                    else
+                    {
+                        decoratorParams.Add(paramServiceModel.GetPropertyName());
+                    }
+                }
+                else
+                {
+                    // Try to resolve from service provider
+                    decoratorParams.Add($"GetRequiredService<{param.Type.GloballyQualified()}>()");
+                }
+            }
+        }
+        
+        return $"new {decorator.DecoratorType.GloballyQualified()}({string.Join(", ", decoratorParams)})";
     }
 }

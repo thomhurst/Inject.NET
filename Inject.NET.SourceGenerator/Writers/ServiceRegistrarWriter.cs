@@ -69,7 +69,15 @@ internal static class ServiceRegistrarWriter
 
         if (serviceModel.IsOpenGeneric)
         {
-            sourceCodeWriter.WriteLine("scope.GetRequiredService(type)");
+            var constructorParams = string.Join(", ", BuildOpenGenericParameters(serviceModel));
+            if (string.IsNullOrEmpty(constructorParams))
+            {
+                sourceCodeWriter.WriteLine($"Activator.CreateInstance(typeof({serviceModel.ImplementationType.GloballyQualified()}).MakeGenericType(type.GenericTypeArguments))");
+            }
+            else
+            {
+                sourceCodeWriter.WriteLine($"Activator.CreateInstance(typeof({serviceModel.ImplementationType.GloballyQualified()}).MakeGenericType(type.GenericTypeArguments), {constructorParams})");
+            }
         }
         else
         {
@@ -88,6 +96,44 @@ internal static class ServiceRegistrarWriter
         foreach (var serviceModelParameter in serviceModel.Parameters)
         {
             yield return $"scope.GetRequiredService<{serviceModelParameter.Type.GloballyQualified()}>()";
+        }
+    }
+    
+    private static IEnumerable<string> BuildOpenGenericParameters(ServiceModel serviceModel)
+    {
+        var genericTypeParameters = serviceModel.ImplementationType.TypeParameters;
+        
+        foreach (var serviceModelParameter in serviceModel.Parameters)
+        {
+            // Check if this parameter is a generic type parameter
+            if (serviceModelParameter.Type.TypeKind == Microsoft.CodeAnalysis.TypeKind.TypeParameter)
+            {
+                // Find the index of this type parameter in the generic type definition
+                var parameterIndex = -1;
+                for (int i = 0; i < genericTypeParameters.Length; i++)
+                {
+                    if (Microsoft.CodeAnalysis.SymbolEqualityComparer.Default.Equals(genericTypeParameters[i], serviceModelParameter.Type))
+                    {
+                        parameterIndex = i;
+                        break;
+                    }
+                }
+                
+                if (parameterIndex >= 0)
+                {
+                    yield return $"scope.GetService(type.GenericTypeArguments[{parameterIndex}])";
+                }
+                else
+                {
+                    // Fallback to regular resolution if we can't find the type parameter
+                    yield return $"scope.GetRequiredService<{serviceModelParameter.Type.GloballyQualified()}>()";
+                }
+            }
+            else
+            {
+                // Non-generic parameter, resolve normally
+                yield return $"scope.GetRequiredService<{serviceModelParameter.Type.GloballyQualified()}>()";
+            }
         }
     }
 }

@@ -45,10 +45,12 @@ internal static class SingletonScopeWriter
 
                 var constructObject = ObjectConstructionHelper.ConstructNewObject(rootServiceModelCollection.ServiceProviderType, rootServiceModelCollection.Services, serviceModel, Lifetime.Singleton);
                 
-                // Apply decorators if any
+                // Apply singleton decorators if any
                 if (decorators != null && decorators.TryGetValue(serviceModel.ServiceKey, out var decoratorList) && decoratorList.Count > 0)
                 {
-                    foreach (var decorator in decoratorList.Where(d => d.Lifetime == Lifetime.Singleton))
+                    // Only apply singleton decorators in singleton scope
+                    var singletonDecorators = decoratorList.Where(d => d.Lifetime == Lifetime.Singleton).ToList();
+                    foreach (var decorator in singletonDecorators)
                     {
                         constructObject = WrapWithDecorator(rootServiceModelCollection, decorator, constructObject);
                     }

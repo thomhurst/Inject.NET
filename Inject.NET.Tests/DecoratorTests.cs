@@ -41,7 +41,7 @@ public partial class DecoratorTests
     }
 
     [Test]
-    public async Task DecoratorWithDifferentLifetimes_SingletonDecorator()
+    public async Task DecoratorWithDifferentLifetimes_ScopedDecoratorOnScopedService()
     {
         await using var serviceProvider = await MixedLifetimeServiceProvider.BuildAsync();
         
@@ -51,10 +51,9 @@ public partial class DecoratorTests
         await using var scope2 = serviceProvider.CreateScope();
         var repo2 = scope2.GetRequiredService<IRepository>();
         
-        // Singleton decorator should be the same instance
-        await Assert.That(repo1).IsSameReferenceAs(repo2);
+        // Both decorator and inner service should be different across scopes (both are scoped)
+        await Assert.That(repo1).IsNotSameReferenceAs(repo2);
         
-        // But the inner scoped service should be different
         var decorator1 = (CachingRepositoryDecorator)repo1;
         var decorator2 = (CachingRepositoryDecorator)repo2;
         
@@ -118,7 +117,7 @@ public partial class DecoratorTests
 
     [ServiceProvider]
     [Scoped<IRepository, SqlRepository>]
-    [SingletonDecorator<IRepository, CachingRepositoryDecorator>]
+    [ScopedDecorator<IRepository, CachingRepositoryDecorator>]
     public partial class MixedLifetimeServiceProvider;
 
     [ServiceProvider]

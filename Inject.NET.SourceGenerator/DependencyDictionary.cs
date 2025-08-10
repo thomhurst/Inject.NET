@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using Inject.NET.SourceGenerator.Models;
 using Microsoft.CodeAnalysis;
 
@@ -6,12 +7,39 @@ namespace Inject.NET.SourceGenerator;
 
 internal static class DependencyDictionary
 {
+    /// <summary>
+    /// Creates a dictionary of service dependencies from the provided attribute data.
+    /// </summary>
+    /// <param name="compilation">The compilation context for type resolution.</param>
+    /// <param name="dependencyAttributes">Array of dependency attributes to process.</param>
+    /// <param name="tenantName">Optional tenant name for multi-tenant scenarios.</param>
+    /// <returns>A dictionary mapping service keys to lists of service models.</returns>
     public static IDictionary<ServiceModelCollection.ServiceKey, List<ServiceModel>> Create(Compilation compilation,
         AttributeData[] dependencyAttributes, string? tenantName)
     {
-        var list = new List<ServiceModelBuilder>();
+        var serviceBuilders = new List<ServiceModelBuilder>();
         
-        foreach (var attributeData in dependencyAttributes.OrderBy(x => x.ConstructorArguments.Length))
+        ProcessAttributeData(compilation, dependencyAttributes, tenantName, serviceBuilders);
+        ProcessParameters(serviceBuilders);
+        
+        return BuildServiceDictionary(serviceBuilders);
+    }
+
+    /// <summary>
+    /// Processes dependency attributes and creates service model builders for each service.
+    /// Handles both regular services and generic type definitions with their constructed variants.
+    /// </summary>
+    /// <param name="compilation">The compilation context for type resolution.</param>
+    /// <param name="dependencyAttributes">Array of dependency attributes to process.</param>
+    /// <param name="tenantName">Optional tenant name for multi-tenant scenarios.</param>
+    /// <param name="serviceBuilders">List to populate with service model builders.</param>
+    private static void ProcessAttributeData(Compilation compilation, AttributeData[] dependencyAttributes, 
+        string? tenantName, List<ServiceModelBuilder> serviceBuilders)
+    {
+        // Sort dependency attributes by constructor argument length
+        Array.Sort(dependencyAttributes, (x, y) => x.ConstructorArguments.Length.CompareTo(y.ConstructorArguments.Length));
+        
+        foreach (var attributeData in dependencyAttributes)
         {
             var attributeClass = attributeData.AttributeClass;
 
@@ -27,46 +55,101 @@ internal static class DependencyDictionary
                 continue;
             }
 
-            var key = attributeData.NamedArguments.FirstOrDefault(x => x.Key == "Key").Value.Value as string;
-
+            string? key = null;
+            foreach (var namedArg in attributeData.NamedArguments)
+            {
+                if (namedArg.Key == "Key")
+                {
+                    key = namedArg.Value.Value as string;
+                    break;
+                }
+            }
             var lifetime = EnumPolyfill.Parse<Lifetime>(attributeData.AttributeClass!.Name.Replace("Attribute", string.Empty));
-
             var isGenericDefinition = serviceType.IsGenericDefinition();
             
-            Add(compilation, 
-                serviceType, 
-                implementationType, 
-                list,
-                key,
-                lifetime,
-                tenantName);
+            Add(compilation, serviceType, implementationType, serviceBuilders, key, lifetime, tenantName);
 
             if (isGenericDefinition)
             {
-                var constructedTypes = GenericTypeHelper.GetConstructedTypes(compilation, serviceType);
+                ProcessGenericTypes(compilation, serviceType, implementationType, serviceBuilders, key, lifetime, tenantName);
+            }
+        }
+    }
 
-                foreach (var constructedType in constructedTypes)
+    /// <summary>
+    /// Processes generic type definitions by creating constructed variants for all type argument combinations.
+    /// Ensures that specific generic types are available for dependency injection when needed.
+    /// </summary>
+    /// <param name="compilation">The compilation context for type resolution.</param>
+    /// <param name="serviceType">The generic service type definition.</param>
+    /// <param name="implementationType">The generic implementation type definition.</param>
+    /// <param name="serviceBuilders">List of service model builders to add constructed types to.</param>
+    /// <param name="key">Optional service key for keyed services.</param>
+    /// <param name="lifetime">Service lifetime scope.</param>
+    /// <param name="tenantName">Optional tenant name for multi-tenant scenarios.</param>
+    private static void ProcessGenericTypes(Compilation compilation, INamedTypeSymbol serviceType, 
+        INamedTypeSymbol implementationType, List<ServiceModelBuilder> serviceBuilders, 
+        string? key, Lifetime lifetime, string? tenantName)
+    {
+        var constructedTypes = GenericTypeHelper.GetConstructedTypes(compilation, serviceType);
+
+        foreach (var constructedType in constructedTypes)
+        {
+            bool found = false;
+            foreach (var builder in serviceBuilders)
+            {
+                if (SymbolEqualityComparer.Default.Equals(builder.ServiceType, constructedType))
                 {
-                    if(!list.Any(x => SymbolEqualityComparer.Default.Equals(x.ServiceType, constructedType)))
-                    {
-                        Add(compilation,
-                            constructedType,
-                            implementationType.IsGenericType
-                                ? implementationType.OriginalDefinition.Construct([..constructedType.TypeArguments])
-                                : implementationType,
-                            list,
-                            key,
-                            lifetime, tenantName);
-                    }
+                    found = true;
+                    break;
                 }
+            }
+            
+            if (!found)
+            {
+                Add(compilation,
+                    constructedType,
+                    implementationType.IsGenericType
+                        ? implementationType.OriginalDefinition.Construct([..constructedType.TypeArguments])
+                        : implementationType,
+                    serviceBuilders,
+                    key,
+                    lifetime, 
+                    tenantName);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Processes constructor parameters to ensure all dependencies are registered.
+    /// Creates additional service registrations for generic parameters that require specific type arguments.
+    /// </summary>
+    /// <param name="serviceBuilders">List of service model builders to analyze and extend.</param>
+    private static void ProcessParameters(List<ServiceModelBuilder> serviceBuilders)
+    {
+        // TODO Merge with tenant ones too
+        var parametersToProcess = new List<Parameter>();
+        foreach (var builder in serviceBuilders)
+        {
+            foreach (var parameter in builder.Parameters)
+            {
+                parametersToProcess.Add(parameter);
             }
         }
         
-        // TODO Merge with tenant ones too
-        foreach (var parameter in list.SelectMany(x => x.Parameters).ToList())
+        foreach (var parameter in parametersToProcess)
         {
-            if (list.Any(x =>
-                    SymbolEqualityComparer.Default.Equals(x.ServiceType, parameter.Type)))
+            bool serviceExists = false;
+            foreach (var builder in serviceBuilders)
+            {
+                if (SymbolEqualityComparer.Default.Equals(builder.ServiceType, parameter.Type))
+                {
+                    serviceExists = true;
+                    break;
+                }
+            }
+            
+            if (serviceExists)
             {
                 continue;
             }
@@ -76,14 +159,25 @@ internal static class DependencyDictionary
                 continue;
             }
                 
-            if (list.Find(x => SymbolEqualityComparer.Default.Equals(x.ServiceType, namedParameterType.ConstructUnboundGenericType())) is {} found)
+            ServiceModelBuilder? found = null;
+            var unboundGenericType = namedParameterType.ConstructUnboundGenericType();
+            foreach (var builder in serviceBuilders)
+            {
+                if (SymbolEqualityComparer.Default.Equals(builder.ServiceType, unboundGenericType))
+                {
+                    found = builder;
+                    break;
+                }
+            }
+            
+            if (found is not null)
             {
                 var implementationType = found.ImplementationType.OriginalDefinition.Construct([..namedParameterType.TypeArguments]);
 
                 if (!namedParameterType.IsGenericDefinition()
                     && !implementationType.IsGenericDefinition())
                 {
-                    list.Add(found with
+                    serviceBuilders.Add(found with
                     {
                         ServiceType = namedParameterType,
                         ImplementationType = implementationType,
@@ -92,17 +186,45 @@ internal static class DependencyDictionary
                 }
             }
         }
+    }
 
-        var enumerableDictionaryBuilder = list
-            .GroupBy(x => new ServiceModelCollection.ServiceKey(x.ServiceType, x.Key))
-            .ToDictionary(
-                x => x.Key,
-                x => x.ToArray());
+    /// <summary>
+    /// Builds the final service dictionary from service model builders.
+    /// Groups services by their service key and converts builders to service models with proper indexing.
+    /// </summary>
+    /// <param name="serviceBuilders">List of service model builders to convert.</param>
+    /// <returns>A dictionary mapping service keys to lists of service models.</returns>
+    private static IDictionary<ServiceModelCollection.ServiceKey, List<ServiceModel>> BuildServiceDictionary(
+        List<ServiceModelBuilder> serviceBuilders)
+    {
+        // Group service builders by service key
+        var builderGroups = new Dictionary<ServiceModelCollection.ServiceKey, List<ServiceModelBuilder>>();
+        foreach (var builder in serviceBuilders)
+        {
+            var serviceKey = new ServiceModelCollection.ServiceKey(builder.ServiceType, builder.Key);
+            if (!builderGroups.TryGetValue(serviceKey, out var group))
+            {
+                group = new List<ServiceModelBuilder>();
+                builderGroups[serviceKey] = group;
+            }
+            group.Add(builder);
+        }
 
-        var enumerableDictionary = enumerableDictionaryBuilder
-            .ToDictionary(
-                x => x.Key,
-                x => x.Value.Select((smb, index) => new ServiceModel
+        // Convert to final dictionary
+        var result = new Dictionary<ServiceModelCollection.ServiceKey, List<ServiceModel>>();
+        foreach (var kvp in builderGroups)
+        {
+            var serviceModels = new List<ServiceModel>(kvp.Value.Count);
+            for (int index = 0; index < kvp.Value.Count; index++)
+            {
+                var smb = kvp.Value[index];
+                var parameters = new Parameter[smb.Parameters.Length];
+                for (int i = 0; i < smb.Parameters.Length; i++)
+                {
+                    parameters[i] = smb.Parameters[i];
+                }
+                
+                serviceModels.Add(new ServiceModel
                 {
                     ServiceType = smb.ServiceType,
                     ImplementationType = smb.ImplementationType,
@@ -110,12 +232,15 @@ internal static class DependencyDictionary
                     Key = smb.Key,
                     Lifetime = smb.Lifetime,
                     IsOpenGeneric = smb.IsOpenGeneric,
-                    Parameters = smb.Parameters.ToArray(),
+                    Parameters = parameters,
                     Index = index,
                     TenantName = smb.TenantName
-                }).ToList());
+                });
+            }
+            result[kvp.Key] = serviceModels;
+        }
         
-        return enumerableDictionary;
+        return result;
     }
 
     private static void Add(Compilation compilation, INamedTypeSymbol serviceType, INamedTypeSymbol implementationType,
@@ -184,17 +309,30 @@ internal static class DependencyDictionary
             namedTypeSymbol = namedTypeSymbol.OriginalDefinition;
         }
         
-        var parameters = namedTypeSymbol
-            ?.InstanceConstructors
-            .FirstOrDefault(x => !x.IsImplicitlyDeclared)
-            ?.Parameters ?? default;
+        ImmutableArray<IParameterSymbol> parameters = default;
+        if (namedTypeSymbol?.InstanceConstructors != null)
+        {
+            foreach (var constructor in namedTypeSymbol.InstanceConstructors)
+            {
+                if (!constructor.IsImplicitlyDeclared)
+                {
+                    parameters = constructor.Parameters;
+                    break;
+                }
+            }
+        }
 
         if (parameters.IsDefaultOrEmpty)
         {
             return [];
         }
         
-        return parameters.Select(p => Map(p, compilation)).ToArray();
+        var result = new Parameter[parameters.Length];
+        for (int i = 0; i < parameters.Length; i++)
+        {
+            result[i] = Map(parameters[i], compilation);
+        }
+        return result;
     }
 
     private static Parameter Map(IParameterSymbol parameterSymbol, Compilation compilation)
@@ -203,11 +341,37 @@ internal static class DependencyDictionary
         {
             Type = parameterSymbol.Type,
             DefaultValue = !parameterSymbol.HasExplicitDefaultValue ? null : parameterSymbol.ExplicitDefaultValue,
-            IsEnumerable = parameterSymbol.Type.AllInterfaces.Any(x => SymbolEqualityComparer.Default.Equals(x.OriginalDefinition, compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T))),
+            IsEnumerable = CheckIsEnumerable(parameterSymbol.Type, compilation),
             IsOptional = parameterSymbol.IsOptional,
             IsNullable = parameterSymbol.NullableAnnotation == NullableAnnotation.Annotated,
-            Key = parameterSymbol.GetAttributes().FirstOrDefault(x => SymbolEqualityComparer.Default.Equals(x.AttributeClass, compilation.GetTypeByMetadataName("Inject.NET.Attributes.ServiceKeyAttribute")))?.ConstructorArguments[0].Value as string
+            Key = GetServiceKeyFromAttributes(parameterSymbol, compilation)
         };
+    }
+
+    private static bool CheckIsEnumerable(ITypeSymbol parameterType, Compilation compilation)
+    {
+        var enumerableType = compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T);
+        foreach (var interfaceType in parameterType.AllInterfaces)
+        {
+            if (SymbolEqualityComparer.Default.Equals(interfaceType.OriginalDefinition, enumerableType))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static string? GetServiceKeyFromAttributes(IParameterSymbol parameterSymbol, Compilation compilation)
+    {
+        var serviceKeyAttribute = compilation.GetTypeByMetadataName("Inject.NET.Attributes.ServiceKeyAttribute");
+        foreach (var attr in parameterSymbol.GetAttributes())
+        {
+            if (SymbolEqualityComparer.Default.Equals(attr.AttributeClass, serviceKeyAttribute))
+            {
+                return attr.ConstructorArguments[0].Value as string;
+            }
+        }
+        return null;
     }
 }
 

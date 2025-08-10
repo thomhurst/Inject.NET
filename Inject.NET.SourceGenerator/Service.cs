@@ -13,22 +13,13 @@ public class ServiceCollection
 
     public override bool Equals(object? obj)
     {
-        if (obj is null)
+        return obj switch
         {
-            return false;
-        }
-
-        if (ReferenceEquals(this, obj))
-        {
-            return true;
-        }
-
-        if (obj.GetType() != GetType())
-        {
-            return false;
-        }
-
-        return Equals((ServiceCollection)obj);
+            null => false,
+            _ when ReferenceEquals(this, obj) => true,
+            ServiceCollection other => Equals(other),
+            _ => false
+        };
     }
 
     public override int GetHashCode()

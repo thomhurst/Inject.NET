@@ -33,15 +33,6 @@ public partial class SingletonGeneric2
 		public SingletonScope_(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonGeneric2.ServiceProvider_ serviceProvider, ServiceFactories serviceFactories) : base(serviceProvider, serviceFactories, null)
 		{
 		}
-		public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
-		{
-			if (serviceKey == new ServiceKey { Type = typeof(IGeneric<>), Key = null })
-			{
-				return IGeneric______0;
-			}
-
-			return base.GetService(serviceKey, originatingScope);
-		}
 
 		private IGeneric<>? _iGeneric______0;
 		public IGeneric<> IGeneric______0 => _iGeneric______0 ??= Register<IGeneric<>>(new Generic<>());
@@ -54,28 +45,6 @@ public partial class SingletonGeneric2
 
 		public IGeneric<> IGeneric______0 => Singletons.IGeneric______0;
 		public IReadOnlyList<IGeneric<>> IGeneric______0Enumerable => [IGeneric______0];
-
-		public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
-		{
-			if (serviceKey == new ServiceKey { Type = typeof(IGeneric<>), Key = null })
-			{
-				return IGeneric______0;
-			}
-			if (serviceKey.Key == null && global::Inject.NET.Helpers.TypeHelper.IsEnumerable<IGeneric<>>(serviceKey.Type))
-			{
-				return IGeneric______0Enumerable;
-			}
-			return base.GetService(serviceKey, originatingScope);
-		}
-
-		public override IReadOnlyList<object> GetServices(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
-		{
-			if (serviceKey == new ServiceKey { Type = typeof(IGeneric<>), Key = null })
-			{
-				return [IGeneric______0];
-			}
-			return base.GetServices(serviceKey, originatingScope);
-		}
 	}
 	public partial class ServiceRegistrar_ : global::Inject.NET.Services.ServiceRegistrar<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonGeneric2.ServiceProvider_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonGeneric2.ServiceProvider_>
 	{

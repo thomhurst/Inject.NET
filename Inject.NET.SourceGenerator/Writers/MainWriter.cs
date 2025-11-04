@@ -171,7 +171,7 @@ internal static class MainWriter
         ServiceProviderWriter.Write(sourceProductionContext, sourceCodeWriter, serviceProviderModel, serviceModelCollection, tenants);
         SingletonScopeWriter.Write(sourceCodeWriter, serviceProviderModel, serviceModelCollection, decorators);
         ScopeWriter.Write(sourceCodeWriter, serviceProviderModel, serviceModelCollection, decorators);
-        ServiceRegistrarWriter.Write(sourceCodeWriter, serviceProviderModel, rootDependencies);
+        ServiceRegistrarWriter.Write(sourceCodeWriter, serviceProviderModel, rootDependencies, decorators);
     }
 
     /// <summary>

@@ -28,6 +28,14 @@ public abstract class ServiceRegistrar<TServiceProvider, TParentServiceProvider>
 
         return this;
     }
+
+    /// <summary>
+    /// Explicit implementation of non-generic interface for extension method compatibility.
+    /// </summary>
+    IServiceRegistrar IServiceRegistrar.Register(ServiceDescriptor serviceDescriptor)
+    {
+        return Register(serviceDescriptor);
+    }
     
     /// <summary>
     /// Builds a service provider instance from the registered service descriptors.

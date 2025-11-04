@@ -33,15 +33,6 @@ public partial class SingletonImplementationOnly
 		public SingletonScope_(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonImplementationOnly.ServiceProvider_ serviceProvider, ServiceFactories serviceFactories) : base(serviceProvider, serviceFactories, null)
 		{
 		}
-		public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
-		{
-			if (serviceKey == new ServiceKey { Type = typeof(Class1), Key = null })
-			{
-				return Class1____0;
-			}
-
-			return base.GetService(serviceKey, originatingScope);
-		}
 
 		private Class1? _class1____0;
 		public Class1 Class1____0 => _class1____0 ??= Register<Class1>(new Class1());
@@ -54,28 +45,6 @@ public partial class SingletonImplementationOnly
 
 		public Class1 Class1____0 => Singletons.Class1____0;
 		public IReadOnlyList<Class1> Class1____0Enumerable => [Class1____0];
-
-		public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
-		{
-			if (serviceKey == new ServiceKey { Type = typeof(Class1), Key = null })
-			{
-				return Class1____0;
-			}
-			if (serviceKey.Key == null && global::Inject.NET.Helpers.TypeHelper.IsEnumerable<Class1>(serviceKey.Type))
-			{
-				return Class1____0Enumerable;
-			}
-			return base.GetService(serviceKey, originatingScope);
-		}
-
-		public override IReadOnlyList<object> GetServices(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
-		{
-			if (serviceKey == new ServiceKey { Type = typeof(Class1), Key = null })
-			{
-				return [Class1____0];
-			}
-			return base.GetServices(serviceKey, originatingScope);
-		}
 	}
 	public partial class ServiceRegistrar_ : global::Inject.NET.Services.ServiceRegistrar<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonImplementationOnly.ServiceProvider_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonImplementationOnly.ServiceProvider_>
 	{

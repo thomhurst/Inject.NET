@@ -18,7 +18,10 @@ where TParentServiceScope : IServiceScope
     public TParentSingletonScope? ParentScope { get; } = parentScope;
 
     protected readonly List<object?> ConstructedObjects = [];
-    
+
+    // Cache for singleton collections created via dictionary-based resolution
+    private readonly ConcurrentDictionary<ServiceKey, IReadOnlyList<object>> _singletonCollectionCache = new();
+
     public TServiceProvider ServiceProvider { get; } = serviceProvider;
     
     public T Register<T>(T value)
@@ -41,10 +44,12 @@ where TParentServiceScope : IServiceScope
     public object? GetService(Type type)
     {
         var serviceKey = new ServiceKey(type);
-        
+
         if (type.IsIEnumerable())
         {
-            return GetServices(serviceKey);
+            // Extract element type from IEnumerable<T> and get all services of that type
+            var elementType = type.GetGenericArguments()[0];
+            return GetServices(serviceKey with { Type = elementType });
         }
 
         return GetService(serviceKey);
@@ -84,8 +89,40 @@ where TParentServiceScope : IServiceScope
 
     public virtual IReadOnlyList<object> GetServices(ServiceKey serviceKey, IServiceScope originatingScope)
     {
-        // TODO;
-        return [];
+        // Check cache first - singletons should only be created once
+        if (_singletonCollectionCache.TryGetValue(serviceKey, out var cached))
+        {
+            return cached;
+        }
+
+        // Lookup in service factories dictionary and filter for singletons
+        if (!serviceFactories.Descriptors.TryGetValue(serviceKey, out var descriptors))
+        {
+            return [];
+        }
+
+        var singletonDescriptors = descriptors.Items.Where(d => d.Lifetime == Lifetime.Singleton).ToList();
+
+        if (singletonDescriptors.Count == 0)
+        {
+            return [];
+        }
+
+        // Create instances (only happens once per serviceKey)
+        var results = new List<object>(singletonDescriptors.Count);
+
+        foreach (var descriptor in singletonDescriptors)
+        {
+            var obj = descriptor.Factory(originatingScope, serviceKey.Type, descriptor.Key);
+            Register(obj); // Add to ConstructedObjects for disposal
+            results.Add(obj);
+        }
+
+        // Cache the results so subsequent calls return the same instances
+        var resultList = results.AsReadOnly();
+        _singletonCollectionCache[serviceKey] = resultList;
+
+        return resultList;
     }
 
     private IEnumerable<ServiceKey> GetSingletonKeys()

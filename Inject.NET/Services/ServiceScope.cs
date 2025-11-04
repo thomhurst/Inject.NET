@@ -89,12 +89,14 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
     public object? GetService(Type type)
     {
         var serviceKey = new ServiceKey(type);
-        
+
         if (type.IsIEnumerable())
         {
-            return GetServices(serviceKey);
+            // Extract element type from IEnumerable<T> and get all services of that type
+            var elementType = type.GetGenericArguments()[0];
+            return GetServices(serviceKey with { Type = elementType });
         }
-        
+
         return GetService(serviceKey);
     }
 
@@ -121,15 +123,22 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
         {
             return cachedObject;
         }
-        
+
         if (serviceKey.Type == Types.ServiceScope)
         {
             return this;
         }
-        
+
         if (serviceKey.Type == Types.ServiceProvider || serviceKey.Type == Types.SystemServiceProvider)
         {
             return ServiceProvider;
+        }
+
+        // Check if requesting IEnumerable<T> - if so, get the element type and return collection
+        if (serviceKey.Type.IsIEnumerable())
+        {
+            var elementType = serviceKey.Type.GetGenericArguments()[0];
+            return GetServices(serviceKey with { Type = elementType });
         }
 
         if (_cachedEnumerables?.TryGetValue(serviceKey, out var cachedEnumerable) == true
@@ -159,6 +168,7 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
         }
 
         var obj = descriptor.Factory(originatingScope, serviceKey.Type, descriptor.Key);
+
             
         if(descriptor.Lifetime != Lifetime.Transient)
         {

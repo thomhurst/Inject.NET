@@ -2,11 +2,12 @@
 
 namespace Inject.NET.Interfaces;
 
-public interface ITenantedServiceRegistrar<TServiceProvider, TParentServiceProvider> where TServiceProvider : IServiceProvider
+public interface ITenantedServiceRegistrar<TServiceProvider, TParentServiceProvider> : IServiceRegistrar
+    where TServiceProvider : IServiceProvider
 {
     ServiceFactoryBuilders ServiceFactoryBuilders { get; }
-    
-    ITenantedServiceRegistrar<TServiceProvider, TParentServiceProvider> Register(ServiceDescriptor descriptor);
-    
+
+    new ITenantedServiceRegistrar<TServiceProvider, TParentServiceProvider> Register(ServiceDescriptor descriptor);
+
     ValueTask<TServiceProvider> BuildAsync(TParentServiceProvider? parent);
 }

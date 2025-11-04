@@ -35,11 +35,6 @@ public partial class WithTenantOverridingType
 		public SingletonScope_(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.ServiceProvider_ serviceProvider, ServiceFactories serviceFactories) : base(serviceProvider, serviceFactories, null)
 		{
 		}
-		public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
-		{
-
-			return base.GetService(serviceKey, originatingScope);
-		}
 	}
 	public class ServiceScope_ : global::Inject.NET.Services.ServiceScope<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.ServiceScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.ServiceProvider_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.SingletonScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.ServiceScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.SingletonScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.ServiceProvider_>
 	{
@@ -52,40 +47,6 @@ public partial class WithTenantOverridingType
 
 		public global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.Parent Inject__NET__SourceGenerator__Sample__ServiceProviders__WithTenantOverridingType__Parent____0 => Register<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.Parent>(new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.Parent(new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.Child1()));
 		public IReadOnlyList<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.Parent> Inject__NET__SourceGenerator__Sample__ServiceProviders__WithTenantOverridingType__Parent____0Enumerable => [Inject__NET__SourceGenerator__Sample__ServiceProviders__WithTenantOverridingType__Parent____0];
-
-		public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
-		{
-			if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.IChild), Key = null })
-			{
-				return Inject__NET__SourceGenerator__Sample__ServiceProviders__WithTenantOverridingType__IChild____0;
-			}
-			if (serviceKey.Key == null && global::Inject.NET.Helpers.TypeHelper.IsEnumerable<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.IChild>(serviceKey.Type))
-			{
-				return Inject__NET__SourceGenerator__Sample__ServiceProviders__WithTenantOverridingType__IChild____0Enumerable;
-			}
-			if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.Parent), Key = null })
-			{
-				return Inject__NET__SourceGenerator__Sample__ServiceProviders__WithTenantOverridingType__Parent____0;
-			}
-			if (serviceKey.Key == null && global::Inject.NET.Helpers.TypeHelper.IsEnumerable<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.Parent>(serviceKey.Type))
-			{
-				return Inject__NET__SourceGenerator__Sample__ServiceProviders__WithTenantOverridingType__Parent____0Enumerable;
-			}
-			return base.GetService(serviceKey, originatingScope);
-		}
-
-		public override IReadOnlyList<object> GetServices(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
-		{
-			if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.IChild), Key = null })
-			{
-				return [Inject__NET__SourceGenerator__Sample__ServiceProviders__WithTenantOverridingType__IChild____0];
-			}
-			if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.Parent), Key = null })
-			{
-				return [Inject__NET__SourceGenerator__Sample__ServiceProviders__WithTenantOverridingType__Parent____0];
-			}
-			return base.GetServices(serviceKey, originatingScope);
-		}
 	}
 	public partial class ServiceRegistrar_ : global::Inject.NET.Services.ServiceRegistrar<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.ServiceProvider_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.ServiceProvider_>
 	{

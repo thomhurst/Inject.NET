@@ -26,9 +26,13 @@ internal static class ScopeWriter
         sourceCodeWriter.WriteLine("}");
 
         WriteProperties(sourceCodeWriter, rootServiceModelCollection, decorators);
-        WriteGetServiceMethod(sourceCodeWriter, rootServiceModelCollection);
-        WriteGetServicesMethod(sourceCodeWriter, rootServiceModelCollection);
-        
+
+        // REDESIGN: Removed GetService/GetServices overrides
+        // Services are now resolved purely through dictionary lookup in base class
+        // Properties above still provide direct access optimization
+        // WriteGetServiceMethod(sourceCodeWriter, rootServiceModelCollection);
+        // WriteGetServicesMethod(sourceCodeWriter, rootServiceModelCollection);
+
         sourceCodeWriter.WriteLine("}");
     }
 

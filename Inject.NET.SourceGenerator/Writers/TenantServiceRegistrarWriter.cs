@@ -9,7 +9,7 @@ internal static class TenantServiceRegistrarWriter
         var tenantName = tenantServices.TenantName;
         
         sourceCodeWriter.WriteLine(
-            $"public class ServiceRegistrar{tenantName} : global::Inject.NET.Services.ServiceRegistrar<ServiceProvider_{tenantName}, {serviceProviderModel.Prefix}ServiceProvider_>");
+            $"public partial class ServiceRegistrar{tenantName} : global::Inject.NET.Services.ServiceRegistrar<ServiceProvider_{tenantName}, {serviceProviderModel.Prefix}ServiceProvider_>");
 
         sourceCodeWriter.WriteLine("{");
 
@@ -18,7 +18,15 @@ internal static class TenantServiceRegistrarWriter
 
         WriteRegistration(sourceCodeWriter, tenantServices, string.Empty);
 
+        // Call user-defined configuration hook for extension method registrations
+        sourceCodeWriter.WriteLine("ConfigureServices();");
+
         sourceCodeWriter.WriteLine("}");
+
+        sourceCodeWriter.WriteLine();
+
+        // Declare partial method that users can implement for extension-based service registration
+        sourceCodeWriter.WriteLine("partial void ConfigureServices();");
 
         sourceCodeWriter.WriteLine();
 

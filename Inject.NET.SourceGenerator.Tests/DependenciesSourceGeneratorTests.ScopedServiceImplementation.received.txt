@@ -33,11 +33,6 @@ public partial class ScopedServiceImplementation
 		public SingletonScope_(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.ScopedServiceImplementation.ServiceProvider_ serviceProvider, ServiceFactories serviceFactories) : base(serviceProvider, serviceFactories, null)
 		{
 		}
-		public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
-		{
-
-			return base.GetService(serviceKey, originatingScope);
-		}
 	}
 	public class ServiceScope_ : global::Inject.NET.Services.ServiceScope<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.ScopedServiceImplementation.ServiceScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.ScopedServiceImplementation.ServiceProvider_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.ScopedServiceImplementation.SingletonScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.ScopedServiceImplementation.ServiceScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.ScopedServiceImplementation.SingletonScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.ScopedServiceImplementation.ServiceProvider_>
 	{
@@ -48,28 +43,6 @@ public partial class ScopedServiceImplementation
 		private Interface1? _interface1____0;
 		public Interface1 Interface1____0 => _interface1____0 ??= Register<Interface1>(new Class1());
 		public IReadOnlyList<Interface1> Interface1____0Enumerable => [Interface1____0];
-
-		public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
-		{
-			if (serviceKey == new ServiceKey { Type = typeof(Interface1), Key = null })
-			{
-				return Interface1____0;
-			}
-			if (serviceKey.Key == null && global::Inject.NET.Helpers.TypeHelper.IsEnumerable<Interface1>(serviceKey.Type))
-			{
-				return Interface1____0Enumerable;
-			}
-			return base.GetService(serviceKey, originatingScope);
-		}
-
-		public override IReadOnlyList<object> GetServices(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
-		{
-			if (serviceKey == new ServiceKey { Type = typeof(Interface1), Key = null })
-			{
-				return [Interface1____0];
-			}
-			return base.GetServices(serviceKey, originatingScope);
-		}
 	}
 	public partial class ServiceRegistrar_ : global::Inject.NET.Services.ServiceRegistrar<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.ScopedServiceImplementation.ServiceProvider_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.ScopedServiceImplementation.ServiceProvider_>
 	{

@@ -50,6 +50,25 @@ internal static class ParameterHelper
             }
         }
 
+        // Handle enumerable parameters early - extract element type and call GetServices
+        if (parameter.IsEnumerable)
+        {
+            // Extract element type from IEnumerable<T> or IReadOnlyList<T>
+            var elementType = parameter.Type is INamedTypeSymbol { IsGenericType: true } genericType
+                ? genericType.TypeArguments[0]
+                : parameter.Type;
+
+            var key = parameter.Key is null ? "null" : $"\"{parameter.Key}\"";
+
+            // Use collection literal syntax [..] to support both IEnumerable<T> and IReadOnlyList<T>
+            if (serviceModel.ResolvedFromParent)
+            {
+                return $"[..ParentScope.GetServices<{elementType.GloballyQualified()}>({key})]";
+            }
+
+            return $"[..this.GetServices<{elementType.GloballyQualified()}>({key})]";
+        }
+
         // Handle optional and nullable parameters - this matches the original logic exactly
         if (models is null && !dependencies.TryGetValue(parameter.ServiceKey, out models))
         {
@@ -183,16 +202,24 @@ internal static class ParameterHelper
     {
         if (parameter.IsEnumerable)
         {
+            // Extract element type from IEnumerable<T> or IReadOnlyList<T>
+            var elementType = parameter.Type is INamedTypeSymbol { IsGenericType: true } genericType
+                ? genericType.TypeArguments[0]
+                : parameter.Type;
+
+            var key = parameter.Key is null ? "null" : $"\"{parameter.Key}\"";
+
+            // Use collection literal syntax [..] to support both IEnumerable<T> and IReadOnlyList<T>
             if (serviceModel.ResolvedFromParent)
             {
-                return $"ParentScope.GetServices<{parameter.Type.GloballyQualified()}>({parameter.Key})";
+                return $"[..ParentScope.GetServices<{elementType.GloballyQualified()}>({key})]";
             }
 
-            return $"this.GetServices<{parameter.Type.GloballyQualified()}>({parameter.Key})";
+            return $"[..this.GetServices<{elementType.GloballyQualified()}>({key})]";
         }
 
         var lastModel = models.Last();
-        
+
         return TypeHelper.GetOrConstructType(serviceProviderType, dependencies, lastModel, currentLifetime);
     }
 }

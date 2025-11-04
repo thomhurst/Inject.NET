@@ -7,6 +7,6 @@ public static class TypeExtensions
     public static bool IsIEnumerable(this Type type)
     {
         return type.IsGenericType
-               && EnumerableGeneric.IsAssignableFrom(type.MakeGenericType());
+               && type.GetGenericTypeDefinition() == EnumerableGeneric;
     }
 }

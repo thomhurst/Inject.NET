@@ -351,6 +351,15 @@ internal static class DependencyDictionary
     private static bool CheckIsEnumerable(ITypeSymbol parameterType, Compilation compilation)
     {
         var enumerableType = compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T);
+
+        // Check if the parameter type itself is IEnumerable<T>
+        if (parameterType is INamedTypeSymbol { IsGenericType: true } namedType &&
+            SymbolEqualityComparer.Default.Equals(namedType.OriginalDefinition, enumerableType))
+        {
+            return true;
+        }
+
+        // Check if the parameter type implements IEnumerable<T>
         foreach (var interfaceType in parameterType.AllInterfaces)
         {
             if (SymbolEqualityComparer.Default.Equals(interfaceType.OriginalDefinition, enumerableType))

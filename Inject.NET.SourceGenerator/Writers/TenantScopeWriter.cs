@@ -62,7 +62,7 @@ internal static class TenantScopeWriter
         // GetService
         sourceCodeWriter.WriteLine();
         sourceCodeWriter.WriteLine(
-            "public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)");
+            "public override object? GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)");
         sourceCodeWriter.WriteLine("{");
         foreach (var serviceModels in models.GroupBy(x => x.ServiceKey))
         {

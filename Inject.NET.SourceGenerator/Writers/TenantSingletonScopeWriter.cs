@@ -24,7 +24,7 @@ internal static class TenantSingletonScopeWriter
         foreach (var serviceModel in singletonModels)
         {
             sourceCodeWriter.WriteLine();
-            
+
             var propertyName = serviceModel.GetPropertyName();
 
             if (serviceModel.ResolvedFromParent)
@@ -34,16 +34,14 @@ internal static class TenantSingletonScopeWriter
             }
             else
             {
-                var fieldName = NameHelper.AsField(serviceModel);
-                sourceCodeWriter.WriteLine($"private {serviceModel.ServiceType.GloballyQualified()}? {fieldName};");
-
+                // Use GetServices to ensure single code path for singleton creation
                 sourceCodeWriter.WriteLine(
-                    $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => {fieldName} ??= Register<{serviceModel.ServiceType.GloballyQualified()}>({ObjectConstructionHelper.ConstructNewObject(serviceProviderModel.Type, tenantServices.Services, serviceModel, Lifetime.Singleton)});");
+                    $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => ({serviceModel.ServiceType.GloballyQualified()})GetServices({serviceModel.GetNewServiceKeyInvocation()})[^1];");
             }
         }
         
         sourceCodeWriter.WriteLine();
-        sourceCodeWriter.WriteLine("public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)");
+        sourceCodeWriter.WriteLine("public override object? GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)");
         sourceCodeWriter.WriteLine("{");
         
         foreach (var serviceModel in singletonModels)

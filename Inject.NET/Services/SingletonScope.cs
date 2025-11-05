@@ -89,40 +89,42 @@ where TParentServiceScope : IServiceScope
 
     public virtual IReadOnlyList<object> GetServices(ServiceKey serviceKey, IServiceScope originatingScope)
     {
-        // Check cache first - singletons should only be created once
-        if (_singletonCollectionCache.TryGetValue(serviceKey, out var cached))
+        return _singletonCollectionCache.GetOrAdd(serviceKey, (key, state) =>
         {
-            return cached;
-        }
+            var (self, factories, originScope, parentScope) = state;
 
-        // Lookup in service factories dictionary and filter for singletons
-        if (!serviceFactories.Descriptors.TryGetValue(serviceKey, out var descriptors))
-        {
-            return [];
-        }
+            // Check if this service is defined locally
+            var hasLocalDefinition = factories.Descriptors.TryGetValue(key, out var descriptors) &&
+                                     descriptors.Items.Any(d => d.Lifetime == Lifetime.Singleton);
 
-        var singletonDescriptors = descriptors.Items.Where(d => d.Lifetime == Lifetime.Singleton).ToList();
+            // If no local definition and we have a parent, delegate to parent
+            if (!hasLocalDefinition && parentScope != null)
+            {
+                return parentScope.GetServices(key, originScope);
+            }
 
-        if (singletonDescriptors.Count == 0)
-        {
-            return [];
-        }
+            // No services if no local definition and no parent
+            if (!hasLocalDefinition)
+            {
+                return [];
+            }
 
-        // Create instances (only happens once per serviceKey)
-        var results = new List<object>(singletonDescriptors.Count);
+            // Create local singleton instances
+            var singletonDescriptors = descriptors!.Items
+                .Where(d => d.Lifetime == Lifetime.Singleton)
+                .ToList();
 
-        foreach (var descriptor in singletonDescriptors)
-        {
-            var obj = descriptor.Factory(originatingScope, serviceKey.Type, descriptor.Key);
-            Register(obj); // Add to ConstructedObjects for disposal
-            results.Add(obj);
-        }
+            var results = new List<object>(singletonDescriptors.Count);
 
-        // Cache the results so subsequent calls return the same instances
-        var resultList = results.AsReadOnly();
-        _singletonCollectionCache[serviceKey] = resultList;
+            foreach (var descriptor in singletonDescriptors)
+            {
+                var obj = descriptor.Factory(originScope, key.Type, descriptor.Key);
+                self.Register(obj);
+                results.Add(obj);
+            }
 
-        return resultList;
+            return (IReadOnlyList<object>)results.AsReadOnly();
+        }, (this, serviceFactories, originatingScope, ParentScope));
     }
 
     private IEnumerable<ServiceKey> GetSingletonKeys()

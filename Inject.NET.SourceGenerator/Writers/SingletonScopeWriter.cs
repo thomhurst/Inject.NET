@@ -41,25 +41,12 @@ internal static class SingletonScopeWriter
             foreach (var serviceModel in serviceModels.Where(serviceModel => serviceModel.Lifetime == Lifetime.Singleton && !serviceModel.IsOpenGeneric))
             {
                 sourceCodeWriter.WriteLine();
-                var fieldName = NameHelper.AsField(serviceModel);
-                sourceCodeWriter.WriteLine($"private {serviceModel.ServiceType.GloballyQualified()}? {fieldName};");
                 var propertyName = serviceModel.GetPropertyName();
 
-                var constructObject = ObjectConstructionHelper.ConstructNewObject(rootServiceModelCollection.ServiceProviderType, rootServiceModelCollection.Services, serviceModel, Lifetime.Singleton);
-                
-                // Apply singleton decorators if any
-                if (decorators != null && decorators.TryGetValue(serviceModel.ServiceKey, out var decoratorList) && decoratorList.Count > 0)
-                {
-                    // Only apply singleton decorators in singleton scope
-                    var singletonDecorators = decoratorList.Where(d => d.Lifetime == Lifetime.Singleton).ToList();
-                    foreach (var decorator in singletonDecorators)
-                    {
-                        constructObject = WrapWithDecorator(rootServiceModelCollection, decorator, constructObject);
-                    }
-                }
-                
+                // Use GetServices to ensure single code path for singleton creation
+                // This delegates to the dictionary-based resolution which handles caching, parent delegation, etc.
                 sourceCodeWriter.WriteLine(
-                    $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => {fieldName} ??= Register<{serviceModel.ServiceType.GloballyQualified()}>({constructObject});");
+                    $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => ({serviceModel.ServiceType.GloballyQualified()})GetServices({serviceModel.GetNewServiceKeyInvocation()})[^1];");
             }
         }
 

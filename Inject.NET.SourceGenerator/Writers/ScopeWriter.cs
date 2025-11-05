@@ -91,7 +91,7 @@ internal static class ScopeWriter
     private static void WriteGetServiceMethod(SourceCodeWriter sourceCodeWriter, RootServiceModelCollection rootServiceModelCollection)
     {
         sourceCodeWriter.WriteLine();
-        sourceCodeWriter.WriteLine("public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)");
+        sourceCodeWriter.WriteLine("public override object? GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)");
         sourceCodeWriter.WriteLine("{");
         
         foreach (var (serviceKey, serviceModels) in rootServiceModelCollection.Services)

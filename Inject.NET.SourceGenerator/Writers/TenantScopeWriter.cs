@@ -59,26 +59,7 @@ internal static class TenantScopeWriter
             }
         }
 
-        // GetService
-        sourceCodeWriter.WriteLine();
-        sourceCodeWriter.WriteLine(
-            "public override object? GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)");
-        sourceCodeWriter.WriteLine("{");
-        foreach (var serviceModels in models.GroupBy(x => x.ServiceKey))
-        {
-            var serviceModel = serviceModels.Last();
-            
-            sourceCodeWriter.WriteLine($"if (serviceKey == {serviceModel.GetNewServiceKeyInvocation()})");
-            sourceCodeWriter.WriteLine("{");
-            sourceCodeWriter.WriteLine($"return {serviceModel.GetPropertyName()};");
-            sourceCodeWriter.WriteLine("}");
-        }
-
-        sourceCodeWriter.WriteLine("return base.GetService(serviceKey, originatingScope);");
-        sourceCodeWriter.WriteLine("}");
-
-
-        // GetServices
+        // GetServices override is necessary to combine parent and local services for multi-tenant scenarios
         sourceCodeWriter.WriteLine();
         sourceCodeWriter.WriteLine(
             "public override IReadOnlyList<object> GetServices(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)");
@@ -89,7 +70,7 @@ internal static class TenantScopeWriter
             {
                 sourceCodeWriter.WriteLine($"if (serviceKey == {first.GetNewServiceKeyInvocation()})");
                 sourceCodeWriter.WriteLine("{");
-                
+
                 var arrayParts = serviceModels
                     .OrderBy(x => x.ResolvedFromParent ? 0 : 1)
                     .Where(serviceModel => !serviceModel.IsOpenGeneric)

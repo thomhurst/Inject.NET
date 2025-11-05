@@ -11,8 +11,6 @@ internal static class SingletonScopeWriter
     {
         sourceCodeWriter.WriteLine($"public class SingletonScope_ : global::Inject.NET.Services.SingletonScope<{serviceProviderModel.Prefix}SingletonScope_, {serviceProviderModel.Prefix}ServiceProvider_, {serviceProviderModel.Prefix}ServiceScope_, {serviceProviderModel.Prefix}SingletonScope_, {serviceProviderModel.Prefix}ServiceScope_, {serviceProviderModel.Prefix}ServiceProvider_>");
         sourceCodeWriter.WriteLine("{");
-        
-        var singletonModels = GetSingletonModels(rootServiceModelCollection.Services).ToArray();
 
         sourceCodeWriter.WriteLine(
             $"public SingletonScope_({serviceProviderModel.Prefix}ServiceProvider_ serviceProvider, ServiceFactories serviceFactories) : base(serviceProvider, serviceFactories, null)");
@@ -51,53 +49,5 @@ internal static class SingletonScopeWriter
         }
 
         sourceCodeWriter.WriteLine("}");
-    }
-    
-    private static IEnumerable<ServiceModel> GetSingletonModels(IDictionary<ServiceModelCollection.ServiceKey, List<ServiceModel>> dependencies)
-    {
-        foreach (var (_, serviceModels) in dependencies)
-        {
-            var serviceModel = serviceModels[^1];
-
-            if (serviceModel.Lifetime != Lifetime.Singleton || serviceModel.IsOpenGeneric)
-            {
-                continue;
-            }
-
-            yield return serviceModel;
-        }
-    }
-    
-    private static string WrapWithDecorator(RootServiceModelCollection rootServiceModelCollection, DecoratorModel decorator, string innerInvocation)
-    {
-        // Build decorator constructor invocation
-        var decoratorParams = new List<string>();
-        
-        foreach (var param in decorator.Parameters)
-        {
-            // Check if this parameter is the decorated service
-            if (SymbolEqualityComparer.Default.Equals(param.Type, decorator.ServiceType))
-            {
-                // This is the inner service parameter
-                decoratorParams.Add(innerInvocation);
-            }
-            else
-            {
-                // This is another dependency - resolve it normally
-                var paramServiceKey = new ServiceModelCollection.ServiceKey(param.Type, param.Key);
-                if (rootServiceModelCollection.Services.TryGetValue(paramServiceKey, out var paramServiceModels))
-                {
-                    var paramServiceModel = paramServiceModels[^1];
-                    decoratorParams.Add(paramServiceModel.GetPropertyName());
-                }
-                else
-                {
-                    // Try to resolve from service provider
-                    decoratorParams.Add($"GetRequiredService<{param.Type.GloballyQualified()}>()");
-                }
-            }
-        }
-        
-        return $"new {decorator.DecoratorType.GloballyQualified()}({string.Join(", ", decoratorParams)})";
     }
 }

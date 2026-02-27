@@ -36,32 +36,12 @@ public partial class AssortmentServiceProvider
 		public SingletonScope_(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.AssortmentServiceProvider.ServiceProvider_ serviceProvider, ServiceFactories serviceFactories) : base(serviceProvider, serviceFactories, null)
 		{
 		}
-		public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
-		{
-			if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface1), Key = null })
-			{
-				return Inject__NET__SourceGenerator__Sample__ServiceProviders__Interface1____0;
-			}
-			if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface2), Key = null })
-			{
-				return Inject__NET__SourceGenerator__Sample__ServiceProviders__Interface2____0;
-			}
-			if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface3), Key = null })
-			{
-				return Inject__NET__SourceGenerator__Sample__ServiceProviders__Interface3____0;
-			}
 
-			return base.GetService(serviceKey, originatingScope);
-		}
+		public global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface1 Inject__NET__SourceGenerator__Sample__ServiceProviders__Interface1____0 => (global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface1)GetServices(new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface1), Key = null })[^1];
 
-		private global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface1? _inject__NET__SourceGenerator__Sample__ServiceProviders__Interface1____0;
-		public global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface1 Inject__NET__SourceGenerator__Sample__ServiceProviders__Interface1____0 => _inject__NET__SourceGenerator__Sample__ServiceProviders__Interface1____0 ??= Register<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface1>(new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Class1());
+		public global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface2 Inject__NET__SourceGenerator__Sample__ServiceProviders__Interface2____0 => (global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface2)GetServices(new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface2), Key = null })[^1];
 
-		private global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface2? _inject__NET__SourceGenerator__Sample__ServiceProviders__Interface2____0;
-		public global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface2 Inject__NET__SourceGenerator__Sample__ServiceProviders__Interface2____0 => _inject__NET__SourceGenerator__Sample__ServiceProviders__Interface2____0 ??= Register<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface2>(new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Class2(Singletons.Inject__NET__SourceGenerator__Sample__ServiceProviders__Interface1____0));
-
-		private global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface3? _inject__NET__SourceGenerator__Sample__ServiceProviders__Interface3____0;
-		public global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface3 Inject__NET__SourceGenerator__Sample__ServiceProviders__Interface3____0 => _inject__NET__SourceGenerator__Sample__ServiceProviders__Interface3____0 ??= Register<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface3>(new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Class3(Singletons.Inject__NET__SourceGenerator__Sample__ServiceProviders__Interface2____0));
+		public global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface3 Inject__NET__SourceGenerator__Sample__ServiceProviders__Interface3____0 => (global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface3)GetServices(new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface3), Key = null })[^1];
 	}
 	public class ServiceScope_ : global::Inject.NET.Services.ServiceScope<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.AssortmentServiceProvider.ServiceScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.AssortmentServiceProvider.ServiceProvider_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.AssortmentServiceProvider.SingletonScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.AssortmentServiceProvider.ServiceScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.AssortmentServiceProvider.SingletonScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.AssortmentServiceProvider.ServiceProvider_>
 	{
@@ -90,104 +70,6 @@ public partial class AssortmentServiceProvider
 
 		public global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Wrapper Inject__NET__SourceGenerator__Sample__ServiceProviders__Wrapper____0 => Register<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Wrapper>(new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Wrapper(new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Generic<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Class1>(this.GetRequiredService<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Class1>())));
 		public IReadOnlyList<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Wrapper> Inject__NET__SourceGenerator__Sample__ServiceProviders__Wrapper____0Enumerable => [Inject__NET__SourceGenerator__Sample__ServiceProviders__Wrapper____0];
-
-		public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
-		{
-			if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.IGeneric<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Class1>), Key = null })
-			{
-				return Inject__NET__SourceGenerator__Sample__ServiceProviders__IGeneric_Inject__NET__SourceGenerator__Sample__ServiceProviders__Class1_____0;
-			}
-			if (serviceKey.Key == null && global::Inject.NET.Helpers.TypeHelper.IsEnumerable<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.IGeneric<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Class1>>(serviceKey.Type))
-			{
-				return Inject__NET__SourceGenerator__Sample__ServiceProviders__IGeneric_Inject__NET__SourceGenerator__Sample__ServiceProviders__Class1_____0Enumerable;
-			}
-			if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface1), Key = null })
-			{
-				return Inject__NET__SourceGenerator__Sample__ServiceProviders__Interface1____0;
-			}
-			if (serviceKey.Key == null && global::Inject.NET.Helpers.TypeHelper.IsEnumerable<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface1>(serviceKey.Type))
-			{
-				return Inject__NET__SourceGenerator__Sample__ServiceProviders__Interface1____0Enumerable;
-			}
-			if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface2), Key = null })
-			{
-				return Inject__NET__SourceGenerator__Sample__ServiceProviders__Interface2____0;
-			}
-			if (serviceKey.Key == null && global::Inject.NET.Helpers.TypeHelper.IsEnumerable<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface2>(serviceKey.Type))
-			{
-				return Inject__NET__SourceGenerator__Sample__ServiceProviders__Interface2____0Enumerable;
-			}
-			if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface3), Key = null })
-			{
-				return Inject__NET__SourceGenerator__Sample__ServiceProviders__Interface3____0;
-			}
-			if (serviceKey.Key == null && global::Inject.NET.Helpers.TypeHelper.IsEnumerable<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface3>(serviceKey.Type))
-			{
-				return Inject__NET__SourceGenerator__Sample__ServiceProviders__Interface3____0Enumerable;
-			}
-			if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface4), Key = null })
-			{
-				return Inject__NET__SourceGenerator__Sample__ServiceProviders__Interface4____0;
-			}
-			if (serviceKey.Key == null && global::Inject.NET.Helpers.TypeHelper.IsEnumerable<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface4>(serviceKey.Type))
-			{
-				return Inject__NET__SourceGenerator__Sample__ServiceProviders__Interface4____0Enumerable;
-			}
-			if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface5), Key = null })
-			{
-				return Inject__NET__SourceGenerator__Sample__ServiceProviders__Interface5____0;
-			}
-			if (serviceKey.Key == null && global::Inject.NET.Helpers.TypeHelper.IsEnumerable<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface5>(serviceKey.Type))
-			{
-				return Inject__NET__SourceGenerator__Sample__ServiceProviders__Interface5____0Enumerable;
-			}
-			if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Wrapper), Key = null })
-			{
-				return Inject__NET__SourceGenerator__Sample__ServiceProviders__Wrapper____0;
-			}
-			if (serviceKey.Key == null && global::Inject.NET.Helpers.TypeHelper.IsEnumerable<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Wrapper>(serviceKey.Type))
-			{
-				return Inject__NET__SourceGenerator__Sample__ServiceProviders__Wrapper____0Enumerable;
-			}
-			return base.GetService(serviceKey, originatingScope);
-		}
-
-		public override IReadOnlyList<object> GetServices(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
-		{
-			if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.IGeneric<>), Key = null })
-			{
-				return [];
-			}
-			if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.IGeneric<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Class1>), Key = null })
-			{
-				return [Inject__NET__SourceGenerator__Sample__ServiceProviders__IGeneric_Inject__NET__SourceGenerator__Sample__ServiceProviders__Class1_____0];
-			}
-			if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface1), Key = null })
-			{
-				return [Inject__NET__SourceGenerator__Sample__ServiceProviders__Interface1____0];
-			}
-			if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface2), Key = null })
-			{
-				return [Inject__NET__SourceGenerator__Sample__ServiceProviders__Interface2____0];
-			}
-			if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface3), Key = null })
-			{
-				return [Inject__NET__SourceGenerator__Sample__ServiceProviders__Interface3____0];
-			}
-			if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface4), Key = null })
-			{
-				return [Inject__NET__SourceGenerator__Sample__ServiceProviders__Interface4____0];
-			}
-			if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Interface5), Key = null })
-			{
-				return [Inject__NET__SourceGenerator__Sample__ServiceProviders__Interface5____0];
-			}
-			if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.Wrapper), Key = null })
-			{
-				return [Inject__NET__SourceGenerator__Sample__ServiceProviders__Wrapper____0];
-			}
-			return base.GetServices(serviceKey, originatingScope);
-		}
 	}
 	public partial class ServiceRegistrar_ : global::Inject.NET.Services.ServiceRegistrar<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.AssortmentServiceProvider.ServiceProvider_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.AssortmentServiceProvider.ServiceProvider_>
 	{

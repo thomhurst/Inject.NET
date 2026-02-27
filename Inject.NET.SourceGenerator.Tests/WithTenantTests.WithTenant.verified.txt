@@ -36,18 +36,8 @@ public partial class WithTenant
 		public SingletonScope_(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenant.ServiceProvider_ serviceProvider, ServiceFactories serviceFactories) : base(serviceProvider, serviceFactories, null)
 		{
 		}
-		public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
-		{
-			if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.Models.Class1), Key = null })
-			{
-				return Inject__NET__SourceGenerator__Sample__Models__Class1____0;
-			}
 
-			return base.GetService(serviceKey, originatingScope);
-		}
-
-		private global::Inject.NET.SourceGenerator.Sample.Models.Class1? _inject__NET__SourceGenerator__Sample__Models__Class1____0;
-		public global::Inject.NET.SourceGenerator.Sample.Models.Class1 Inject__NET__SourceGenerator__Sample__Models__Class1____0 => _inject__NET__SourceGenerator__Sample__Models__Class1____0 ??= Register<global::Inject.NET.SourceGenerator.Sample.Models.Class1>(new global::Inject.NET.SourceGenerator.Sample.Models.Class1());
+		public global::Inject.NET.SourceGenerator.Sample.Models.Class1 Inject__NET__SourceGenerator__Sample__Models__Class1____0 => (global::Inject.NET.SourceGenerator.Sample.Models.Class1)GetServices(new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.Models.Class1), Key = null })[^1];
 	}
 	public class ServiceScope_ : global::Inject.NET.Services.ServiceScope<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenant.ServiceScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenant.ServiceProvider_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenant.SingletonScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenant.ServiceScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenant.SingletonScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenant.ServiceProvider_>
 	{
@@ -57,28 +47,6 @@ public partial class WithTenant
 
 		public global::Inject.NET.SourceGenerator.Sample.Models.Class1 Inject__NET__SourceGenerator__Sample__Models__Class1____0 => Singletons.Inject__NET__SourceGenerator__Sample__Models__Class1____0;
 		public IReadOnlyList<global::Inject.NET.SourceGenerator.Sample.Models.Class1> Inject__NET__SourceGenerator__Sample__Models__Class1____0Enumerable => [Inject__NET__SourceGenerator__Sample__Models__Class1____0];
-
-		public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
-		{
-			if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.Models.Class1), Key = null })
-			{
-				return Inject__NET__SourceGenerator__Sample__Models__Class1____0;
-			}
-			if (serviceKey.Key == null && global::Inject.NET.Helpers.TypeHelper.IsEnumerable<global::Inject.NET.SourceGenerator.Sample.Models.Class1>(serviceKey.Type))
-			{
-				return Inject__NET__SourceGenerator__Sample__Models__Class1____0Enumerable;
-			}
-			return base.GetService(serviceKey, originatingScope);
-		}
-
-		public override IReadOnlyList<object> GetServices(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
-		{
-			if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.Models.Class1), Key = null })
-			{
-				return [Inject__NET__SourceGenerator__Sample__Models__Class1____0];
-			}
-			return base.GetServices(serviceKey, originatingScope);
-		}
 	}
 	public partial class ServiceRegistrar_ : global::Inject.NET.Services.ServiceRegistrar<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenant.ServiceProvider_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenant.ServiceProvider_>
 	{
@@ -136,21 +104,7 @@ public partial class WithTenant
 
 		public global::Inject.NET.SourceGenerator.Sample.Models.Class1 Inject__NET__SourceGenerator__Sample__Models__Class1____0 => ParentScope.Inject__NET__SourceGenerator__Sample__Models__Class1____0;
 
-		private global::Inject.NET.SourceGenerator.Sample.Models.InheritsFromClass1? _inject__NET__SourceGenerator__Sample__Models__InheritsFromClass1__Tenant__0;
-		public global::Inject.NET.SourceGenerator.Sample.Models.InheritsFromClass1 Inject__NET__SourceGenerator__Sample__Models__InheritsFromClass1__Tenant__0 => _inject__NET__SourceGenerator__Sample__Models__InheritsFromClass1__Tenant__0 ??= Register<global::Inject.NET.SourceGenerator.Sample.Models.InheritsFromClass1>(new global::Inject.NET.SourceGenerator.Sample.Models.InheritsFromClass1());
-
-		public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
-		{
-			if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.Models.Class1), Key = null })
-			{
-				return Inject__NET__SourceGenerator__Sample__Models__Class1____0;
-			}
-			if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.Models.InheritsFromClass1), Key = null })
-			{
-				return Inject__NET__SourceGenerator__Sample__Models__InheritsFromClass1__Tenant__0;
-			}
-			return base.GetService(serviceKey, originatingScope);
-		}
+		public global::Inject.NET.SourceGenerator.Sample.Models.InheritsFromClass1 Inject__NET__SourceGenerator__Sample__Models__InheritsFromClass1__Tenant__0 => (global::Inject.NET.SourceGenerator.Sample.Models.InheritsFromClass1)GetServices(new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.Models.InheritsFromClass1), Key = null })[^1];
 	}
 	public class ServiceScope_Tenant : global::Inject.NET.Services.ServiceScope<ServiceScope_Tenant, ServiceProvider_Tenant, SingletonScope_Tenant, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenant.ServiceScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenant.SingletonScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenant.ServiceProvider_>
 	{
@@ -161,19 +115,6 @@ public partial class WithTenant
 		public global::Inject.NET.SourceGenerator.Sample.Models.Class1 Inject__NET__SourceGenerator__Sample__Models__Class1____0 => Singletons.Inject__NET__SourceGenerator__Sample__Models__Class1____0;
 
 		public global::Inject.NET.SourceGenerator.Sample.Models.InheritsFromClass1 Inject__NET__SourceGenerator__Sample__Models__InheritsFromClass1__Tenant__0 => Singletons.Inject__NET__SourceGenerator__Sample__Models__InheritsFromClass1__Tenant__0;
-
-		public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
-		{
-			if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.Models.Class1), Key = null })
-			{
-				return Inject__NET__SourceGenerator__Sample__Models__Class1____0;
-			}
-			if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.Models.InheritsFromClass1), Key = null })
-			{
-				return Inject__NET__SourceGenerator__Sample__Models__InheritsFromClass1__Tenant__0;
-			}
-			return base.GetService(serviceKey, originatingScope);
-		}
 
 		public override IReadOnlyList<object> GetServices(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
 		{

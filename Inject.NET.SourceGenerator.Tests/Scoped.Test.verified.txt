@@ -41,11 +41,6 @@ public partial class Scoped
 			public SingletonScope_(global::Inject.NET.Tests.Scoped.ScopedServiceProvider.ServiceProvider_ serviceProvider, ServiceFactories serviceFactories) : base(serviceProvider, serviceFactories, null)
 			{
 			}
-			public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
-			{
-
-				return base.GetService(serviceKey, originatingScope);
-			}
 		}
 		public class ServiceScope_ : global::Inject.NET.Services.ServiceScope<global::Inject.NET.Tests.Scoped.ScopedServiceProvider.ServiceScope_, global::Inject.NET.Tests.Scoped.ScopedServiceProvider.ServiceProvider_, global::Inject.NET.Tests.Scoped.ScopedServiceProvider.SingletonScope_, global::Inject.NET.Tests.Scoped.ScopedServiceProvider.ServiceScope_, global::Inject.NET.Tests.Scoped.ScopedServiceProvider.SingletonScope_, global::Inject.NET.Tests.Scoped.ScopedServiceProvider.ServiceProvider_>
 		{
@@ -56,28 +51,6 @@ public partial class Scoped
 			private global::Inject.NET.Tests.Scoped.ScopedClass? _inject__NET__Tests__Scoped__ScopedClass____0;
 			public global::Inject.NET.Tests.Scoped.ScopedClass Inject__NET__Tests__Scoped__ScopedClass____0 => _inject__NET__Tests__Scoped__ScopedClass____0 ??= Register<global::Inject.NET.Tests.Scoped.ScopedClass>(new global::Inject.NET.Tests.Scoped.ScopedClass());
 			public IReadOnlyList<global::Inject.NET.Tests.Scoped.ScopedClass> Inject__NET__Tests__Scoped__ScopedClass____0Enumerable => [Inject__NET__Tests__Scoped__ScopedClass____0];
-
-			public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
-			{
-				if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.Tests.Scoped.ScopedClass), Key = null })
-				{
-					return Inject__NET__Tests__Scoped__ScopedClass____0;
-				}
-				if (serviceKey.Key == null && global::Inject.NET.Helpers.TypeHelper.IsEnumerable<global::Inject.NET.Tests.Scoped.ScopedClass>(serviceKey.Type))
-				{
-					return Inject__NET__Tests__Scoped__ScopedClass____0Enumerable;
-				}
-				return base.GetService(serviceKey, originatingScope);
-			}
-
-			public override IReadOnlyList<object> GetServices(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
-			{
-				if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.Tests.Scoped.ScopedClass), Key = null })
-				{
-					return [Inject__NET__Tests__Scoped__ScopedClass____0];
-				}
-				return base.GetServices(serviceKey, originatingScope);
-			}
 		}
 		public partial class ServiceRegistrar_ : global::Inject.NET.Services.ServiceRegistrar<global::Inject.NET.Tests.Scoped.ScopedServiceProvider.ServiceProvider_, global::Inject.NET.Tests.Scoped.ScopedServiceProvider.ServiceProvider_>
 		{
@@ -131,11 +104,6 @@ public partial class Scoped
 			public SingletonScope_NonOverridingTenant(ServiceProvider_NonOverridingTenant serviceProvider, ServiceFactories serviceFactories, global::Inject.NET.Tests.Scoped.ScopedServiceProvider.SingletonScope_ parentScope) : base(serviceProvider, serviceFactories, parentScope)
 			{
 			}
-
-			public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
-			{
-				return base.GetService(serviceKey, originatingScope);
-			}
 		}
 		public class ServiceScope_NonOverridingTenant : global::Inject.NET.Services.ServiceScope<ServiceScope_NonOverridingTenant, ServiceProvider_NonOverridingTenant, SingletonScope_NonOverridingTenant, global::Inject.NET.Tests.Scoped.ScopedServiceProvider.ServiceScope_, global::Inject.NET.Tests.Scoped.ScopedServiceProvider.SingletonScope_, global::Inject.NET.Tests.Scoped.ScopedServiceProvider.ServiceProvider_>
 		{
@@ -144,15 +112,6 @@ public partial class Scoped
 			}
 
 			public global::Inject.NET.Tests.Scoped.ScopedClass Inject__NET__Tests__Scoped__ScopedClass____0 => ParentScope.Inject__NET__Tests__Scoped__ScopedClass____0;
-
-			public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
-			{
-				if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.Tests.Scoped.ScopedClass), Key = null })
-				{
-					return Inject__NET__Tests__Scoped__ScopedClass____0;
-				}
-				return base.GetService(serviceKey, originatingScope);
-			}
 
 			public override IReadOnlyList<object> GetServices(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
 			{
@@ -207,11 +166,6 @@ public partial class Scoped
 			public SingletonScope_OverridingTenant(ServiceProvider_OverridingTenant serviceProvider, ServiceFactories serviceFactories, global::Inject.NET.Tests.Scoped.ScopedServiceProvider.SingletonScope_ parentScope) : base(serviceProvider, serviceFactories, parentScope)
 			{
 			}
-
-			public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
-			{
-				return base.GetService(serviceKey, originatingScope);
-			}
 		}
 		public class ServiceScope_OverridingTenant : global::Inject.NET.Services.ServiceScope<ServiceScope_OverridingTenant, ServiceProvider_OverridingTenant, SingletonScope_OverridingTenant, global::Inject.NET.Tests.Scoped.ScopedServiceProvider.ServiceScope_, global::Inject.NET.Tests.Scoped.ScopedServiceProvider.SingletonScope_, global::Inject.NET.Tests.Scoped.ScopedServiceProvider.ServiceProvider_>
 		{
@@ -223,15 +177,6 @@ public partial class Scoped
 
 			private global::Inject.NET.Tests.Scoped.ScopedClass? _inject__NET__Tests__Scoped__ScopedClass__OverridingTenant__0;
 			public global::Inject.NET.Tests.Scoped.ScopedClass Inject__NET__Tests__Scoped__ScopedClass__OverridingTenant__0 => _inject__NET__Tests__Scoped__ScopedClass__OverridingTenant__0 ??= Register<global::Inject.NET.Tests.Scoped.ScopedClass>(new global::Inject.NET.Tests.Scoped.ScopedClass());
-
-			public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
-			{
-				if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.Tests.Scoped.ScopedClass), Key = null })
-				{
-					return Inject__NET__Tests__Scoped__ScopedClass__OverridingTenant__0;
-				}
-				return base.GetService(serviceKey, originatingScope);
-			}
 
 			public override IReadOnlyList<object> GetServices(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
 			{

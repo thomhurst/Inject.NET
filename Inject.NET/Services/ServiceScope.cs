@@ -2,6 +2,7 @@ using System.Collections.Frozen;
 using System.Runtime.CompilerServices;
 using Inject.NET.Enums;
 using Inject.NET.Extensions;
+using Inject.NET.Helpers;
 using Inject.NET.Interfaces;
 using Inject.NET.Models;
 
@@ -95,6 +96,15 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
             // Extract element type from IEnumerable<T> and get all services of that type
             var elementType = type.GetGenericArguments()[0];
             return GetServices(serviceKey with { Type = elementType });
+        }
+
+        // Handle Lazy<T> - create a Lazy wrapper that defers service resolution
+        if (type.IsLazy())
+        {
+            var innerType = type.GetGenericArguments()[0];
+            var lazyFactory = typeof(LazyFactory<>).MakeGenericType(innerType);
+            var factory = Activator.CreateInstance(lazyFactory, this);
+            return lazyFactory.GetMethod("Create")!.Invoke(factory, null);
         }
 
         return GetService(serviceKey);

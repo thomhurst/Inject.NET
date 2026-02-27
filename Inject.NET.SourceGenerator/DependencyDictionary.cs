@@ -337,6 +337,8 @@ internal static class DependencyDictionary
 
     private static Parameter Map(IParameterSymbol parameterSymbol, Compilation compilation)
     {
+        var isLazy = CheckIsLazy(parameterSymbol.Type, out var lazyInnerType);
+
         return new Parameter
         {
             Type = parameterSymbol.Type,
@@ -344,6 +346,8 @@ internal static class DependencyDictionary
             IsEnumerable = CheckIsEnumerable(parameterSymbol.Type, compilation),
             IsOptional = parameterSymbol.IsOptional,
             IsNullable = parameterSymbol.NullableAnnotation == NullableAnnotation.Annotated,
+            IsLazy = isLazy,
+            LazyInnerType = lazyInnerType,
             Key = GetServiceKeyFromAttributes(parameterSymbol, compilation)
         };
     }
@@ -367,6 +371,19 @@ internal static class DependencyDictionary
                 return true;
             }
         }
+        return false;
+    }
+
+    private static bool CheckIsLazy(ITypeSymbol parameterType, out ITypeSymbol? innerType)
+    {
+        if (parameterType is INamedTypeSymbol { IsGenericType: true, Arity: 1 } namedType
+            && namedType.ConstructedFrom.ToDisplayString() == "System.Lazy<T>")
+        {
+            innerType = namedType.TypeArguments[0];
+            return true;
+        }
+
+        innerType = null;
         return false;
     }
 

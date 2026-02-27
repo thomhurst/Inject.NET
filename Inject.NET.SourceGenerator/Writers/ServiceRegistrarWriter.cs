@@ -120,8 +120,21 @@ internal static class ServiceRegistrarWriter
     {
         foreach (var serviceModelParameter in serviceModel.Parameters)
         {
+            // Handle Lazy<T> parameters
+            if (serviceModelParameter.IsLazy && serviceModelParameter.LazyInnerType != null)
+            {
+                var innerType = serviceModelParameter.LazyInnerType;
+                if (serviceModelParameter.Key is null)
+                {
+                    yield return $"new global::System.Lazy<{innerType.GloballyQualified()}>(() => scope.GetRequiredService<{innerType.GloballyQualified()}>())";
+                }
+                else
+                {
+                    yield return $"new global::System.Lazy<{innerType.GloballyQualified()}>(() => scope.GetRequiredService<{innerType.GloballyQualified()}>(\"{serviceModelParameter.Key}\"))";
+                }
+            }
             // Handle enumerable parameters - extract element type and call GetServices
-            if (serviceModelParameter.IsEnumerable)
+            else if (serviceModelParameter.IsEnumerable)
             {
                 // Extract element type from IEnumerable<T> or IReadOnlyList<T>
                 var elementType = serviceModelParameter.Type is Microsoft.CodeAnalysis.INamedTypeSymbol { IsGenericType: true } genericType
@@ -157,8 +170,21 @@ internal static class ServiceRegistrarWriter
 
         foreach (var serviceModelParameter in serviceModel.Parameters)
         {
+            // Handle Lazy<T> parameters in open generic contexts
+            if (serviceModelParameter.IsLazy && serviceModelParameter.LazyInnerType != null)
+            {
+                var innerType = serviceModelParameter.LazyInnerType;
+                if (serviceModelParameter.Key is null)
+                {
+                    yield return $"new global::System.Lazy<{innerType.GloballyQualified()}>(() => scope.GetRequiredService<{innerType.GloballyQualified()}>())";
+                }
+                else
+                {
+                    yield return $"new global::System.Lazy<{innerType.GloballyQualified()}>(() => scope.GetRequiredService<{innerType.GloballyQualified()}>(\"{serviceModelParameter.Key}\"))";
+                }
+            }
             // Check if this parameter is a generic type parameter
-            if (serviceModelParameter.Type.TypeKind == Microsoft.CodeAnalysis.TypeKind.TypeParameter)
+            else if (serviceModelParameter.Type.TypeKind == Microsoft.CodeAnalysis.TypeKind.TypeParameter)
             {
                 // Find the index of this type parameter in the generic type definition
                 var parameterIndex = -1;
@@ -224,6 +250,19 @@ internal static class ServiceRegistrarWriter
             {
                 // This is the inner service parameter
                 decoratorParams.Add(innerInvocation);
+            }
+            else if (param.IsLazy && param.LazyInnerType != null)
+            {
+                // Handle Lazy<T> parameters
+                var innerType = param.LazyInnerType;
+                if (param.Key is null)
+                {
+                    decoratorParams.Add($"new global::System.Lazy<{innerType.GloballyQualified()}>(() => scope.GetRequiredService<{innerType.GloballyQualified()}>())");
+                }
+                else
+                {
+                    decoratorParams.Add($"new global::System.Lazy<{innerType.GloballyQualified()}>(() => scope.GetRequiredService<{innerType.GloballyQualified()}>(\"{param.Key}\"))");
+                }
             }
             else
             {

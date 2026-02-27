@@ -187,7 +187,7 @@ internal static class ScopeWriter
     {
         // Build decorator constructor invocation
         var decoratorParams = new List<string>();
-        
+
         foreach (var param in decorator.Parameters)
         {
             // Check if this parameter is the decorated service
@@ -195,6 +195,30 @@ internal static class ScopeWriter
             {
                 // This is the inner service parameter
                 decoratorParams.Add(innerInvocation);
+            }
+            else if (param.IsLazy && param.LazyInnerType != null)
+            {
+                // Handle Lazy<T> parameters in decorators
+                var innerType = param.LazyInnerType;
+                var innerServiceKey = new ServiceModelCollection.ServiceKey(innerType, param.Key);
+                if (rootServiceModelCollection.Services.TryGetValue(innerServiceKey, out var innerServiceModels))
+                {
+                    var innerServiceModel = innerServiceModels[^1];
+                    string innerResolution;
+                    if (innerServiceModel.Lifetime == Lifetime.Singleton)
+                    {
+                        innerResolution = $"Singletons.{innerServiceModel.GetPropertyName()}";
+                    }
+                    else
+                    {
+                        innerResolution = innerServiceModel.GetPropertyName();
+                    }
+                    decoratorParams.Add($"new global::System.Lazy<{innerType.GloballyQualified()}>(() => {innerResolution})");
+                }
+                else
+                {
+                    decoratorParams.Add($"new global::System.Lazy<{innerType.GloballyQualified()}>(() => GetRequiredService<{innerType.GloballyQualified()}>())");
+                }
             }
             else
             {
@@ -219,7 +243,7 @@ internal static class ScopeWriter
                 }
             }
         }
-        
+
         return $"new {decorator.DecoratorType.GloballyQualified()}({string.Join(", ", decoratorParams)})";
     }
 }

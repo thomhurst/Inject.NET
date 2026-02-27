@@ -37,8 +37,15 @@ internal static class ParameterHelper
         ServiceModel serviceModel,
         Lifetime currentLifetime)
     {
+        // Handle Lazy<T> parameters by wrapping the inner type resolution
+        if (parameter.IsLazy && parameter.LazyInnerType != null)
+        {
+            var innerResolution = ResolveInnerLazyType(serviceProviderType, dependencies, parameter, serviceModel, currentLifetime);
+            return $"new global::System.Lazy<{parameter.LazyInnerType.GloballyQualified()}>(() => {innerResolution})";
+        }
+
         List<ServiceModel>? models = null;
-        
+
         // Handle type parameter resolution
         var typeParameterResult = HandleTypeParameter(dependencies, parameter, serviceModel);
         if (typeParameterResult.IsHandled)
@@ -91,6 +98,42 @@ internal static class ParameterHelper
 
         // At this point models should never be null
         return ResolveServiceParameter(serviceProviderType, dependencies, parameter, serviceModel, currentLifetime, models!);
+    }
+
+    /// <summary>
+    /// Resolves the inner type of a Lazy&lt;T&gt; parameter to generate the factory lambda body.
+    /// </summary>
+    private static string ResolveInnerLazyType(
+        INamedTypeSymbol serviceProviderType,
+        IDictionary<ServiceModelCollection.ServiceKey, List<ServiceModel>> dependencies,
+        Parameter parameter,
+        ServiceModel serviceModel,
+        Lifetime currentLifetime)
+    {
+        var innerType = parameter.LazyInnerType!;
+        var innerServiceKey = parameter.ServiceKey; // Already uses LazyInnerType
+
+        if (dependencies.TryGetValue(innerServiceKey, out var models))
+        {
+            var lastModel = models.Last();
+            return TypeHelper.GetOrConstructType(serviceProviderType, dependencies, lastModel, currentLifetime);
+        }
+
+        // Try unbound generic lookup
+        if (innerType is INamedTypeSymbol { IsGenericType: true } genericInnerType
+            && dependencies.TryGetValue(new ServiceModelCollection.ServiceKey(genericInnerType.ConstructUnboundGenericType(), parameter.Key), out models))
+        {
+            var lastModel = models.Last();
+            return TypeHelper.GetOrConstructType(serviceProviderType, dependencies, lastModel, currentLifetime);
+        }
+
+        // Fallback to runtime resolution
+        if (serviceModel.ResolvedFromParent)
+        {
+            return $"ParentScope.GetRequiredService<{innerType.GloballyQualified()}>()";
+        }
+
+        return $"this.GetRequiredService<{innerType.GloballyQualified()}>()";
     }
 
     /// <summary>

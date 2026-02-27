@@ -171,15 +171,25 @@ internal static class ScopeWriter
         {
             // Wrap the base implementation with decorators
             var wrappedInvocation = constructNewObject;
-            
+
             foreach (var decorator in decoratorList)
             {
                 wrappedInvocation = WrapWithDecorator(rootServiceModelCollection, decorator, wrappedInvocation);
             }
-            
+
+            if (serviceModel.ExternallyOwned)
+            {
+                return wrappedInvocation;
+            }
+
             return $"Register<{serviceModel.ServiceType.GloballyQualified()}>({wrappedInvocation})";
         }
-        
+
+        if (serviceModel.ExternallyOwned)
+        {
+            return constructNewObject;
+        }
+
         return $"Register<{serviceModel.ServiceType.GloballyQualified()}>({constructNewObject})";
     }
     

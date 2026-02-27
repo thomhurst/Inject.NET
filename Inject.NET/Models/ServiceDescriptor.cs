@@ -10,5 +10,11 @@ public class ServiceDescriptor
     public required Lifetime Lifetime { get; init; }
     public string? Key { get; init; }
     public bool IsComposite { get; init; }
+
+    /// <summary>
+    /// When true, the container will not dispose this service when the scope or provider is disposed.
+    /// </summary>
+    public bool ExternallyOwned { get; init; }
+
     public required Func<IServiceScope, Type, string?, object> Factory { get; init; }
 }

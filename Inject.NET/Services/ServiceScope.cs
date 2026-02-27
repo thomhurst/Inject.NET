@@ -222,6 +222,14 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
             }
         }
 
+        // If any descriptors for this service have predicates, find the matching one
+        descriptor = ResolveConditionalDescriptor(serviceKey, descriptor);
+
+        if (descriptor == null)
+        {
+            return ParentScope?.GetService(serviceKey, originatingScope);
+        }
+
         // For non-composite services, check cached enumerables as optimization
         if (!descriptor.IsComposite
             && _cachedEnumerables?.TryGetValue(serviceKey, out var cached) == true
@@ -249,6 +257,55 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
         }
 
         return obj;
+    }
+
+    /// <summary>
+    /// Resolves the appropriate service descriptor when conditional registrations (predicates) are present.
+    /// If the default descriptor has no predicate, it is returned as-is (fast path).
+    /// Otherwise, iterates descriptors from last to first and returns the first one whose predicate matches
+    /// or that has no predicate (unconditional fallback).
+    /// </summary>
+    /// <param name="serviceKey">The service key to look up descriptors for</param>
+    /// <param name="defaultDescriptor">The default (last) descriptor for this service key</param>
+    /// <returns>The matching descriptor, or null if no descriptor matches</returns>
+    private ServiceDescriptor? ResolveConditionalDescriptor(ServiceKey serviceKey, ServiceDescriptor defaultDescriptor)
+    {
+        // Fast path: if the default descriptor has no predicate, return it immediately
+        if (defaultDescriptor.Predicate == null)
+        {
+            return defaultDescriptor;
+        }
+
+        // Slow path: we have predicates, need to check them
+        if (!_serviceFactories.Descriptors.TryGetValue(serviceKey, out var descriptors))
+        {
+            return defaultDescriptor;
+        }
+
+        var context = new ConditionalContext
+        {
+            ServiceType = serviceKey.Type,
+            Key = serviceKey.Key
+        };
+
+        // Iterate from last to first (highest priority first)
+        for (var i = descriptors.Items.Length - 1; i >= 0; i--)
+        {
+            var candidate = descriptors.Items[i];
+
+            // No predicate means unconditional (fallback)
+            if (candidate.Predicate == null)
+            {
+                return candidate;
+            }
+
+            if (candidate.Predicate(context))
+            {
+                return candidate;
+            }
+        }
+
+        return null;
     }
 
     /// <summary>

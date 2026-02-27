@@ -16,5 +16,12 @@ public class ServiceDescriptor
     /// </summary>
     public bool ExternallyOwned { get; init; }
 
+    /// <summary>
+    /// An optional predicate that determines whether this service registration should be used.
+    /// When null, the registration is unconditional and always applies.
+    /// When set, the registration is only used if the predicate returns true for the given context.
+    /// </summary>
+    public Func<ConditionalContext, bool>? Predicate { get; init; }
+
     public required Func<IServiceScope, Type, string?, object> Factory { get; init; }
 }

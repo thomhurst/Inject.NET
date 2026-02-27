@@ -102,6 +102,41 @@ where TParentServiceScope : IServiceScope
             return ParentScope?.GetService(serviceKey, originatingScope);
         }
 
+        // Check if any descriptors have predicates - if so, resolve conditionally
+        if (serviceFactories.Descriptors.TryGetValue(serviceKey, out var descriptors))
+        {
+            var singletonDescriptors = descriptors.Items
+                .Where(d => d.Lifetime == Lifetime.Singleton)
+                .ToArray();
+
+            if (singletonDescriptors.Any(d => d.Predicate != null))
+            {
+                var context = new ConditionalContext
+                {
+                    ServiceType = serviceKey.Type,
+                    Key = serviceKey.Key
+                };
+
+                // Find matching descriptor from last to first (highest priority)
+                for (var i = singletonDescriptors.Length - 1; i >= 0; i--)
+                {
+                    var candidate = singletonDescriptors[i];
+
+                    if (candidate.Predicate == null || candidate.Predicate(context))
+                    {
+                        // Return the corresponding singleton instance
+                        // The services list aligns with singletonDescriptors by index
+                        if (i < services.Count)
+                        {
+                            return services[i];
+                        }
+                    }
+                }
+
+                return ParentScope?.GetService(serviceKey, originatingScope);
+            }
+        }
+
         return services[^1];
     }
 

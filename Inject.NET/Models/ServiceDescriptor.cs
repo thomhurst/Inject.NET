@@ -9,5 +9,6 @@ public class ServiceDescriptor
     public required Type ImplementationType { get; init; }
     public required Lifetime Lifetime { get; init; }
     public string? Key { get; init; }
+    public bool IsComposite { get; init; }
     public required Func<IServiceScope, Type, string?, object> Factory { get; init; }
 }

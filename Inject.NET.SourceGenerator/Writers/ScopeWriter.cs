@@ -14,7 +14,7 @@ internal static class ScopeWriter
     /// <param name="serviceProviderModel">The service provider model containing type information.</param>
     /// <param name="rootServiceModelCollection">The collection of all root service models.</param>
     public static void Write(SourceCodeWriter sourceCodeWriter, TypedServiceProviderModel serviceProviderModel,
-        RootServiceModelCollection rootServiceModelCollection, IDictionary<ServiceModelCollection.ServiceKey, List<DecoratorModel>> decorators = null)
+        RootServiceModelCollection rootServiceModelCollection, IDictionary<ServiceModelCollection.ServiceKey, List<DecoratorModel>> decorators = null, IDictionary<ServiceModelCollection.ServiceKey, CompositeModel> composites = null)
     {
         sourceCodeWriter.WriteLine(
             $"public class ServiceScope_ : global::Inject.NET.Services.ServiceScope<{serviceProviderModel.Prefix}ServiceScope_, {serviceProviderModel.Prefix}ServiceProvider_, {serviceProviderModel.Prefix}SingletonScope_, {serviceProviderModel.Prefix}ServiceScope_, {serviceProviderModel.Prefix}SingletonScope_, {serviceProviderModel.Prefix}ServiceProvider_>");

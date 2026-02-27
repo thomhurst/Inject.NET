@@ -119,8 +119,8 @@ internal static class ServiceRegistrarWriter
             finalInvocation = baseInvocation;
         }
 
-        // Check if method injection is needed
-        if (MethodInjectionHelper.HasInjectMethods(serviceModel))
+        // Check if post-construction injection (methods or properties) is needed
+        if (PropertyInjectionHelper.HasAnyPostConstructionInjection(serviceModel))
         {
             sourceCodeWriter.WriteLine("Factory = (scope, type, key) =>");
             sourceCodeWriter.WriteLine("{");
@@ -129,6 +129,11 @@ internal static class ServiceRegistrarWriter
             foreach (var injectCall in MethodInjectionHelper.GenerateFactoryInjectCalls(serviceModel, "__instance"))
             {
                 sourceCodeWriter.WriteLine(injectCall);
+            }
+
+            foreach (var propertyAssignment in PropertyInjectionHelper.GenerateFactoryPropertyAssignments(serviceModel, "__instance"))
+            {
+                sourceCodeWriter.WriteLine(propertyAssignment);
             }
 
             sourceCodeWriter.WriteLine("return __instance;");

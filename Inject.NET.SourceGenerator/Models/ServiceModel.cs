@@ -20,6 +20,8 @@ public record ServiceModel
 
     public required InjectMethod[] InjectMethods { get; init; }
 
+    public required InjectProperty[] InjectProperties { get; init; }
+
     public required int Index { get; init; }
     
     public ServiceModelCollection.ServiceKey ServiceKey => new(ServiceType, Key);

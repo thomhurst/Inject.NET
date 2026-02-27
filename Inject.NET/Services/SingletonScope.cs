@@ -71,7 +71,7 @@ where TParentServiceScope : IServiceScope
         {
             return this;
         }
-        
+
         if (serviceKey.Type == Types.ServiceProvider || serviceKey.Type == Types.SystemServiceProvider)
         {
             return ServiceProvider;
@@ -87,14 +87,35 @@ where TParentServiceScope : IServiceScope
             return ServiceProvider;
         }
 
+        // Check if there's a composite descriptor for this service key
+        // If so, resolve the composite directly instead of going through GetServices
+        // (which excludes composites from enumerable resolution)
+        if (serviceFactories.Descriptor.TryGetValue(serviceKey, out var descriptor) && descriptor.IsComposite)
+        {
+            return GetOrCreateComposite(serviceKey, descriptor, originatingScope);
+        }
+
         var services = GetServices(serviceKey);
 
         if (services.Count == 0)
         {
             return ParentScope?.GetService(serviceKey, originatingScope);
         }
-        
+
         return services[^1];
+    }
+
+    private readonly ConcurrentDictionary<ServiceKey, object> _compositeCache = new();
+
+    private object GetOrCreateComposite(ServiceKey serviceKey, ServiceDescriptor descriptor, IServiceScope originatingScope)
+    {
+        return _compositeCache.GetOrAdd(serviceKey, (key, state) =>
+        {
+            var (self, desc, originScope) = state;
+            var obj = desc.Factory(originScope, key.Type, desc.Key);
+            self.Register(obj);
+            return obj;
+        }, (this, descriptor, originatingScope));
     }
 
     public virtual IReadOnlyList<object> GetServices(ServiceKey serviceKey, IServiceScope originatingScope)
@@ -119,9 +140,9 @@ where TParentServiceScope : IServiceScope
                 return [];
             }
 
-            // Create local singleton instances
+            // Create local singleton instances, excluding composites from enumerable resolution
             var singletonDescriptors = descriptors!.Items
-                .Where(d => d.Lifetime == Lifetime.Singleton)
+                .Where(d => d.Lifetime == Lifetime.Singleton && !d.IsComposite)
                 .ToList();
 
             var results = new List<object>(singletonDescriptors.Count);

@@ -9,6 +9,7 @@ public class ServiceDescriptor
     public required Type ImplementationType { get; init; }
     public required Lifetime Lifetime { get; init; }
     public string? Key { get; init; }
+    public bool IsComposite { get; init; }
 
     /// <summary>
     /// When true, the container will not dispose this service when the scope or provider is disposed.

@@ -198,13 +198,9 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
             return CreateFuncFactory(innerType);
         }
 
-        if (_cachedEnumerables?.TryGetValue(serviceKey, out var cachedEnumerable) == true
-            && cachedEnumerable.Count > 0)
-        {
-            return cachedEnumerable[^1];
-        }
-
-        if (!_serviceFactories.Descriptor.TryGetValue(serviceKey, out var descriptor))
+        // Look up the descriptor to check for composites
+        ServiceDescriptor? descriptor = null;
+        if (!_serviceFactories.Descriptor.TryGetValue(serviceKey, out descriptor))
         {
             if (!_serviceFactories.LateBoundGenericDescriptor.TryGetValue(serviceKey, out descriptor))
             {
@@ -212,11 +208,26 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
                     !_serviceFactories.Descriptor.TryGetValue(
                         serviceKey with { Type = serviceKey.Type.GetGenericTypeDefinition() }, out descriptor))
                 {
+                    // No descriptor found - try cached enumerables before parent
+                    if (_cachedEnumerables?.TryGetValue(serviceKey, out var cachedEnumerable) == true
+                        && cachedEnumerable.Count > 0)
+                    {
+                        return cachedEnumerable[^1];
+                    }
+
                     return ParentScope?.GetService(serviceKey, originatingScope);
                 }
 
                 _serviceFactories.LateBoundGenericDescriptor[serviceKey] = descriptor;
             }
+        }
+
+        // For non-composite services, check cached enumerables as optimization
+        if (!descriptor.IsComposite
+            && _cachedEnumerables?.TryGetValue(serviceKey, out var cached) == true
+            && cached.Count > 0)
+        {
+            return cached[^1];
         }
 
         if (descriptor.Lifetime == Lifetime.Singleton)
@@ -288,7 +299,17 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
         {
             var serviceDescriptor = factories.Items[i];
             var lifetime = serviceDescriptor.Lifetime;
-            
+
+            // Skip composite services when resolving IEnumerable<T>
+            if (serviceDescriptor.IsComposite)
+            {
+                if (lifetime == Lifetime.Singleton)
+                {
+                    singletonIndex++;
+                }
+                continue;
+            }
+
             object? item;
             if (lifetime == Lifetime.Singleton)
             {
@@ -303,14 +324,14 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
                     (_forDisposal ??= Pools.DisposalTracker.Get()).Add(item);
                 }
             }
-            
+
             if(lifetime != Lifetime.Transient)
             {
                 if (!cachedEnumerables.TryGetValue(serviceKey, out var items))
                 {
                     cachedEnumerables[serviceKey] = items = [];
                 }
-                
+
                 items.Add(item);
             }
 

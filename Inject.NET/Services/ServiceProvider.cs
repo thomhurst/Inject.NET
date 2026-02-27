@@ -1,3 +1,4 @@
+using Inject.NET.Enums;
 using Inject.NET.Interfaces;
 using Inject.NET.Models;
 using IServiceProvider = Inject.NET.Interfaces.IServiceProvider;
@@ -112,6 +113,67 @@ public abstract class ServiceProvider<TSelf, TSingletonScope, TScope, TParentSer
     /// </summary>
     /// <returns>A new service scope instance</returns>
     public abstract TScope CreateTypedScope();
+
+    /// <summary>
+    /// Validates the service provider configuration by attempting to resolve all registered services.
+    /// Throws an <see cref="AggregateException"/> containing details of all services that failed to resolve.
+    /// </summary>
+    /// <remarks>
+    /// This method creates a temporary scope and attempts to resolve every registered service type.
+    /// Open generic type definitions are skipped since they require concrete type arguments.
+    /// The method checks singleton, scoped, and transient services.
+    /// </remarks>
+    /// <exception cref="AggregateException">
+    /// Thrown when one or more services fail to resolve. Each inner exception describes
+    /// which service type and implementation type failed, along with the underlying error.
+    /// </exception>
+    public async Task Verify()
+    {
+        var errors = new List<Exception>();
+
+        await using var scope = CreateTypedScope();
+
+        foreach (var (serviceKey, descriptors) in ServiceFactories.Descriptors)
+        {
+            // Skip open generic type definitions - they cannot be resolved without concrete type arguments
+            if (serviceKey.Type.IsGenericTypeDefinition)
+            {
+                continue;
+            }
+
+            foreach (var descriptor in descriptors.Items)
+            {
+                try
+                {
+                    var instance = descriptor.Factory(scope, serviceKey.Type, descriptor.Key);
+
+                    if (instance == null)
+                    {
+                        errors.Add(new InvalidOperationException(
+                            $"Service resolution returned null for service type '{serviceKey.Type.FullName}' " +
+                            $"(implementation: '{descriptor.ImplementationType.FullName}', " +
+                            $"lifetime: {descriptor.Lifetime}" +
+                            (serviceKey.Key != null ? $", key: '{serviceKey.Key}'" : "") + ")."));
+                    }
+                }
+                catch (Exception ex)
+                {
+                    errors.Add(new InvalidOperationException(
+                        $"Failed to resolve service type '{serviceKey.Type.FullName}' " +
+                        $"(implementation: '{descriptor.ImplementationType.FullName}', " +
+                        $"lifetime: {descriptor.Lifetime}" +
+                        (serviceKey.Key != null ? $", key: '{serviceKey.Key}'" : "") + "): " +
+                        ex.Message, ex));
+                }
+            }
+        }
+
+        if (errors.Count > 0)
+        {
+            throw new AggregateException(
+                $"Service provider verification failed with {errors.Count} error(s).", errors);
+        }
+    }
 
     /// <summary>
     /// Asynchronously disposes the service provider and all its resources.

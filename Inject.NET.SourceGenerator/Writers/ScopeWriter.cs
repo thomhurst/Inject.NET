@@ -51,17 +51,17 @@ internal static class ScopeWriter
                 sourceCodeWriter.WriteLine();
                 var propertyName = serviceModel.GetPropertyName();
 
-                var hasInjectMethods = MethodInjectionHelper.HasInjectMethods(serviceModel);
+                var hasPostConstructionInjection = PropertyInjectionHelper.HasAnyPostConstructionInjection(serviceModel);
 
-                if (hasInjectMethods && serviceModel.Lifetime != Lifetime.Singleton)
+                if (hasPostConstructionInjection && serviceModel.Lifetime != Lifetime.Singleton)
                 {
-                    // For services with inject methods, generate a helper method
+                    // For services with inject methods or properties, generate a helper method
                     WriteInjectMethodHelper(sourceCodeWriter, rootServiceModelCollection, serviceModel, decorators);
                 }
 
                 if (serviceModel.Lifetime != Lifetime.Scoped)
                 {
-                    if (hasInjectMethods && serviceModel.Lifetime != Lifetime.Singleton)
+                    if (hasPostConstructionInjection && serviceModel.Lifetime != Lifetime.Singleton)
                     {
                         sourceCodeWriter.WriteLine(
                             $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => Create_{propertyName}();");
@@ -77,7 +77,7 @@ internal static class ScopeWriter
                     var fieldName = NameHelper.AsField(serviceModel);
                     sourceCodeWriter.WriteLine($"private {serviceModel.ServiceType.GloballyQualified()}? {fieldName};");
 
-                    if (hasInjectMethods)
+                    if (hasPostConstructionInjection)
                     {
                         sourceCodeWriter.WriteLine(
                             $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => {fieldName} ??= Create_{propertyName}();");
@@ -156,6 +156,17 @@ internal static class ScopeWriter
                      "__instance"))
         {
             sourceCodeWriter.WriteLine(injectCall);
+        }
+
+        // Set inject properties on the instance
+        foreach (var propertyAssignment in PropertyInjectionHelper.GenerateScopePropertyAssignments(
+                     rootServiceModelCollection.ServiceProviderType,
+                     rootServiceModelCollection.Services,
+                     serviceModel,
+                     serviceModel.Lifetime,
+                     "__instance"))
+        {
+            sourceCodeWriter.WriteLine(propertyAssignment);
         }
 
         // Register and return for scoped, just return for transient

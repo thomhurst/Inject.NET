@@ -29,7 +29,7 @@ internal static class TenantScopeWriter
             sourceCodeWriter.WriteLine();
 
             var propertyName = serviceModel.GetPropertyName();
-            var hasInjectMethods = MethodInjectionHelper.HasInjectMethods(serviceModel);
+            var hasPostConstructionInjection = PropertyInjectionHelper.HasAnyPostConstructionInjection(serviceModel);
 
             if (serviceModel.Lifetime == Lifetime.Scoped)
             {
@@ -43,7 +43,7 @@ internal static class TenantScopeWriter
                     var fieldName = NameHelper.AsField(serviceModel);
                     sourceCodeWriter.WriteLine($"private {serviceModel.ServiceType.GloballyQualified()}? {fieldName};");
 
-                    if (hasInjectMethods)
+                    if (hasPostConstructionInjection)
                     {
                         WriteTenantInjectMethodHelper(sourceCodeWriter, serviceProviderModel, tenantServices, serviceModel, Lifetime.Scoped);
                         sourceCodeWriter.WriteLine(
@@ -70,7 +70,7 @@ internal static class TenantScopeWriter
 
             if (serviceModel.Lifetime == Lifetime.Transient)
             {
-                if (hasInjectMethods)
+                if (hasPostConstructionInjection)
                 {
                     WriteTenantInjectMethodHelper(sourceCodeWriter, serviceProviderModel, tenantServices, serviceModel, Lifetime.Transient);
                     sourceCodeWriter.WriteLine(
@@ -137,6 +137,17 @@ internal static class TenantScopeWriter
                      "__instance"))
         {
             sourceCodeWriter.WriteLine(injectCall);
+        }
+
+        // Set inject properties on the implementation-typed instance
+        foreach (var propertyAssignment in PropertyInjectionHelper.GenerateScopePropertyAssignments(
+                     serviceProviderModel.Type,
+                     tenantServices.Services,
+                     serviceModel,
+                     currentLifetime,
+                     "__instance"))
+        {
+            sourceCodeWriter.WriteLine(propertyAssignment);
         }
 
         // Register and return for scoped, just return for transient

@@ -144,6 +144,11 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
             return ServiceProvider;
         }
 
+        if (serviceKey.Type == Types.ServiceProviderIsService)
+        {
+            return ServiceProvider;
+        }
+
         // Check if requesting IEnumerable<T> - if so, get the element type and return collection
         if (serviceKey.Type.IsIEnumerable())
         {

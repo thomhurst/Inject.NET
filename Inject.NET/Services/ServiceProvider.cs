@@ -14,7 +14,7 @@ namespace Inject.NET.Services;
 /// <typeparam name="TParentServiceProvider">The parent service provider type</typeparam>
 /// <typeparam name="TParentSingletonScope">The parent singleton scope type</typeparam>
 /// <typeparam name="TParentServiceScope">The parent service scope type</typeparam>
-public abstract class ServiceProvider<TSelf, TSingletonScope, TScope, TParentServiceProvider, TParentSingletonScope, TParentServiceScope> : IServiceProviderRoot<TScope>
+public abstract class ServiceProvider<TSelf, TSingletonScope, TScope, TParentServiceProvider, TParentSingletonScope, TParentServiceScope> : IServiceProviderRoot<TScope>, Microsoft.Extensions.DependencyInjection.IServiceProviderIsService
     where TSelf : ServiceProvider<TSelf, TSingletonScope, TScope, TParentServiceProvider, TParentSingletonScope, TParentServiceScope>
     where TSingletonScope : SingletonScope<TSingletonScope, TSelf, TScope, TParentSingletonScope, TParentServiceScope, TParentServiceProvider>
     where TScope : ServiceScope<TScope, TSelf, TSingletonScope, TParentServiceScope, TParentSingletonScope, TParentServiceProvider>
@@ -138,6 +138,40 @@ public abstract class ServiceProvider<TSelf, TSingletonScope, TScope, TParentSer
     public object? GetService(Type serviceType)
     {
         return CreateScope().GetService(new ServiceKey(serviceType));
+    }
+
+    /// <summary>
+    /// Determines whether a service of the specified type is available from the service provider.
+    /// </summary>
+    /// <param name="serviceType">The type of service to check</param>
+    /// <returns>True if the service type is registered; otherwise, false</returns>
+    public bool IsService(Type serviceType)
+    {
+        // Built-in types are always available
+        if (serviceType == Types.ServiceScope
+            || serviceType == Types.ServiceProvider
+            || serviceType == Types.SystemServiceProvider
+            || serviceType == Types.ServiceProviderIsService)
+        {
+            return true;
+        }
+
+        // Check if the type is registered in the service factories
+        var serviceKey = new ServiceKey(serviceType);
+
+        if (ServiceFactories.Descriptors.ContainsKey(serviceKey))
+        {
+            return true;
+        }
+
+        // Check for open generic registrations
+        if (serviceType.IsConstructedGenericType
+            && ServiceFactories.Descriptors.ContainsKey(new ServiceKey(serviceType.GetGenericTypeDefinition())))
+        {
+            return true;
+        }
+
+        return false;
     }
 
     /// <summary>

@@ -13,7 +13,22 @@ public static class ConflictsHelper
     
     private static bool HasConflicts(this SourceProductionContext context, ServiceModel originatingServiceModel, ServiceModel serviceModel, IDictionary<ServiceModelCollection.ServiceKey, List<ServiceModel>> dependencies)
     {
-        return serviceModel.Parameters.Any(parameter => IsConflict(context, dependencies, originatingServiceModel, serviceModel, parameter));
+        // Check constructor parameters
+        if (serviceModel.Parameters.Any(parameter => IsConflict(context, dependencies, originatingServiceModel, serviceModel, parameter)))
+        {
+            return true;
+        }
+
+        // Check inject method parameters
+        foreach (var injectMethod in serviceModel.InjectMethods)
+        {
+            if (injectMethod.Parameters.Any(parameter => IsConflict(context, dependencies, originatingServiceModel, serviceModel, parameter)))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static bool IsConflict(SourceProductionContext context,

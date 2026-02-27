@@ -17,7 +17,9 @@ public record ServiceModel
     public required bool ResolvedFromParent { get; init; }
     
     public required Parameter[] Parameters { get; init; }
-    
+
+    public required InjectMethod[] InjectMethods { get; init; }
+
     public required int Index { get; init; }
     
     public ServiceModelCollection.ServiceKey ServiceKey => new(ServiceType, Key);

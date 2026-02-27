@@ -1,3 +1,4 @@
+using Inject.NET.SourceGenerator.Helpers;
 using Inject.NET.SourceGenerator.Models;
 
 namespace Inject.NET.SourceGenerator.Writers;
@@ -74,8 +75,6 @@ internal static class ServiceRegistrarWriter
             sourceCodeWriter.WriteLine($"Key = \"{serviceModel.Key}\",");
         }
                 
-        sourceCodeWriter.WriteLine("Factory = (scope, type, key) =>");
-
         string baseInvocation;
         if (serviceModel.IsOpenGeneric)
         {
@@ -95,6 +94,7 @@ internal static class ServiceRegistrarWriter
         }
 
         // Check if there are decorators for this service
+        string finalInvocation;
         if (decorators != null && decorators.TryGetValue(serviceModel.ServiceKey, out var decoratorList) && decoratorList.Count > 0)
         {
             // Wrap the base implementation with decorators
@@ -105,11 +105,32 @@ internal static class ServiceRegistrarWriter
                 wrappedInvocation = WrapWithDecorator(decorator, wrappedInvocation);
             }
 
-            sourceCodeWriter.WriteLine(wrappedInvocation);
+            finalInvocation = wrappedInvocation;
         }
         else
         {
-            sourceCodeWriter.WriteLine(baseInvocation);
+            finalInvocation = baseInvocation;
+        }
+
+        // Check if method injection is needed
+        if (MethodInjectionHelper.HasInjectMethods(serviceModel))
+        {
+            sourceCodeWriter.WriteLine("Factory = (scope, type, key) =>");
+            sourceCodeWriter.WriteLine("{");
+            sourceCodeWriter.WriteLine($"var __instance = {finalInvocation};");
+
+            foreach (var injectCall in MethodInjectionHelper.GenerateFactoryInjectCalls(serviceModel, "__instance"))
+            {
+                sourceCodeWriter.WriteLine(injectCall);
+            }
+
+            sourceCodeWriter.WriteLine("return __instance;");
+            sourceCodeWriter.WriteLine("}");
+        }
+        else
+        {
+            sourceCodeWriter.WriteLine("Factory = (scope, type, key) =>");
+            sourceCodeWriter.WriteLine(finalInvocation);
         }
 
         sourceCodeWriter.WriteLine("});");

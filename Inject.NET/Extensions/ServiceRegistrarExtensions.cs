@@ -362,4 +362,191 @@ public static class ServiceRegistrarExtensions
 
         return registrar;
     }
+
+    // ═══════════════════════════════════════════════════════════════════════════════════
+    // CONDITIONAL SINGLETON REGISTRATIONS
+    // Singleton services that are only resolved when their predicate matches
+    // ═══════════════════════════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// Registers a conditional singleton service with separate service and implementation types.
+    /// The registration is only used when the predicate returns true for the resolution context.
+    /// </summary>
+    /// <typeparam name="TService">The service type (interface or base class)</typeparam>
+    /// <typeparam name="TImplementation">The concrete implementation type</typeparam>
+    /// <param name="registrar">The service registrar</param>
+    /// <param name="predicate">A predicate that determines whether this registration should be used</param>
+    /// <returns>The registrar for fluent chaining</returns>
+    /// <example>
+    /// <code>
+    /// partial void ConfigureServices()
+    /// {
+    ///     this.AddSingleton&lt;ILogger, FileLogger&gt;(
+    ///         predicate: ctx => ctx.ConsumerType?.Name.EndsWith("Controller") == true);
+    ///     this.AddSingleton&lt;ILogger, ConsoleLogger&gt;(); // default fallback
+    /// }
+    /// </code>
+    /// </example>
+    public static IServiceRegistrar AddSingleton<TService, TImplementation>(
+        this IServiceRegistrar registrar,
+        Func<ConditionalContext, bool> predicate)
+        where TService : class
+        where TImplementation : class, TService
+    {
+        registrar.Register(new ServiceDescriptor
+        {
+            ServiceType = typeof(TService),
+            ImplementationType = typeof(TImplementation),
+            Lifetime = Lifetime.Singleton,
+            Factory = ServiceFactory<TImplementation>.Create,
+            Predicate = predicate
+        });
+
+        return registrar;
+    }
+
+    /// <summary>
+    /// Registers a conditional singleton service using a factory function.
+    /// The registration is only used when the predicate returns true for the resolution context.
+    /// </summary>
+    /// <typeparam name="TService">The service type</typeparam>
+    /// <param name="registrar">The service registrar</param>
+    /// <param name="factory">Factory function that creates the service instance</param>
+    /// <param name="predicate">A predicate that determines whether this registration should be used</param>
+    /// <returns>The registrar for fluent chaining</returns>
+    public static IServiceRegistrar AddSingleton<TService>(
+        this IServiceRegistrar registrar,
+        Func<IServiceScope, TService> factory,
+        Func<ConditionalContext, bool> predicate)
+        where TService : class
+    {
+        registrar.Register(new ServiceDescriptor
+        {
+            ServiceType = typeof(TService),
+            ImplementationType = typeof(TService),
+            Lifetime = Lifetime.Singleton,
+            Factory = (scope, type, key) => factory(scope)!,
+            Predicate = predicate
+        });
+
+        return registrar;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════════
+    // CONDITIONAL SCOPED REGISTRATIONS
+    // Scoped services that are only resolved when their predicate matches
+    // ═══════════════════════════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// Registers a conditional scoped service with separate service and implementation types.
+    /// The registration is only used when the predicate returns true for the resolution context.
+    /// </summary>
+    /// <typeparam name="TService">The service type (interface or base class)</typeparam>
+    /// <typeparam name="TImplementation">The concrete implementation type</typeparam>
+    /// <param name="registrar">The service registrar</param>
+    /// <param name="predicate">A predicate that determines whether this registration should be used</param>
+    /// <returns>The registrar for fluent chaining</returns>
+    public static IServiceRegistrar AddScoped<TService, TImplementation>(
+        this IServiceRegistrar registrar,
+        Func<ConditionalContext, bool> predicate)
+        where TService : class
+        where TImplementation : class, TService
+    {
+        registrar.Register(new ServiceDescriptor
+        {
+            ServiceType = typeof(TService),
+            ImplementationType = typeof(TImplementation),
+            Lifetime = Lifetime.Scoped,
+            Factory = ServiceFactory<TImplementation>.Create,
+            Predicate = predicate
+        });
+
+        return registrar;
+    }
+
+    /// <summary>
+    /// Registers a conditional scoped service using a factory function.
+    /// The registration is only used when the predicate returns true for the resolution context.
+    /// </summary>
+    /// <typeparam name="TService">The service type</typeparam>
+    /// <param name="registrar">The service registrar</param>
+    /// <param name="factory">Factory function that creates the service instance</param>
+    /// <param name="predicate">A predicate that determines whether this registration should be used</param>
+    /// <returns>The registrar for fluent chaining</returns>
+    public static IServiceRegistrar AddScoped<TService>(
+        this IServiceRegistrar registrar,
+        Func<IServiceScope, TService> factory,
+        Func<ConditionalContext, bool> predicate)
+        where TService : class
+    {
+        registrar.Register(new ServiceDescriptor
+        {
+            ServiceType = typeof(TService),
+            ImplementationType = typeof(TService),
+            Lifetime = Lifetime.Scoped,
+            Factory = (scope, type, key) => factory(scope)!,
+            Predicate = predicate
+        });
+
+        return registrar;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════════
+    // CONDITIONAL TRANSIENT REGISTRATIONS
+    // Transient services that are only resolved when their predicate matches
+    // ═══════════════════════════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// Registers a conditional transient service with separate service and implementation types.
+    /// The registration is only used when the predicate returns true for the resolution context.
+    /// </summary>
+    /// <typeparam name="TService">The service type (interface or base class)</typeparam>
+    /// <typeparam name="TImplementation">The concrete implementation type</typeparam>
+    /// <param name="registrar">The service registrar</param>
+    /// <param name="predicate">A predicate that determines whether this registration should be used</param>
+    /// <returns>The registrar for fluent chaining</returns>
+    public static IServiceRegistrar AddTransient<TService, TImplementation>(
+        this IServiceRegistrar registrar,
+        Func<ConditionalContext, bool> predicate)
+        where TService : class
+        where TImplementation : class, TService
+    {
+        registrar.Register(new ServiceDescriptor
+        {
+            ServiceType = typeof(TService),
+            ImplementationType = typeof(TImplementation),
+            Lifetime = Lifetime.Transient,
+            Factory = ServiceFactory<TImplementation>.Create,
+            Predicate = predicate
+        });
+
+        return registrar;
+    }
+
+    /// <summary>
+    /// Registers a conditional transient service using a factory function.
+    /// The registration is only used when the predicate returns true for the resolution context.
+    /// </summary>
+    /// <typeparam name="TService">The service type</typeparam>
+    /// <param name="registrar">The service registrar</param>
+    /// <param name="factory">Factory function that creates the service instance</param>
+    /// <param name="predicate">A predicate that determines whether this registration should be used</param>
+    /// <returns>The registrar for fluent chaining</returns>
+    public static IServiceRegistrar AddTransient<TService>(
+        this IServiceRegistrar registrar,
+        Func<IServiceScope, TService> factory,
+        Func<ConditionalContext, bool> predicate)
+        where TService : class
+    {
+        registrar.Register(new ServiceDescriptor
+        {
+            ServiceType = typeof(TService),
+            ImplementationType = typeof(TService),
+            Lifetime = Lifetime.Transient,
+            Factory = (scope, type, key) => factory(scope)!,
+            Predicate = predicate
+        });
+
+        return registrar;
+    }
 }

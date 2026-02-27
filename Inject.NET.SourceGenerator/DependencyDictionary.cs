@@ -239,6 +239,7 @@ internal static class DependencyDictionary
                     IsOpenGeneric = smb.IsOpenGeneric,
                     Parameters = parameters,
                     InjectMethods = smb.InjectMethods,
+                    InjectProperties = smb.InjectProperties,
                     Index = index,
                     TenantName = smb.TenantName,
                     ExternallyOwned = smb.ExternallyOwned
@@ -257,6 +258,7 @@ internal static class DependencyDictionary
 
         var parameters = GetParameters(implementationType, compilation);
         var injectMethods = GetInjectMethods(implementationType, compilation);
+        var injectProperties = GetInjectProperties(implementationType, compilation);
 
         list.Add(new ServiceModelBuilder
         {
@@ -265,6 +267,7 @@ internal static class DependencyDictionary
             IsOpenGeneric = isGenericDefinition,
             Parameters = parameters,
             InjectMethods = injectMethods,
+            InjectProperties = injectProperties,
             Key = key,
             Lifetime = lifetime,
             TenantName = tenantName,
@@ -482,6 +485,86 @@ internal static class DependencyDictionary
         }
 
         return methods.ToArray();
+    }
+
+    private static InjectProperty[] GetInjectProperties(ITypeSymbol type, Compilation compilation)
+    {
+        var injectAttributeType = compilation.GetTypeByMetadataName("Inject.NET.Attributes.InjectAttribute");
+
+        if (injectAttributeType is null)
+        {
+            return [];
+        }
+
+        var namedTypeSymbol = type as INamedTypeSymbol;
+
+        if (namedTypeSymbol?.IsUnboundGenericType is true)
+        {
+            namedTypeSymbol = namedTypeSymbol.OriginalDefinition;
+        }
+
+        if (namedTypeSymbol is null)
+        {
+            return [];
+        }
+
+        var properties = new List<InjectProperty>();
+
+        foreach (var member in namedTypeSymbol.GetMembers())
+        {
+            if (member is not IPropertySymbol propertySymbol)
+            {
+                continue;
+            }
+
+            var hasInjectAttribute = false;
+            foreach (var attr in propertySymbol.GetAttributes())
+            {
+                if (SymbolEqualityComparer.Default.Equals(attr.AttributeClass, injectAttributeType))
+                {
+                    hasInjectAttribute = true;
+                    break;
+                }
+            }
+
+            if (!hasInjectAttribute)
+            {
+                continue;
+            }
+
+            var isLazy = CheckIsLazy(propertySymbol.Type, out var lazyInnerType);
+            var isFunc = CheckIsFunc(propertySymbol.Type, out var funcInnerType);
+            var isEnumerable = CheckIsEnumerable(propertySymbol.Type, compilation);
+            var key = GetServiceKeyFromPropertyAttributes(propertySymbol, compilation);
+
+            properties.Add(new InjectProperty
+            {
+                PropertyName = propertySymbol.Name,
+                PropertyType = propertySymbol.Type,
+                IsNullable = propertySymbol.NullableAnnotation == NullableAnnotation.Annotated,
+                IsLazy = isLazy,
+                LazyInnerType = lazyInnerType,
+                IsFunc = isFunc,
+                FuncInnerType = funcInnerType,
+                IsEnumerable = isEnumerable,
+                Key = key
+            });
+        }
+
+        return properties.ToArray();
+    }
+
+    private static string? GetServiceKeyFromPropertyAttributes(IPropertySymbol propertySymbol, Compilation compilation)
+    {
+        var serviceKeyAttribute = compilation.GetTypeByMetadataName("Inject.NET.Attributes.ServiceKeyAttribute");
+        foreach (var attr in propertySymbol.GetAttributes())
+        {
+            if (SymbolEqualityComparer.Default.Equals(attr.AttributeClass, serviceKeyAttribute))
+            {
+                return attr.ConstructorArguments[0].Value as string;
+            }
+        }
+        return null;
     }
 
     private static string? GetServiceKeyFromAttributes(IParameterSymbol parameterSymbol, Compilation compilation)

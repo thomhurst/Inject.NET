@@ -32,7 +32,7 @@ internal static class MainWriter
         var serviceProviderType = serviceProviderModel.Type;
         var nestedClassCount = WriteNamespaceDeclaration(sourceCodeWriter, serviceProviderType);
         
-        var (rootDependencies, tenants, serviceModelCollection, decorators) = CollectDependenciesAndTenants(compilation, serviceProviderModel);
+        var (rootDependencies, tenants, serviceModelCollection, decorators, composites) = CollectDependenciesAndTenants(compilation, serviceProviderModel);
         
         // Validate service models for conflicts
         if (!ValidateServiceModels(sourceProductionContext, serviceModelCollection))
@@ -43,7 +43,7 @@ internal static class MainWriter
         sourceCodeWriter.WriteLine($"public partial class {serviceProviderType.Name}");
         sourceCodeWriter.WriteLine("{");
 
-        GenerateProviders(sourceProductionContext, sourceCodeWriter, serviceProviderModel, serviceModelCollection, rootDependencies, tenants, decorators);
+        GenerateProviders(sourceProductionContext, sourceCodeWriter, serviceProviderModel, serviceModelCollection, rootDependencies, tenants, decorators, composites);
         GenerateTenantProviders(sourceCodeWriter, serviceProviderModel, serviceModelCollection, tenants);
         
         sourceCodeWriter.WriteLine(
@@ -125,35 +125,65 @@ internal static class MainWriter
     /// <param name="compilation">The compilation context.</param>
     /// <param name="serviceProviderModel">The service provider model.</param>
     /// <returns>A tuple containing root dependencies, tenants, and the service model collection.</returns>
-    private static (IDictionary<ServiceModelCollection.ServiceKey, List<ServiceModel>> rootDependencies, Tenant[] tenants, RootServiceModelCollection serviceModelCollection, IDictionary<ServiceModelCollection.ServiceKey, List<DecoratorModel>> decorators) 
+    private static (IDictionary<ServiceModelCollection.ServiceKey, List<ServiceModel>> rootDependencies, Tenant[] tenants, RootServiceModelCollection serviceModelCollection, IDictionary<ServiceModelCollection.ServiceKey, List<DecoratorModel>> decorators, IDictionary<ServiceModelCollection.ServiceKey, CompositeModel> composites)
         CollectDependenciesAndTenants(Compilation compilation, TypedServiceProviderModel serviceProviderModel)
     {
         var dependencyInjectionAttributeType = compilation.GetTypeByMetadataName("Inject.NET.Attributes.IDependencyInjectionAttribute");
         var withTenantAttributeType = compilation.GetTypeByMetadataName("Inject.NET.Attributes.WithTenantAttribute`1");
         var decoratorAttributeType = compilation.GetTypeByMetadataName("Inject.NET.Attributes.DecoratorAttribute");
-        
+        var compositeAttributeType = compilation.GetTypeByMetadataName("Inject.NET.Attributes.CompositeAttribute");
+
         var attributes = serviceProviderModel.Type.GetAttributes();
-        
+
         var dependencyAttributes = attributes
             .Where(x => x.AttributeClass?.AllInterfaces.Contains(dependencyInjectionAttributeType,
                 SymbolEqualityComparer.Default) == true)
             .ToArray();
-        
+
         var withTenantAttributes = attributes
             .Where(x => x.AttributeClass?.IsGenericType is true && SymbolEqualityComparer.Default.Equals(withTenantAttributeType, x.AttributeClass.OriginalDefinition))
             .ToArray();
-        
+
         var decoratorAttributes = attributes
-            .Where(x => x.AttributeClass?.BaseType != null && 
+            .Where(x => x.AttributeClass?.BaseType != null &&
                    SymbolEqualityComparer.Default.Equals(decoratorAttributeType, x.AttributeClass.BaseType))
+            .ToArray();
+
+        var compositeAttributes = attributes
+            .Where(x => x.AttributeClass != null && IsCompositeAttribute(x.AttributeClass, compositeAttributeType))
             .ToArray();
 
         var rootDependencies = DependencyDictionary.Create(compilation, dependencyAttributes, null);
         var decorators = DecoratorDictionary.Create(compilation, decoratorAttributes, null);
+        var composites = CompositeDictionary.Create(compilation, compositeAttributes, null);
         var tenants = TenantHelper.ConstructTenants(compilation, withTenantAttributes, rootDependencies);
         var serviceModelCollection = TypeCollector.Collect(serviceProviderModel, compilation);
 
-        return (rootDependencies, tenants, serviceModelCollection, decorators);
+        return (rootDependencies, tenants, serviceModelCollection, decorators, composites);
+    }
+
+    /// <summary>
+    /// Checks if an attribute class is a CompositeAttribute or derives from it.
+    /// </summary>
+    private static bool IsCompositeAttribute(INamedTypeSymbol attributeClass, INamedTypeSymbol? compositeAttributeType)
+    {
+        if (compositeAttributeType is null)
+            return false;
+
+        // Check if the attribute class itself is CompositeAttribute
+        if (SymbolEqualityComparer.Default.Equals(attributeClass, compositeAttributeType))
+            return true;
+
+        // Check base type (for generic variants like CompositeAttribute<TService, TComposite>)
+        var baseType = attributeClass.BaseType;
+        while (baseType != null)
+        {
+            if (SymbolEqualityComparer.Default.Equals(baseType, compositeAttributeType))
+                return true;
+            baseType = baseType.BaseType;
+        }
+
+        return false;
     }
 
     /// <summary>
@@ -165,13 +195,13 @@ internal static class MainWriter
     /// <param name="serviceModelCollection">The collection of service models.</param>
     /// <param name="rootDependencies">The root dependency dictionary.</param>
     /// <param name="tenants">The collection of tenant definitions.</param>
-    private static void GenerateProviders(SourceProductionContext sourceProductionContext, SourceCodeWriter sourceCodeWriter, 
-        TypedServiceProviderModel serviceProviderModel, RootServiceModelCollection serviceModelCollection, IDictionary<ServiceModelCollection.ServiceKey, List<ServiceModel>> rootDependencies, Tenant[] tenants, IDictionary<ServiceModelCollection.ServiceKey, List<DecoratorModel>> decorators)
+    private static void GenerateProviders(SourceProductionContext sourceProductionContext, SourceCodeWriter sourceCodeWriter,
+        TypedServiceProviderModel serviceProviderModel, RootServiceModelCollection serviceModelCollection, IDictionary<ServiceModelCollection.ServiceKey, List<ServiceModel>> rootDependencies, Tenant[] tenants, IDictionary<ServiceModelCollection.ServiceKey, List<DecoratorModel>> decorators, IDictionary<ServiceModelCollection.ServiceKey, CompositeModel> composites)
     {
         ServiceProviderWriter.Write(sourceProductionContext, sourceCodeWriter, serviceProviderModel, serviceModelCollection, tenants);
         SingletonScopeWriter.Write(sourceCodeWriter, serviceProviderModel, serviceModelCollection, decorators);
-        ScopeWriter.Write(sourceCodeWriter, serviceProviderModel, serviceModelCollection, decorators);
-        ServiceRegistrarWriter.Write(sourceCodeWriter, serviceProviderModel, rootDependencies, decorators);
+        ScopeWriter.Write(sourceCodeWriter, serviceProviderModel, serviceModelCollection, decorators, composites);
+        ServiceRegistrarWriter.Write(sourceCodeWriter, serviceProviderModel, rootDependencies, decorators, composites);
     }
 
     /// <summary>

@@ -82,6 +82,14 @@ where TParentServiceScope : IServiceScope
             return ServiceProvider;
         }
 
+        // Check if there's a composite descriptor for this service key
+        // If so, resolve the composite directly instead of going through GetServices
+        // (which excludes composites from enumerable resolution)
+        if (serviceFactories.Descriptor.TryGetValue(serviceKey, out var descriptor) && descriptor.IsComposite)
+        {
+            return GetOrCreateComposite(serviceKey, descriptor, originatingScope);
+        }
+
         var services = GetServices(serviceKey);
 
         if (services.Count == 0)
@@ -127,6 +135,19 @@ where TParentServiceScope : IServiceScope
         return services[^1];
     }
 
+    private readonly ConcurrentDictionary<ServiceKey, object> _compositeCache = new();
+
+    private object GetOrCreateComposite(ServiceKey serviceKey, ServiceDescriptor descriptor, IServiceScope originatingScope)
+    {
+        return _compositeCache.GetOrAdd(serviceKey, (key, state) =>
+        {
+            var (self, desc, originScope) = state;
+            var obj = desc.Factory(originScope, key.Type, desc.Key);
+            self.Register(obj);
+            return obj;
+        }, (this, descriptor, originatingScope));
+    }
+
     public virtual IReadOnlyList<object> GetServices(ServiceKey serviceKey, IServiceScope originatingScope)
     {
         return _singletonCollectionCache.GetOrAdd(serviceKey, (key, state) =>
@@ -149,9 +170,9 @@ where TParentServiceScope : IServiceScope
                 return [];
             }
 
-            // Create local singleton instances
+            // Create local singleton instances, excluding composites from enumerable resolution
             var singletonDescriptors = descriptors!.Items
-                .Where(d => d.Lifetime == Lifetime.Singleton)
+                .Where(d => d.Lifetime == Lifetime.Singleton && !d.IsComposite)
                 .ToList();
 
             var results = new List<object>(singletonDescriptors.Count);

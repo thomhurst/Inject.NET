@@ -82,6 +82,11 @@ where TParentServiceScope : IServiceScope
             return ServiceProvider;
         }
 
+        if (serviceKey.Type == Types.ServiceScopeFactory)
+        {
+            return ServiceProvider;
+        }
+
         // Check if there's a composite descriptor for this service key
         // If so, resolve the composite directly instead of going through GetServices
         // (which excludes composites from enumerable resolution)

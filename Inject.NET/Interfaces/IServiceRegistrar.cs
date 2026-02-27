@@ -9,6 +9,11 @@ namespace Inject.NET.Interfaces;
 public interface IServiceRegistrar
 {
     /// <summary>
+    /// Gets the service factory builders that collect service descriptors for provider construction.
+    /// </summary>
+    ServiceFactoryBuilders ServiceFactoryBuilders { get; }
+
+    /// <summary>
     /// Registers a service descriptor with the registrar.
     /// </summary>
     /// <param name="descriptor">The service descriptor containing type, implementation, and lifetime information</param>

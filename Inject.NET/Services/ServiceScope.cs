@@ -221,13 +221,13 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
 
         var obj = descriptor.Factory(originatingScope, serviceKey.Type, descriptor.Key);
 
-            
+
         if(descriptor.Lifetime != Lifetime.Transient)
         {
             (_cachedObjects ??= Pools.Objects.Get())[serviceKey] = obj;
         }
 
-        if(obj is IAsyncDisposable or IDisposable)
+        if(!descriptor.ExternallyOwned && obj is IAsyncDisposable or IDisposable)
         {
             (_forDisposal ??= Pools.DisposalTracker.Get()).Add(obj);
         }
@@ -292,8 +292,8 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
             else
             {
                 item = serviceDescriptor.Factory(scope, serviceKey.Type, serviceDescriptor.Key);
-                
-                if(item is IAsyncDisposable or IDisposable)
+
+                if(!serviceDescriptor.ExternallyOwned && item is IAsyncDisposable or IDisposable)
                 {
                     (_forDisposal ??= Pools.DisposalTracker.Get()).Add(item);
                 }

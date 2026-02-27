@@ -78,6 +78,11 @@ internal static class TenantServiceRegistrarWriter
             sourceCodeWriter.WriteLine($"Key = \"{serviceModel.Key}\",");
         }
 
+        if (serviceModel.ExternallyOwned)
+        {
+            sourceCodeWriter.WriteLine("ExternallyOwned = true,");
+        }
+
         sourceCodeWriter.WriteLine("Factory = (scope, type, key) =>");
 
         if (serviceModel.IsOpenGeneric)

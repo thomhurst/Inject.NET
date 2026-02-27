@@ -68,10 +68,15 @@ internal static class ServiceRegistrarWriter
         sourceCodeWriter.WriteLine($"ServiceType = typeof({serviceModel.ServiceType.GloballyQualified()}),");
         sourceCodeWriter.WriteLine($"ImplementationType = typeof({serviceModel.ImplementationType.GloballyQualified()}),");
         sourceCodeWriter.WriteLine($"Lifetime = Inject.NET.Enums.Lifetime.{serviceModel.Lifetime.ToString()},");
-                
+
         if(serviceModel.Key is not null)
         {
             sourceCodeWriter.WriteLine($"Key = \"{serviceModel.Key}\",");
+        }
+
+        if(serviceModel.ExternallyOwned)
+        {
+            sourceCodeWriter.WriteLine("ExternallyOwned = true,");
         }
                 
         sourceCodeWriter.WriteLine("Factory = (scope, type, key) =>");

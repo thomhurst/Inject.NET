@@ -338,6 +338,7 @@ internal static class DependencyDictionary
     private static Parameter Map(IParameterSymbol parameterSymbol, Compilation compilation)
     {
         var isLazy = CheckIsLazy(parameterSymbol.Type, out var lazyInnerType);
+        var isFunc = CheckIsFunc(parameterSymbol.Type, out var funcInnerType);
 
         return new Parameter
         {
@@ -348,8 +349,25 @@ internal static class DependencyDictionary
             IsNullable = parameterSymbol.NullableAnnotation == NullableAnnotation.Annotated,
             IsLazy = isLazy,
             LazyInnerType = lazyInnerType,
+            IsFunc = isFunc,
+            FuncInnerType = funcInnerType,
             Key = GetServiceKeyFromAttributes(parameterSymbol, compilation)
         };
+    }
+
+    private static bool CheckIsFunc(ITypeSymbol parameterType, out ITypeSymbol? innerType)
+    {
+        innerType = null;
+
+        if (parameterType is INamedTypeSymbol { IsGenericType: true } namedType
+            && namedType.TypeArguments.Length == 1
+            && namedType.OriginalDefinition.ToDisplayString() == "System.Func<TResult>")
+        {
+            innerType = namedType.TypeArguments[0];
+            return true;
+        }
+
+        return false;
     }
 
     private static bool CheckIsEnumerable(ITypeSymbol parameterType, Compilation compilation)

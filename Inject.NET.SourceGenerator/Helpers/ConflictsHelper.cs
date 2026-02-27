@@ -22,6 +22,12 @@ public static class ConflictsHelper
         ServiceModel serviceModel,
         Parameter parameter)
     {
+        // Func<T> parameters defer resolution and cannot cause circular dependencies
+        if (parameter.IsFunc)
+        {
+            return false;
+        }
+
         if (!dependencies.TryGetValue(parameter.ServiceKey, out var models))
         {
             return false;

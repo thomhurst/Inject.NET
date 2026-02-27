@@ -133,6 +133,12 @@ internal static class ServiceRegistrarWriter
                     yield return $"new global::System.Lazy<{innerType.GloballyQualified()}>(() => scope.GetRequiredService<{innerType.GloballyQualified()}>(\"{serviceModelParameter.Key}\"))";
                 }
             }
+            // Handle Func<T> parameters - wrap service resolution in a lambda
+            else if (serviceModelParameter.IsFunc && serviceModelParameter.FuncInnerType != null)
+            {
+                var innerType = serviceModelParameter.FuncInnerType;
+                yield return $"new global::System.Func<{innerType.GloballyQualified()}>(() => scope.GetRequiredService<{innerType.GloballyQualified()}>())";
+            }
             // Handle enumerable parameters - extract element type and call GetServices
             else if (serviceModelParameter.IsEnumerable)
             {
@@ -182,6 +188,12 @@ internal static class ServiceRegistrarWriter
                 {
                     yield return $"new global::System.Lazy<{innerType.GloballyQualified()}>(() => scope.GetRequiredService<{innerType.GloballyQualified()}>(\"{serviceModelParameter.Key}\"))";
                 }
+            }
+            // Handle Func<T> parameters
+            else if (serviceModelParameter.IsFunc && serviceModelParameter.FuncInnerType != null)
+            {
+                var innerType = serviceModelParameter.FuncInnerType;
+                yield return $"new global::System.Func<{innerType.GloballyQualified()}>(() => scope.GetRequiredService<{innerType.GloballyQualified()}>())";
             }
             // Check if this parameter is a generic type parameter
             else if (serviceModelParameter.Type.TypeKind == Microsoft.CodeAnalysis.TypeKind.TypeParameter)
@@ -267,7 +279,12 @@ internal static class ServiceRegistrarWriter
             else
             {
                 // This is another dependency - resolve it from scope
-                if (param.IsEnumerable)
+                if (param.IsFunc && param.FuncInnerType != null)
+                {
+                    var innerType = param.FuncInnerType;
+                    decoratorParams.Add($"new global::System.Func<{innerType.GloballyQualified()}>(() => scope.GetRequiredService<{innerType.GloballyQualified()}>())");
+                }
+                else if (param.IsEnumerable)
                 {
                     // Handle enumerable parameters
                     var elementType = param.Type is Microsoft.CodeAnalysis.INamedTypeSymbol { IsGenericType: true } genericType

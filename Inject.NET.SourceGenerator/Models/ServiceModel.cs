@@ -30,6 +30,7 @@ public record ServiceModel
     public IEnumerable<ServiceModel> GetAllNestedParameters(IDictionary<ServiceModelCollection.ServiceKey, List<ServiceModel>> dependencyDictionary)
     {
         foreach (var serviceModel in Parameters
+                     .Where(x => !x.IsFunc) // Func<T> defers resolution, so skip it for nested parameter analysis
                      .Where(x => dependencyDictionary.Keys.Select(k => k.Type).Contains(x.Type, SymbolEqualityComparer.Default))
                      .SelectMany(x => dependencyDictionary[new ServiceModelCollection.ServiceKey(x.Type, x.Key)]))
         {

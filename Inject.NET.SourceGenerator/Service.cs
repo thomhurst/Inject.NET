@@ -48,11 +48,15 @@ public record Parameter
     public required bool IsEnumerable { get; init; }
     public bool IsLazy { get; init; }
     public ITypeSymbol? LazyInnerType { get; init; }
+    public bool IsFunc { get; init; }
+    public ITypeSymbol? FuncInnerType { get; init; }
     public string? Key { get; init; }
 
     public ServiceModelCollection.ServiceKey ServiceKey => IsLazy && LazyInnerType != null
         ? new(LazyInnerType, Key)
-        : new(Type, Key);
+        : IsFunc && FuncInnerType != null
+            ? new(FuncInnerType, Key)
+            : new(Type, Key);
 
     public string WriteSource()
     {

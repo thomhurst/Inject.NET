@@ -107,7 +107,37 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
             return lazyFactory.GetMethod("Create")!.Invoke(factory, null);
         }
 
+        // Handle Func<T> - create a factory delegate that resolves T on each call
+        if (type.IsFunc())
+        {
+            var innerType = type.GetGenericArguments()[0];
+            return CreateFuncFactory(innerType);
+        }
+
         return GetService(serviceKey);
+    }
+
+    /// <summary>
+    /// Creates a Func&lt;T&gt; delegate that resolves the inner type from this scope.
+    /// </summary>
+    private object CreateFuncFactory(Type innerType)
+    {
+        var serviceKey = new ServiceKey(innerType);
+        // Use Delegate.CreateDelegate equivalent via expression:
+        // Build a Func<T> that calls GetService(serviceKey) and casts to T
+        var scope = this;
+        Func<object?> objectFactory = () => scope.GetService(serviceKey);
+
+        // Create a properly typed Func<T> via the generic helper method
+        var createMethod = typeof(ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope, TParentSingletonScope, TParentServiceProvider>)
+            .GetMethod(nameof(WrapFuncFactory), System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!
+            .MakeGenericMethod(innerType);
+        return createMethod.Invoke(null, [objectFactory])!;
+    }
+
+    private static Func<T> WrapFuncFactory<T>(Func<object?> factory)
+    {
+        return () => (T)factory()!;
     }
 
     /// <summary>
@@ -154,6 +184,13 @@ public class ServiceScope<TSelf, TServiceProvider, TSingletonScope, TParentScope
         {
             var elementType = serviceKey.Type.GetGenericArguments()[0];
             return GetServices(serviceKey with { Type = elementType });
+        }
+
+        // Handle Func<T> - create a factory delegate that resolves T on each call
+        if (serviceKey.Type.IsFunc())
+        {
+            var innerType = serviceKey.Type.GetGenericArguments()[0];
+            return CreateFuncFactory(innerType);
         }
 
         if (_cachedEnumerables?.TryGetValue(serviceKey, out var cachedEnumerable) == true

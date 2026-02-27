@@ -108,18 +108,32 @@ internal static class TenantServiceRegistrarWriter
     {
         foreach (var serviceModelParameter in serviceModel.Parameters)
         {
-            yield return $"scope.GetRequiredService<{serviceModelParameter.Type.GloballyQualified()}>()";
+            if (serviceModelParameter.IsFunc && serviceModelParameter.FuncInnerType != null)
+            {
+                var innerType = serviceModelParameter.FuncInnerType;
+                yield return $"new global::System.Func<{innerType.GloballyQualified()}>(() => scope.GetRequiredService<{innerType.GloballyQualified()}>())";
+            }
+            else
+            {
+                yield return $"scope.GetRequiredService<{serviceModelParameter.Type.GloballyQualified()}>()";
+            }
         }
     }
     
     private static IEnumerable<string> BuildOpenGenericParameters(ServiceModel serviceModel)
     {
         var genericTypeParameters = serviceModel.ImplementationType.TypeParameters;
-        
+
         foreach (var serviceModelParameter in serviceModel.Parameters)
         {
+            // Handle Func<T> parameters
+            if (serviceModelParameter.IsFunc && serviceModelParameter.FuncInnerType != null)
+            {
+                var innerType = serviceModelParameter.FuncInnerType;
+                yield return $"new global::System.Func<{innerType.GloballyQualified()}>(() => scope.GetRequiredService<{innerType.GloballyQualified()}>())";
+            }
             // Check if this parameter is a generic type parameter
-            if (serviceModelParameter.Type.TypeKind == Microsoft.CodeAnalysis.TypeKind.TypeParameter)
+            else if (serviceModelParameter.Type.TypeKind == Microsoft.CodeAnalysis.TypeKind.TypeParameter)
             {
                 // Find the index of this type parameter in the generic type definition
                 var parameterIndex = -1;
@@ -131,7 +145,7 @@ internal static class TenantServiceRegistrarWriter
                         break;
                     }
                 }
-                
+
                 if (parameterIndex >= 0)
                 {
                     yield return $"scope.GetService(type.GenericTypeArguments[{parameterIndex}])";

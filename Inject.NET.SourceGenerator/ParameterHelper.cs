@@ -76,6 +76,39 @@ internal static class ParameterHelper
             return $"[..this.GetServices<{elementType.GloballyQualified()}>({key})]";
         }
 
+        // Handle Func<T> parameters - wrap service resolution in a lambda
+        // Since Func<T> defers resolution, we use the inner service's own lifetime
+        // as the currentLifetime to bypass captive dependency checks.
+        if (parameter.IsFunc && parameter.FuncInnerType != null)
+        {
+            var innerType = parameter.FuncInnerType;
+            var innerServiceKey = new ServiceModelCollection.ServiceKey(innerType, parameter.Key);
+
+            if (dependencies.TryGetValue(innerServiceKey, out var funcModels))
+            {
+                var lastModel = funcModels.Last();
+                // Use the inner service's own lifetime to avoid false captive dependency errors
+                var resolution = TypeHelper.GetOrConstructType(serviceProviderType, dependencies, lastModel, lastModel.Lifetime);
+                return $"new global::System.Func<{innerType.GloballyQualified()}>(() => {resolution})";
+            }
+
+            // Check for open generic match
+            if (innerType is INamedTypeSymbol { IsGenericType: true } innerGenericType
+                && dependencies.TryGetValue(new ServiceModelCollection.ServiceKey(innerGenericType.ConstructUnboundGenericType(), parameter.Key), out funcModels))
+            {
+                var lastModel = funcModels.Last();
+                var resolution = TypeHelper.GetOrConstructType(serviceProviderType, dependencies, lastModel, lastModel.Lifetime);
+                return $"new global::System.Func<{innerType.GloballyQualified()}>(() => {resolution})";
+            }
+
+            // Fallback to runtime resolution
+            if (serviceModel.ResolvedFromParent)
+            {
+                return $"new global::System.Func<{innerType.GloballyQualified()}>(() => ParentScope.GetRequiredService<{innerType.GloballyQualified()}>())";
+            }
+            return $"new global::System.Func<{innerType.GloballyQualified()}>(() => this.GetRequiredService<{innerType.GloballyQualified()}>())";
+        }
+
         // Handle optional and nullable parameters - this matches the original logic exactly
         if (models is null && !dependencies.TryGetValue(parameter.ServiceKey, out models))
         {

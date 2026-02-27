@@ -220,6 +220,22 @@ internal static class ScopeWriter
                     decoratorParams.Add($"new global::System.Lazy<{innerType.GloballyQualified()}>(() => GetRequiredService<{innerType.GloballyQualified()}>())");
                 }
             }
+            else if (param.IsFunc && param.FuncInnerType != null)
+            {
+                // Handle Func<T> parameters
+                var innerType = param.FuncInnerType;
+                var innerServiceKey = new ServiceModelCollection.ServiceKey(innerType, param.Key);
+                if (rootServiceModelCollection.Services.TryGetValue(innerServiceKey, out var funcServiceModels))
+                {
+                    var funcServiceModel = funcServiceModels[^1];
+                    var resolution = TypeHelper.GetOrConstructType(rootServiceModelCollection.ServiceProviderType, rootServiceModelCollection.Services, funcServiceModel, Lifetime.Scoped);
+                    decoratorParams.Add($"new global::System.Func<{innerType.GloballyQualified()}>(() => {resolution})");
+                }
+                else
+                {
+                    decoratorParams.Add($"new global::System.Func<{innerType.GloballyQualified()}>(() => GetRequiredService<{innerType.GloballyQualified()}>())");
+                }
+            }
             else
             {
                 // This is another dependency - resolve it normally

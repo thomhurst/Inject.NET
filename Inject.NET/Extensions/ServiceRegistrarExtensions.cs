@@ -76,6 +76,74 @@ public static class ServiceRegistrarExtensions
     }
 
     /// <summary>
+    /// Registers a pre-existing object instance as a singleton service.
+    /// The container will always return this exact instance when the service is requested.
+    /// The instance is externally owned and will NOT be disposed by the container.
+    /// </summary>
+    /// <typeparam name="TService">The service type (interface or base class)</typeparam>
+    /// <param name="registrar">The service registrar</param>
+    /// <param name="instance">The pre-existing instance to register</param>
+    /// <returns>The registrar for fluent chaining</returns>
+    /// <example>
+    /// <code>
+    /// partial void ConfigureServices()
+    /// {
+    ///     var config = LoadConfiguration();
+    ///     this.AddSingleton&lt;IConfiguration&gt;(config);
+    /// }
+    /// </code>
+    /// </example>
+    public static IServiceRegistrar AddSingleton<TService>(
+        this IServiceRegistrar registrar,
+        TService instance)
+        where TService : class
+    {
+        registrar.Register(new ServiceDescriptor
+        {
+            ServiceType = typeof(TService),
+            ImplementationType = instance.GetType(),
+            Lifetime = Lifetime.Singleton,
+            Factory = (scope, type, key) => instance
+        });
+
+        return registrar;
+    }
+
+    /// <summary>
+    /// Registers a pre-existing object instance as a singleton service using a non-generic API.
+    /// The container will always return this exact instance when the service is requested.
+    /// The instance is externally owned and will NOT be disposed by the container.
+    /// </summary>
+    /// <param name="registrar">The service registrar</param>
+    /// <param name="serviceType">The service type to register the instance as</param>
+    /// <param name="instance">The pre-existing instance to register</param>
+    /// <returns>The registrar for fluent chaining</returns>
+    /// <example>
+    /// <code>
+    /// partial void ConfigureServices()
+    /// {
+    ///     var config = LoadConfiguration();
+    ///     this.AddSingleton(typeof(IConfiguration), config);
+    /// }
+    /// </code>
+    /// </example>
+    public static IServiceRegistrar AddSingleton(
+        this IServiceRegistrar registrar,
+        Type serviceType,
+        object instance)
+    {
+        registrar.Register(new ServiceDescriptor
+        {
+            ServiceType = serviceType,
+            ImplementationType = instance.GetType(),
+            Lifetime = Lifetime.Singleton,
+            Factory = (scope, type, key) => instance
+        });
+
+        return registrar;
+    }
+
+    /// <summary>
     /// Registers a singleton service using a factory function.
     /// The factory is called once when the service is first requested.
     /// </summary>

@@ -24,6 +24,8 @@ public record ServiceModel
     
     public ServiceModelCollection.ServiceKey ServiceKey => new(ServiceType, Key);
     public required string? TenantName { get; init; }
+
+    public required bool ExternallyOwned { get; init; }
     
     // Cached property/field names for performance
     private string? _cachedPropertyName;

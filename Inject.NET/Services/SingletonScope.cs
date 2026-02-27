@@ -124,7 +124,10 @@ where TParentServiceScope : IServiceScope
             foreach (var descriptor in singletonDescriptors)
             {
                 var obj = descriptor.Factory(originScope, key.Type, descriptor.Key);
-                self.Register(obj);
+                if (!descriptor.ExternallyOwned)
+                {
+                    self.Register(obj);
+                }
                 results.Add(obj);
             }
 

@@ -51,8 +51,13 @@ internal static class TenantScopeWriter
                     }
                     else
                     {
+                        var constructNewObject = ObjectConstructionHelper.ConstructNewObject(serviceProviderModel.Type, tenantServices.Services, serviceModel, Lifetime.Scoped);
+                        var invocation = serviceModel.ExternallyOwned
+                            ? constructNewObject
+                            : $"Register<{serviceModel.ServiceType.GloballyQualified()}>({constructNewObject})";
+
                         sourceCodeWriter.WriteLine(
-                            $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => {fieldName} ??= Register<{serviceModel.ServiceType.GloballyQualified()}>({ObjectConstructionHelper.ConstructNewObject(serviceProviderModel.Type, tenantServices.Services, serviceModel, Lifetime.Scoped)});");
+                            $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => {fieldName} ??= {invocation};");
                     }
                 }
             }

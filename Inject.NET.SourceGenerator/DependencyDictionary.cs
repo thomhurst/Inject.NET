@@ -56,22 +56,26 @@ internal static class DependencyDictionary
             }
 
             string? key = null;
+            bool externallyOwned = false;
             foreach (var namedArg in attributeData.NamedArguments)
             {
                 if (namedArg.Key == "Key")
                 {
                     key = namedArg.Value.Value as string;
-                    break;
+                }
+                else if (namedArg.Key == "ExternallyOwned")
+                {
+                    externallyOwned = namedArg.Value.Value is true;
                 }
             }
             var lifetime = EnumPolyfill.Parse<Lifetime>(attributeData.AttributeClass!.Name.Replace("Attribute", string.Empty));
             var isGenericDefinition = serviceType.IsGenericDefinition();
             
-            Add(compilation, serviceType, implementationType, serviceBuilders, key, lifetime, tenantName);
+            Add(compilation, serviceType, implementationType, serviceBuilders, key, lifetime, tenantName, externallyOwned);
 
             if (isGenericDefinition)
             {
-                ProcessGenericTypes(compilation, serviceType, implementationType, serviceBuilders, key, lifetime, tenantName);
+                ProcessGenericTypes(compilation, serviceType, implementationType, serviceBuilders, key, lifetime, tenantName, externallyOwned);
             }
         }
     }
@@ -87,9 +91,9 @@ internal static class DependencyDictionary
     /// <param name="key">Optional service key for keyed services.</param>
     /// <param name="lifetime">Service lifetime scope.</param>
     /// <param name="tenantName">Optional tenant name for multi-tenant scenarios.</param>
-    private static void ProcessGenericTypes(Compilation compilation, INamedTypeSymbol serviceType, 
-        INamedTypeSymbol implementationType, List<ServiceModelBuilder> serviceBuilders, 
-        string? key, Lifetime lifetime, string? tenantName)
+    private static void ProcessGenericTypes(Compilation compilation, INamedTypeSymbol serviceType,
+        INamedTypeSymbol implementationType, List<ServiceModelBuilder> serviceBuilders,
+        string? key, Lifetime lifetime, string? tenantName, bool externallyOwned)
     {
         var constructedTypes = GenericTypeHelper.GetConstructedTypes(compilation, serviceType);
 
@@ -114,8 +118,9 @@ internal static class DependencyDictionary
                         : implementationType,
                     serviceBuilders,
                     key,
-                    lifetime, 
-                    tenantName);
+                    lifetime,
+                    tenantName,
+                    externallyOwned);
             }
         }
     }
@@ -235,7 +240,8 @@ internal static class DependencyDictionary
                     Parameters = parameters,
                     InjectMethods = smb.InjectMethods,
                     Index = index,
-                    TenantName = smb.TenantName
+                    TenantName = smb.TenantName,
+                    ExternallyOwned = smb.ExternallyOwned
                 });
             }
             result[kvp.Key] = serviceModels;
@@ -245,7 +251,7 @@ internal static class DependencyDictionary
     }
 
     private static void Add(Compilation compilation, INamedTypeSymbol serviceType, INamedTypeSymbol implementationType,
-        List<ServiceModelBuilder> list, string? key, Lifetime lifetime, string? tenantName)
+        List<ServiceModelBuilder> list, string? key, Lifetime lifetime, string? tenantName, bool externallyOwned)
     {
         var isGenericDefinition = serviceType.IsGenericDefinition();
 
@@ -261,7 +267,8 @@ internal static class DependencyDictionary
             InjectMethods = injectMethods,
             Key = key,
             Lifetime = lifetime,
-            TenantName = tenantName
+            TenantName = tenantName,
+            ExternallyOwned = externallyOwned
         });
     }
 

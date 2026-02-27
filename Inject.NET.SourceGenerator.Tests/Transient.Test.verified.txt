@@ -40,11 +40,6 @@ public partial class Transient
 			public SingletonScope_(global::Inject.NET.Tests.Transient.TransientServiceProvider.ServiceProvider_ serviceProvider, ServiceFactories serviceFactories) : base(serviceProvider, serviceFactories, null)
 			{
 			}
-			public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
-			{
-
-				return base.GetService(serviceKey, originatingScope);
-			}
 		}
 		public class ServiceScope_ : global::Inject.NET.Services.ServiceScope<global::Inject.NET.Tests.Transient.TransientServiceProvider.ServiceScope_, global::Inject.NET.Tests.Transient.TransientServiceProvider.ServiceProvider_, global::Inject.NET.Tests.Transient.TransientServiceProvider.SingletonScope_, global::Inject.NET.Tests.Transient.TransientServiceProvider.ServiceScope_, global::Inject.NET.Tests.Transient.TransientServiceProvider.SingletonScope_, global::Inject.NET.Tests.Transient.TransientServiceProvider.ServiceProvider_>
 		{
@@ -57,40 +52,6 @@ public partial class Transient
 
 			public global::Inject.NET.Tests.Transient.TransientClass Inject__NET__Tests__Transient__TransientClass____0 => Register<global::Inject.NET.Tests.Transient.TransientClass>(new global::Inject.NET.Tests.Transient.TransientClass());
 			public IReadOnlyList<global::Inject.NET.Tests.Transient.TransientClass> Inject__NET__Tests__Transient__TransientClass____0Enumerable => [Inject__NET__Tests__Transient__TransientClass____0];
-
-			public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
-			{
-				if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.Tests.Transient.ClassContainingTransient), Key = null })
-				{
-					return Inject__NET__Tests__Transient__ClassContainingTransient____0;
-				}
-				if (serviceKey.Key == null && global::Inject.NET.Helpers.TypeHelper.IsEnumerable<global::Inject.NET.Tests.Transient.ClassContainingTransient>(serviceKey.Type))
-				{
-					return Inject__NET__Tests__Transient__ClassContainingTransient____0Enumerable;
-				}
-				if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.Tests.Transient.TransientClass), Key = null })
-				{
-					return Inject__NET__Tests__Transient__TransientClass____0;
-				}
-				if (serviceKey.Key == null && global::Inject.NET.Helpers.TypeHelper.IsEnumerable<global::Inject.NET.Tests.Transient.TransientClass>(serviceKey.Type))
-				{
-					return Inject__NET__Tests__Transient__TransientClass____0Enumerable;
-				}
-				return base.GetService(serviceKey, originatingScope);
-			}
-
-			public override IReadOnlyList<object> GetServices(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
-			{
-				if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.Tests.Transient.ClassContainingTransient), Key = null })
-				{
-					return [Inject__NET__Tests__Transient__ClassContainingTransient____0];
-				}
-				if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.Tests.Transient.TransientClass), Key = null })
-				{
-					return [Inject__NET__Tests__Transient__TransientClass____0];
-				}
-				return base.GetServices(serviceKey, originatingScope);
-			}
 		}
 		public partial class ServiceRegistrar_ : global::Inject.NET.Services.ServiceRegistrar<global::Inject.NET.Tests.Transient.TransientServiceProvider.ServiceProvider_, global::Inject.NET.Tests.Transient.TransientServiceProvider.ServiceProvider_>
 		{
@@ -153,11 +114,6 @@ public partial class Transient
 			public SingletonScope_NonOverridingTenant(ServiceProvider_NonOverridingTenant serviceProvider, ServiceFactories serviceFactories, global::Inject.NET.Tests.Transient.TransientServiceProvider.SingletonScope_ parentScope) : base(serviceProvider, serviceFactories, parentScope)
 			{
 			}
-
-			public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
-			{
-				return base.GetService(serviceKey, originatingScope);
-			}
 		}
 		public class ServiceScope_NonOverridingTenant : global::Inject.NET.Services.ServiceScope<ServiceScope_NonOverridingTenant, ServiceProvider_NonOverridingTenant, SingletonScope_NonOverridingTenant, global::Inject.NET.Tests.Transient.TransientServiceProvider.ServiceScope_, global::Inject.NET.Tests.Transient.TransientServiceProvider.SingletonScope_, global::Inject.NET.Tests.Transient.TransientServiceProvider.ServiceProvider_>
 		{
@@ -168,19 +124,6 @@ public partial class Transient
 			public global::Inject.NET.Tests.Transient.ClassContainingTransient Inject__NET__Tests__Transient__ClassContainingTransient____0 => new global::Inject.NET.Tests.Transient.ClassContainingTransient(new global::Inject.NET.Tests.Transient.TransientClass());
 
 			public global::Inject.NET.Tests.Transient.TransientClass Inject__NET__Tests__Transient__TransientClass____0 => new global::Inject.NET.Tests.Transient.TransientClass();
-
-			public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
-			{
-				if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.Tests.Transient.ClassContainingTransient), Key = null })
-				{
-					return Inject__NET__Tests__Transient__ClassContainingTransient____0;
-				}
-				if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.Tests.Transient.TransientClass), Key = null })
-				{
-					return Inject__NET__Tests__Transient__TransientClass____0;
-				}
-				return base.GetService(serviceKey, originatingScope);
-			}
 
 			public override IReadOnlyList<object> GetServices(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
 			{
@@ -238,11 +181,6 @@ public partial class Transient
 			public SingletonScope_OverridingTenant(ServiceProvider_OverridingTenant serviceProvider, ServiceFactories serviceFactories, global::Inject.NET.Tests.Transient.TransientServiceProvider.SingletonScope_ parentScope) : base(serviceProvider, serviceFactories, parentScope)
 			{
 			}
-
-			public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
-			{
-				return base.GetService(serviceKey, originatingScope);
-			}
 		}
 		public class ServiceScope_OverridingTenant : global::Inject.NET.Services.ServiceScope<ServiceScope_OverridingTenant, ServiceProvider_OverridingTenant, SingletonScope_OverridingTenant, global::Inject.NET.Tests.Transient.TransientServiceProvider.ServiceScope_, global::Inject.NET.Tests.Transient.TransientServiceProvider.SingletonScope_, global::Inject.NET.Tests.Transient.TransientServiceProvider.ServiceProvider_>
 		{
@@ -255,19 +193,6 @@ public partial class Transient
 			public global::Inject.NET.Tests.Transient.TransientClass Inject__NET__Tests__Transient__TransientClass____0 => new global::Inject.NET.Tests.Transient.TransientClass();
 
 			public global::Inject.NET.Tests.Transient.TransientClass Inject__NET__Tests__Transient__TransientClass__OverridingTenant__0 => new global::Inject.NET.Tests.Transient.TransientClass();
-
-			public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
-			{
-				if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.Tests.Transient.ClassContainingTransient), Key = null })
-				{
-					return Inject__NET__Tests__Transient__ClassContainingTransient____0;
-				}
-				if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.Tests.Transient.TransientClass), Key = null })
-				{
-					return Inject__NET__Tests__Transient__TransientClass__OverridingTenant__0;
-				}
-				return base.GetService(serviceKey, originatingScope);
-			}
 
 			public override IReadOnlyList<object> GetServices(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
 			{

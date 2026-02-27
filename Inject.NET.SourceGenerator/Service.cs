@@ -46,14 +46,23 @@ public record Parameter
     public required bool IsOptional { get; init; }
     public required bool IsNullable { get; init; }
     public required bool IsEnumerable { get; init; }
+    public bool IsLazy { get; init; }
+    public ITypeSymbol? LazyInnerType { get; init; }
     public string? Key { get; init; }
-    
-    public ServiceModelCollection.ServiceKey ServiceKey => new(Type, Key);
+
+    public ServiceModelCollection.ServiceKey ServiceKey => IsLazy && LazyInnerType != null
+        ? new(LazyInnerType, Key)
+        : new(Type, Key);
 
     public string WriteSource()
     {
         var key = Key is null ? string.Empty : $"\"{Key}\"";
-        
+
+        if (IsLazy && LazyInnerType != null)
+        {
+            return $"new global::System.Lazy<{LazyInnerType.GloballyQualified()}>(() => scope.GetRequiredService<{LazyInnerType.GloballyQualified()}>({key}))";
+        }
+
         if (IsEnumerable)
         {
             return $"[..scope.GetServices<{Type}>({key})]";
@@ -63,7 +72,7 @@ public record Parameter
         {
             return $"scope.GetOptionalService<{Type}>({key})";
         }
-        
+
         return $"scope.GetRequiredService<{Type}>({key})";
     }
 }

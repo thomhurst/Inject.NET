@@ -33,18 +33,8 @@ public partial class SingletonGeneric
 		public SingletonScope_(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonGeneric.ServiceProvider_ serviceProvider, ServiceFactories serviceFactories) : base(serviceProvider, serviceFactories, null)
 		{
 		}
-		public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
-		{
-			if (serviceKey == new ServiceKey { Type = typeof(Generic<>), Key = null })
-			{
-				return Generic______0;
-			}
 
-			return base.GetService(serviceKey, originatingScope);
-		}
-
-		private Generic<>? _generic______0;
-		public Generic<> Generic______0 => _generic______0 ??= Register<Generic<>>(new Generic<>());
+		public Generic<> Generic______0 => (Generic<>)GetServices(new ServiceKey { Type = typeof(Generic<>), Key = null })[^1];
 	}
 	public class ServiceScope_ : global::Inject.NET.Services.ServiceScope<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonGeneric.ServiceScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonGeneric.ServiceProvider_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonGeneric.SingletonScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonGeneric.ServiceScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonGeneric.SingletonScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonGeneric.ServiceProvider_>
 	{
@@ -54,28 +44,6 @@ public partial class SingletonGeneric
 
 		public Generic<> Generic______0 => Singletons.Generic______0;
 		public IReadOnlyList<Generic<>> Generic______0Enumerable => [Generic______0];
-
-		public override object GetService(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
-		{
-			if (serviceKey == new ServiceKey { Type = typeof(Generic<>), Key = null })
-			{
-				return Generic______0;
-			}
-			if (serviceKey.Key == null && global::Inject.NET.Helpers.TypeHelper.IsEnumerable<Generic<>>(serviceKey.Type))
-			{
-				return Generic______0Enumerable;
-			}
-			return base.GetService(serviceKey, originatingScope);
-		}
-
-		public override IReadOnlyList<object> GetServices(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
-		{
-			if (serviceKey == new ServiceKey { Type = typeof(Generic<>), Key = null })
-			{
-				return [Generic______0];
-			}
-			return base.GetServices(serviceKey, originatingScope);
-		}
 	}
 	public partial class ServiceRegistrar_ : global::Inject.NET.Services.ServiceRegistrar<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonGeneric.ServiceProvider_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonGeneric.ServiceProvider_>
 	{

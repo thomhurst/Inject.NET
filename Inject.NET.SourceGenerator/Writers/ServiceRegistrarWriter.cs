@@ -7,7 +7,8 @@ internal static class ServiceRegistrarWriter
 {
     public static void Write(SourceCodeWriter sourceCodeWriter, TypedServiceProviderModel serviceProviderModel,
         IDictionary<ServiceModelCollection.ServiceKey, List<ServiceModel>> dependencyDictionary,
-        IDictionary<ServiceModelCollection.ServiceKey, List<DecoratorModel>>? decorators = null)
+        IDictionary<ServiceModelCollection.ServiceKey, List<DecoratorModel>>? decorators = null,
+        IDictionary<ServiceModelCollection.ServiceKey, CompositeModel>? composites = null)
     {
         sourceCodeWriter.WriteLine(
             $"public partial class ServiceRegistrar_ : global::Inject.NET.Services.ServiceRegistrar<{serviceProviderModel.Prefix}ServiceProvider_, {serviceProviderModel.Prefix}ServiceProvider_>");
@@ -18,6 +19,7 @@ internal static class ServiceRegistrarWriter
         sourceCodeWriter.WriteLine("{");
 
         WriteRegistration(sourceCodeWriter, dependencyDictionary, decorators, string.Empty);
+        WriteCompositeRegistrations(sourceCodeWriter, dependencyDictionary, composites, string.Empty);
 
         // Call user-defined configuration hook for extension method registrations
         sourceCodeWriter.WriteLine("ConfigureServices();");
@@ -397,5 +399,94 @@ internal static class ServiceRegistrarWriter
         }
 
         return $"new {decorator.DecoratorType.GloballyQualified()}({string.Join(", ", decoratorParams)})";
+    }
+
+    private static void WriteCompositeRegistrations(SourceCodeWriter sourceCodeWriter,
+        IDictionary<ServiceModelCollection.ServiceKey, List<ServiceModel>> dependencyDictionary,
+        IDictionary<ServiceModelCollection.ServiceKey, CompositeModel>? composites,
+        string prefix)
+    {
+        if (composites is null || composites.Count == 0)
+            return;
+
+        foreach (var (serviceKey, composite) in composites)
+        {
+            // Determine lifetime from the existing registrations for this service type
+            var lifetime = Lifetime.Singleton;
+            if (dependencyDictionary.TryGetValue(serviceKey, out var existingModels) && existingModels.Count > 0)
+            {
+                lifetime = existingModels[0].Lifetime;
+            }
+
+            sourceCodeWriter.WriteLine($"{prefix}Register(new global::Inject.NET.Models.ServiceDescriptor");
+            sourceCodeWriter.WriteLine("{");
+            sourceCodeWriter.WriteLine($"ServiceType = typeof({composite.ServiceType.GloballyQualified()}),");
+            sourceCodeWriter.WriteLine($"ImplementationType = typeof({composite.CompositeType.GloballyQualified()}),");
+            sourceCodeWriter.WriteLine($"Lifetime = Inject.NET.Enums.Lifetime.{lifetime.ToString()},");
+            sourceCodeWriter.WriteLine($"IsComposite = true,");
+
+            if (composite.Key is not null)
+            {
+                sourceCodeWriter.WriteLine($"Key = \"{composite.Key}\",");
+            }
+
+            sourceCodeWriter.WriteLine("Factory = (scope, type, key) =>");
+
+            // Build parameters for the composite constructor
+            var compositeParams = BuildCompositeParameters(composite);
+            sourceCodeWriter.WriteLine($"new {composite.CompositeType.GloballyQualified()}({string.Join(", ", compositeParams)})");
+            sourceCodeWriter.WriteLine("});");
+            sourceCodeWriter.WriteLine();
+        }
+    }
+
+    private static IEnumerable<string> BuildCompositeParameters(CompositeModel composite)
+    {
+        foreach (var param in composite.Parameters)
+        {
+            // Check if this parameter is IEnumerable<TService> - this is the collection of non-composite implementations
+            if (param.IsEnumerable)
+            {
+                var elementType = param.Type is Microsoft.CodeAnalysis.INamedTypeSymbol { IsGenericType: true } genericType
+                    ? genericType.TypeArguments[0]
+                    : param.Type;
+
+                // Check if the enumerable element type matches the composite's service type
+                if (Microsoft.CodeAnalysis.SymbolEqualityComparer.Default.Equals(elementType, composite.ServiceType))
+                {
+                    // Use GetServices which will exclude the composite itself (due to IsComposite flag)
+                    var key = param.Key is null ? "null" : $"\"{param.Key}\"";
+                    yield return $"[..scope.GetServices<{elementType.GloballyQualified()}>({key})]";
+                }
+                else
+                {
+                    // Regular enumerable parameter
+                    var key = param.Key is null ? "null" : $"\"{param.Key}\"";
+                    yield return $"[..scope.GetServices<{elementType.GloballyQualified()}>({key})]";
+                }
+            }
+            else if (param.IsLazy && param.LazyInnerType != null)
+            {
+                var innerType = param.LazyInnerType;
+                yield return $"new global::System.Lazy<{innerType.GloballyQualified()}>(() => scope.GetRequiredService<{innerType.GloballyQualified()}>())";
+            }
+            else if (param.IsFunc && param.FuncInnerType != null)
+            {
+                var innerType = param.FuncInnerType;
+                yield return $"new global::System.Func<{innerType.GloballyQualified()}>(() => scope.GetRequiredService<{innerType.GloballyQualified()}>())";
+            }
+            else if (param.IsOptional)
+            {
+                yield return $"scope.GetOptionalService<{param.Type.GloballyQualified()}>() ?? {param.DefaultValue ?? "default"}";
+            }
+            else if (param.IsNullable)
+            {
+                yield return $"scope.GetOptionalService<{param.Type.GloballyQualified()}>()";
+            }
+            else
+            {
+                yield return $"scope.GetRequiredService<{param.Type.GloballyQualified()}>()";
+            }
+        }
     }
 }

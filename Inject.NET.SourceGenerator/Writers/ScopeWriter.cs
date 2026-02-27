@@ -1,3 +1,4 @@
+using Inject.NET.SourceGenerator.Helpers;
 using Inject.NET.SourceGenerator.Models;
 using System.Collections.Generic;
 using System.Linq;
@@ -50,18 +51,42 @@ internal static class ScopeWriter
                 sourceCodeWriter.WriteLine();
                 var propertyName = serviceModel.GetPropertyName();
 
+                var hasInjectMethods = MethodInjectionHelper.HasInjectMethods(serviceModel);
+
+                if (hasInjectMethods && serviceModel.Lifetime != Lifetime.Singleton)
+                {
+                    // For services with inject methods, generate a helper method
+                    WriteInjectMethodHelper(sourceCodeWriter, rootServiceModelCollection, serviceModel, decorators);
+                }
+
                 if (serviceModel.Lifetime != Lifetime.Scoped)
                 {
-                    sourceCodeWriter.WriteLine(
-                        $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => {GetInvocation(rootServiceModelCollection, serviceModel, decorators)};");
+                    if (hasInjectMethods && serviceModel.Lifetime != Lifetime.Singleton)
+                    {
+                        sourceCodeWriter.WriteLine(
+                            $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => Create_{propertyName}();");
+                    }
+                    else
+                    {
+                        sourceCodeWriter.WriteLine(
+                            $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => {GetInvocation(rootServiceModelCollection, serviceModel, decorators)};");
+                    }
                 }
                 else
                 {
                     var fieldName = NameHelper.AsField(serviceModel);
                     sourceCodeWriter.WriteLine($"private {serviceModel.ServiceType.GloballyQualified()}? {fieldName};");
 
-                    sourceCodeWriter.WriteLine(
-                        $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => {fieldName} ??= {GetInvocation(rootServiceModelCollection, serviceModel, decorators)};");
+                    if (hasInjectMethods)
+                    {
+                        sourceCodeWriter.WriteLine(
+                            $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => {fieldName} ??= Create_{propertyName}();");
+                    }
+                    else
+                    {
+                        sourceCodeWriter.WriteLine(
+                            $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => {fieldName} ??= {GetInvocation(rootServiceModelCollection, serviceModel, decorators)};");
+                    }
                 }
             }
 
@@ -71,16 +96,79 @@ internal static class ScopeWriter
             {
                 continue;
             }
-            
+
             var enumerablePropertyName = $"{model.GetPropertyName()}Enumerable";
-            
+
             var arrayParts = serviceModels
                 .Where(serviceModel => !serviceModel.IsOpenGeneric)
                 .Select(serviceModel => serviceModel.GetPropertyName());
-            
+
             sourceCodeWriter.WriteLine(
                 $"public IReadOnlyList<{model.ServiceType.GloballyQualified()}> {enumerablePropertyName} => [{string.Join(", ", arrayParts)}];");
         }
+    }
+
+    /// <summary>
+    /// Writes a private helper method that constructs the service instance, calls its inject methods,
+    /// and returns the service. This is needed because inject methods require multi-statement logic
+    /// that cannot be expressed in an expression-bodied property.
+    /// </summary>
+    private static void WriteInjectMethodHelper(SourceCodeWriter sourceCodeWriter,
+        RootServiceModelCollection rootServiceModelCollection, ServiceModel serviceModel,
+        IDictionary<ServiceModelCollection.ServiceKey, List<DecoratorModel>> decorators)
+    {
+        var propertyName = serviceModel.GetPropertyName();
+        var serviceTypeQualified = serviceModel.ServiceType.GloballyQualified();
+        var implTypeQualified = serviceModel.ImplementationType.GloballyQualified();
+
+        sourceCodeWriter.WriteLine($"private {serviceTypeQualified} Create_{propertyName}()");
+        sourceCodeWriter.WriteLine("{");
+
+        // Construct the object using the implementation type constructor
+        var constructNewObject = ObjectConstructionHelper.ConstructNewObject(rootServiceModelCollection.ServiceProviderType,
+            rootServiceModelCollection.Services, serviceModel, serviceModel.Lifetime);
+
+        // Check if there are decorators for this service
+        string constructionExpr;
+        if (decorators != null && decorators.TryGetValue(serviceModel.ServiceKey, out var decoratorList) && decoratorList.Count > 0)
+        {
+            // With decorators, construct with decorator wrapping
+            constructionExpr = constructNewObject;
+            foreach (var decorator in decoratorList)
+            {
+                constructionExpr = WrapWithDecorator(rootServiceModelCollection, decorator, constructionExpr);
+            }
+        }
+        else
+        {
+            constructionExpr = constructNewObject;
+        }
+
+        // Store the instance in a variable typed to the implementation type
+        sourceCodeWriter.WriteLine($"var __instance = {constructionExpr};");
+
+        // Call inject methods on the instance
+        foreach (var injectCall in MethodInjectionHelper.GenerateScopeInjectCalls(
+                     rootServiceModelCollection.ServiceProviderType,
+                     rootServiceModelCollection.Services,
+                     serviceModel,
+                     serviceModel.Lifetime,
+                     "__instance"))
+        {
+            sourceCodeWriter.WriteLine(injectCall);
+        }
+
+        // Register and return for scoped, just return for transient
+        if (serviceModel.Lifetime == Lifetime.Scoped)
+        {
+            sourceCodeWriter.WriteLine($"return Register<{serviceTypeQualified}>(__instance);");
+        }
+        else
+        {
+            sourceCodeWriter.WriteLine("return __instance;");
+        }
+
+        sourceCodeWriter.WriteLine("}");
     }
 
     /// <summary>

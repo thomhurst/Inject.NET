@@ -15,6 +15,7 @@ public record ServiceModelBuilder
     public required string? Key { get; init; }
 
     public required Parameter[] Parameters { get; init; }
+    public required InjectMethod[] InjectMethods { get; init; }
     public required string? TenantName { get; init; }
     public required bool ExternallyOwned { get; init; }
 }

@@ -1,3 +1,4 @@
+using Inject.NET.SourceGenerator.Helpers;
 using Inject.NET.SourceGenerator.Models;
 
 namespace Inject.NET.SourceGenerator.Writers;
@@ -83,26 +84,45 @@ internal static class TenantServiceRegistrarWriter
             sourceCodeWriter.WriteLine("ExternallyOwned = true,");
         }
 
-        sourceCodeWriter.WriteLine("Factory = (scope, type, key) =>");
-
+        string baseInvocation;
         if (serviceModel.IsOpenGeneric)
         {
             var constructorParams = string.Join(", ", BuildOpenGenericParameters(serviceModel));
             if (string.IsNullOrEmpty(constructorParams))
             {
-                sourceCodeWriter.WriteLine($"Activator.CreateInstance(typeof({serviceModel.ImplementationType.GloballyQualified()}).MakeGenericType(type.GenericTypeArguments))");
+                baseInvocation = $"Activator.CreateInstance(typeof({serviceModel.ImplementationType.GloballyQualified()}).MakeGenericType(type.GenericTypeArguments))";
             }
             else
             {
-                sourceCodeWriter.WriteLine($"Activator.CreateInstance(typeof({serviceModel.ImplementationType.GloballyQualified()}).MakeGenericType(type.GenericTypeArguments), {constructorParams})");
+                baseInvocation = $"Activator.CreateInstance(typeof({serviceModel.ImplementationType.GloballyQualified()}).MakeGenericType(type.GenericTypeArguments), {constructorParams})";
             }
         }
         else
         {
             var lastTypeInDictionary = tenantServices.Services[serviceModel.ServiceKey][^1];
 
-            sourceCodeWriter.WriteLine(
-                $"new {lastTypeInDictionary.ImplementationType.GloballyQualified()}({string.Join(", ", BuildParameters(serviceModel))})");
+            baseInvocation = $"new {lastTypeInDictionary.ImplementationType.GloballyQualified()}({string.Join(", ", BuildParameters(serviceModel))})";
+        }
+
+        // Check if method injection is needed
+        if (MethodInjectionHelper.HasInjectMethods(serviceModel))
+        {
+            sourceCodeWriter.WriteLine("Factory = (scope, type, key) =>");
+            sourceCodeWriter.WriteLine("{");
+            sourceCodeWriter.WriteLine($"var __instance = {baseInvocation};");
+
+            foreach (var injectCall in MethodInjectionHelper.GenerateFactoryInjectCalls(serviceModel, "__instance"))
+            {
+                sourceCodeWriter.WriteLine(injectCall);
+            }
+
+            sourceCodeWriter.WriteLine("return __instance;");
+            sourceCodeWriter.WriteLine("}");
+        }
+        else
+        {
+            sourceCodeWriter.WriteLine("Factory = (scope, type, key) =>");
+            sourceCodeWriter.WriteLine(baseInvocation);
         }
 
         sourceCodeWriter.WriteLine("});");

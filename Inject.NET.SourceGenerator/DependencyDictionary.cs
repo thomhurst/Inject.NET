@@ -238,6 +238,7 @@ internal static class DependencyDictionary
                     Lifetime = smb.Lifetime,
                     IsOpenGeneric = smb.IsOpenGeneric,
                     Parameters = parameters,
+                    InjectMethods = smb.InjectMethods,
                     Index = index,
                     TenantName = smb.TenantName,
                     ExternallyOwned = smb.ExternallyOwned
@@ -255,6 +256,7 @@ internal static class DependencyDictionary
         var isGenericDefinition = serviceType.IsGenericDefinition();
 
         var parameters = GetParameters(implementationType, compilation);
+        var injectMethods = GetInjectMethods(implementationType, compilation);
 
         list.Add(new ServiceModelBuilder
         {
@@ -262,6 +264,7 @@ internal static class DependencyDictionary
             ImplementationType = implementationType,
             IsOpenGeneric = isGenericDefinition,
             Parameters = parameters,
+            InjectMethods = injectMethods,
             Key = key,
             Lifetime = lifetime,
             TenantName = tenantName,
@@ -410,6 +413,75 @@ internal static class DependencyDictionary
 
         innerType = null;
         return false;
+    }
+
+    private static InjectMethod[] GetInjectMethods(ITypeSymbol type, Compilation compilation)
+    {
+        var injectAttributeType = compilation.GetTypeByMetadataName("Inject.NET.Attributes.InjectAttribute");
+
+        if (injectAttributeType is null)
+        {
+            return [];
+        }
+
+        var namedTypeSymbol = type as INamedTypeSymbol;
+
+        if (namedTypeSymbol?.IsUnboundGenericType is true)
+        {
+            namedTypeSymbol = namedTypeSymbol.OriginalDefinition;
+        }
+
+        if (namedTypeSymbol is null)
+        {
+            return [];
+        }
+
+        var taskType = compilation.GetTypeByMetadataName("System.Threading.Tasks.Task");
+        var valueTaskType = compilation.GetTypeByMetadataName("System.Threading.Tasks.ValueTask");
+
+        var methods = new List<InjectMethod>();
+
+        foreach (var member in namedTypeSymbol.GetMembers())
+        {
+            if (member is not IMethodSymbol methodSymbol)
+            {
+                continue;
+            }
+
+            var hasInjectAttribute = false;
+            foreach (var attr in methodSymbol.GetAttributes())
+            {
+                if (SymbolEqualityComparer.Default.Equals(attr.AttributeClass, injectAttributeType))
+                {
+                    hasInjectAttribute = true;
+                    break;
+                }
+            }
+
+            if (!hasInjectAttribute)
+            {
+                continue;
+            }
+
+            var parameters = new Parameter[methodSymbol.Parameters.Length];
+            for (int i = 0; i < methodSymbol.Parameters.Length; i++)
+            {
+                parameters[i] = Map(methodSymbol.Parameters[i], compilation);
+            }
+
+            var returnsTask = taskType != null && SymbolEqualityComparer.Default.Equals(methodSymbol.ReturnType, taskType);
+            var returnsValueTask = valueTaskType != null && SymbolEqualityComparer.Default.Equals(methodSymbol.ReturnType, valueTaskType);
+
+            methods.Add(new InjectMethod
+            {
+                MethodName = methodSymbol.Name,
+                Parameters = parameters,
+                ReturnsTask = returnsTask,
+                ReturnsValueTask = returnsValueTask
+            });
+        }
+
+        return methods.ToArray();
     }
 
     private static string? GetServiceKeyFromAttributes(IParameterSymbol parameterSymbol, Compilation compilation)

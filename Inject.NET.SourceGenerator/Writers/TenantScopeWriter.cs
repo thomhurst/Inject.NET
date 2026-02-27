@@ -1,3 +1,4 @@
+using Inject.NET.SourceGenerator.Helpers;
 using Inject.NET.SourceGenerator.Models;
 
 namespace Inject.NET.SourceGenerator.Writers;
@@ -28,6 +29,7 @@ internal static class TenantScopeWriter
             sourceCodeWriter.WriteLine();
 
             var propertyName = serviceModel.GetPropertyName();
+            var hasInjectMethods = MethodInjectionHelper.HasInjectMethods(serviceModel);
 
             if (serviceModel.Lifetime == Lifetime.Scoped)
             {
@@ -41,13 +43,22 @@ internal static class TenantScopeWriter
                     var fieldName = NameHelper.AsField(serviceModel);
                     sourceCodeWriter.WriteLine($"private {serviceModel.ServiceType.GloballyQualified()}? {fieldName};");
 
-                    var constructNewObject = ObjectConstructionHelper.ConstructNewObject(serviceProviderModel.Type, tenantServices.Services, serviceModel, Lifetime.Scoped);
-                    var invocation = serviceModel.ExternallyOwned
-                        ? constructNewObject
-                        : $"Register<{serviceModel.ServiceType.GloballyQualified()}>({constructNewObject})";
+                    if (hasInjectMethods)
+                    {
+                        WriteTenantInjectMethodHelper(sourceCodeWriter, serviceProviderModel, tenantServices, serviceModel, Lifetime.Scoped);
+                        sourceCodeWriter.WriteLine(
+                            $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => {fieldName} ??= Create_{propertyName}();");
+                    }
+                    else
+                    {
+                        var constructNewObject = ObjectConstructionHelper.ConstructNewObject(serviceProviderModel.Type, tenantServices.Services, serviceModel, Lifetime.Scoped);
+                        var invocation = serviceModel.ExternallyOwned
+                            ? constructNewObject
+                            : $"Register<{serviceModel.ServiceType.GloballyQualified()}>({constructNewObject})";
 
-                    sourceCodeWriter.WriteLine(
-                        $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => {fieldName} ??= {invocation};");
+                        sourceCodeWriter.WriteLine(
+                            $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => {fieldName} ??= {invocation};");
+                    }
                 }
             }
 
@@ -59,8 +70,17 @@ internal static class TenantScopeWriter
 
             if (serviceModel.Lifetime == Lifetime.Transient)
             {
-                sourceCodeWriter.WriteLine(
-                    $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => {ObjectConstructionHelper.ConstructNewObject(serviceProviderModel.Type, tenantServices.Services, serviceModel, Lifetime.Transient)};");
+                if (hasInjectMethods)
+                {
+                    WriteTenantInjectMethodHelper(sourceCodeWriter, serviceProviderModel, tenantServices, serviceModel, Lifetime.Transient);
+                    sourceCodeWriter.WriteLine(
+                        $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => Create_{propertyName}();");
+                }
+                else
+                {
+                    sourceCodeWriter.WriteLine(
+                        $"public {serviceModel.ServiceType.GloballyQualified()} {propertyName} => {ObjectConstructionHelper.ConstructNewObject(serviceProviderModel.Type, tenantServices.Services, serviceModel, Lifetime.Transient)};");
+                }
             }
         }
 
@@ -88,6 +108,46 @@ internal static class TenantScopeWriter
 
         sourceCodeWriter.WriteLine("return base.GetServices(serviceKey, originatingScope);");
         sourceCodeWriter.WriteLine("}");
+
+        sourceCodeWriter.WriteLine("}");
+    }
+
+    private static void WriteTenantInjectMethodHelper(SourceCodeWriter sourceCodeWriter,
+        TypedServiceProviderModel serviceProviderModel,
+        TenantServiceModelCollection tenantServices,
+        ServiceModel serviceModel,
+        Lifetime currentLifetime)
+    {
+        var propertyName = serviceModel.GetPropertyName();
+        var serviceTypeQualified = serviceModel.ServiceType.GloballyQualified();
+        var constructNewObject = ObjectConstructionHelper.ConstructNewObject(serviceProviderModel.Type, tenantServices.Services, serviceModel, currentLifetime);
+
+        sourceCodeWriter.WriteLine($"private {serviceTypeQualified} Create_{propertyName}()");
+        sourceCodeWriter.WriteLine("{");
+
+        // Construct with the implementation type first
+        sourceCodeWriter.WriteLine($"var __instance = {constructNewObject};");
+
+        // Call inject methods on the implementation-typed instance
+        foreach (var injectCall in MethodInjectionHelper.GenerateScopeInjectCalls(
+                     serviceProviderModel.Type,
+                     tenantServices.Services,
+                     serviceModel,
+                     currentLifetime,
+                     "__instance"))
+        {
+            sourceCodeWriter.WriteLine(injectCall);
+        }
+
+        // Register and return for scoped, just return for transient
+        if (currentLifetime == Lifetime.Scoped)
+        {
+            sourceCodeWriter.WriteLine($"return Register<{serviceTypeQualified}>(__instance);");
+        }
+        else
+        {
+            sourceCodeWriter.WriteLine("return __instance;");
+        }
 
         sourceCodeWriter.WriteLine("}");
     }

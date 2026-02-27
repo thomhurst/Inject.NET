@@ -82,6 +82,11 @@ where TParentServiceScope : IServiceScope
             return ServiceProvider;
         }
 
+        if (serviceKey.Type == Types.ServiceScopeFactory)
+        {
+            return ServiceProvider;
+        }
+
         var services = GetServices(serviceKey);
 
         if (services.Count == 0)

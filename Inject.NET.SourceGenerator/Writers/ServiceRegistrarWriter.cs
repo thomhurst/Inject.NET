@@ -195,6 +195,27 @@ internal static class ServiceRegistrarWriter
                 var innerType = serviceModelParameter.FuncInnerType;
                 yield return $"new global::System.Func<{innerType.GloballyQualified()}>(() => scope.GetRequiredService<{innerType.GloballyQualified()}>())";
             }
+            // Handle enumerable parameters that contain type parameters (e.g., IEnumerable<IHandler<TEvent>>)
+            else if (serviceModelParameter.IsEnumerable && serviceModelParameter.Type.IsGenericDefinition())
+            {
+                // The element type contains a type parameter, so we must construct the type at runtime
+                var elementType = serviceModelParameter.Type is Microsoft.CodeAnalysis.INamedTypeSymbol { IsGenericType: true } genericType
+                    ? genericType.TypeArguments[0]
+                    : serviceModelParameter.Type;
+
+                var runtimeTypeExpr = BuildRuntimeTypeExpression(elementType, genericTypeParameters);
+                yield return $"scope.GetService(typeof(global::System.Collections.Generic.IEnumerable<>).MakeGenericType({runtimeTypeExpr}))";
+            }
+            // Handle enumerable parameters without type parameters
+            else if (serviceModelParameter.IsEnumerable)
+            {
+                var elementType = serviceModelParameter.Type is Microsoft.CodeAnalysis.INamedTypeSymbol { IsGenericType: true } genericType
+                    ? genericType.TypeArguments[0]
+                    : serviceModelParameter.Type;
+
+                var key = serviceModelParameter.Key is null ? "null" : $"\"{serviceModelParameter.Key}\"";
+                yield return $"[..scope.GetServices<{elementType.GloballyQualified()}>({key})]";
+            }
             // Check if this parameter is a generic type parameter
             else if (serviceModelParameter.Type.TypeKind == Microsoft.CodeAnalysis.TypeKind.TypeParameter)
             {
@@ -248,6 +269,46 @@ internal static class ServiceRegistrarWriter
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// Builds a runtime type construction expression for a type that may contain type parameters.
+    /// For example, IHandler&lt;TEvent&gt; where TEvent is at index 0 becomes:
+    /// typeof(IHandler&lt;&gt;).MakeGenericType(type.GenericTypeArguments[0])
+    /// </summary>
+    private static string BuildRuntimeTypeExpression(Microsoft.CodeAnalysis.ITypeSymbol typeSymbol,
+        System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ITypeParameterSymbol> genericTypeParameters)
+    {
+        // If the type is itself a type parameter, return the runtime type argument
+        if (typeSymbol.TypeKind == Microsoft.CodeAnalysis.TypeKind.TypeParameter)
+        {
+            for (int i = 0; i < genericTypeParameters.Length; i++)
+            {
+                if (Microsoft.CodeAnalysis.SymbolEqualityComparer.Default.Equals(genericTypeParameters[i], typeSymbol))
+                {
+                    return $"type.GenericTypeArguments[{i}]";
+                }
+            }
+            // Fallback - should not happen for well-formed generics
+            return $"typeof({typeSymbol.GloballyQualified()})";
+        }
+
+        // If the type is a generic type with type parameters in its arguments
+        if (typeSymbol is Microsoft.CodeAnalysis.INamedTypeSymbol { IsGenericType: true } namedType)
+        {
+            var hasTypeParameter = namedType.TypeArguments.Any(a => a.IsGenericDefinition());
+            if (hasTypeParameter)
+            {
+                var typeArgs = string.Join(", ",
+                    namedType.TypeArguments.Select(arg => BuildRuntimeTypeExpression(arg, genericTypeParameters)));
+                // Use ConstructUnboundGenericType() to get the open generic form (e.g., IHandler<>)
+                var unboundType = namedType.ConstructUnboundGenericType();
+                return $"typeof({unboundType.GloballyQualified()}).MakeGenericType({typeArgs})";
+            }
+        }
+
+        // No type parameters - use typeof directly
+        return $"typeof({typeSymbol.GloballyQualified()})";
     }
 
     private static string WrapWithDecorator(DecoratorModel decorator, string innerInvocation)

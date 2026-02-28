@@ -238,6 +238,21 @@ public abstract class ServiceProvider<TSelf, TSingletonScope, TScope, TParentSer
     }
 
     /// <summary>
+    /// Creates a child container that inherits all registrations from this provider
+    /// but can add or override registrations independently.
+    /// Child singletons are independent from the parent, and scoped/transient instances
+    /// are always created fresh within the child's scopes.
+    /// </summary>
+    /// <param name="configure">An action to configure additional or overriding registrations for the child container</param>
+    /// <returns>A new child service provider</returns>
+    public ChildServiceProvider CreateChildContainer(Action<IServiceRegistrar> configure)
+    {
+        var registrar = new ChildContainerRegistrar();
+        configure(registrar);
+        return new ChildServiceProvider(this, ServiceFactories, registrar.ServiceFactoryBuilders);
+    }
+
+    /// <summary>
     /// Creates a new service scope for managing scoped services.
     /// </summary>
     /// <returns>A new service scope instance</returns>

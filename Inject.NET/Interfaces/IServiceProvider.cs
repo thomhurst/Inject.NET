@@ -26,4 +26,11 @@ public interface IServiceProvider : System.IServiceProvider
     /// </summary>
     /// <returns>A new service scope instance</returns>
     IServiceScope CreateScope();
+
+    /// <summary>
+    /// Determines whether the specified service type is available from the provider.
+    /// </summary>
+    /// <param name="serviceType">The type of service to check</param>
+    /// <returns>True if the service type can be resolved; otherwise, false</returns>
+    bool IsService(Type serviceType);
 }

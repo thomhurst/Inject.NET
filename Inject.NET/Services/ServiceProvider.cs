@@ -15,7 +15,7 @@ namespace Inject.NET.Services;
 /// <typeparam name="TParentServiceProvider">The parent service provider type</typeparam>
 /// <typeparam name="TParentSingletonScope">The parent singleton scope type</typeparam>
 /// <typeparam name="TParentServiceScope">The parent service scope type</typeparam>
-public abstract class ServiceProvider<TSelf, TSingletonScope, TScope, TParentServiceProvider, TParentSingletonScope, TParentServiceScope> : IServiceProviderRoot<TScope>, Microsoft.Extensions.DependencyInjection.IServiceProviderIsService, Microsoft.Extensions.DependencyInjection.IServiceScopeFactory
+public abstract class ServiceProvider<TSelf, TSingletonScope, TScope, TParentServiceProvider, TParentSingletonScope, TParentServiceScope> : IServiceProviderRoot<TScope>
     where TSelf : ServiceProvider<TSelf, TSingletonScope, TScope, TParentServiceProvider, TParentSingletonScope, TParentServiceScope>
     where TSingletonScope : SingletonScope<TSingletonScope, TSelf, TScope, TParentSingletonScope, TParentServiceScope, TParentServiceProvider>
     where TScope : ServiceScope<TScope, TSelf, TSingletonScope, TParentServiceScope, TParentSingletonScope, TParentServiceProvider>
@@ -209,12 +209,9 @@ public abstract class ServiceProvider<TSelf, TSingletonScope, TScope, TParentSer
     /// <returns>True if the service type is registered; otherwise, false</returns>
     public bool IsService(Type serviceType)
     {
-        // Built-in types are always available
         if (serviceType == Types.ServiceScope
             || serviceType == Types.ServiceProvider
-            || serviceType == Types.SystemServiceProvider
-            || serviceType == Types.ServiceProviderIsService
-            || serviceType == Types.ServiceScopeFactory)
+            || serviceType == Types.SystemServiceProvider)
         {
             return true;
         }
@@ -261,14 +258,4 @@ public abstract class ServiceProvider<TSelf, TSingletonScope, TScope, TParentSer
         return CreateTypedScope();
     }
 
-    /// <summary>
-    /// Creates a new service scope that implements <see cref="Microsoft.Extensions.DependencyInjection.IServiceScope"/>.
-    /// This enables interoperability with ASP.NET Core and other libraries that depend on
-    /// <see cref="Microsoft.Extensions.DependencyInjection.IServiceScopeFactory"/>.
-    /// </summary>
-    /// <returns>A new <see cref="Microsoft.Extensions.DependencyInjection.IServiceScope"/> wrapping the typed scope</returns>
-    Microsoft.Extensions.DependencyInjection.IServiceScope Microsoft.Extensions.DependencyInjection.IServiceScopeFactory.CreateScope()
-    {
-        return new ServiceScopeWrapper(CreateTypedScope());
-    }
 }

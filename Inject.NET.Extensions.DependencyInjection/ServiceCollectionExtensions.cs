@@ -50,13 +50,27 @@ public static class ServiceCollectionExtensions
     {
         var services = new ServiceCollection();
         configure(services);
+        return registrar.AddServiceCollection(services);
+    }
 
+    /// <summary>
+    /// Replays all service registrations from an existing <see cref="IServiceCollection"/>
+    /// into the Inject.NET <see cref="IServiceRegistrar"/>.
+    /// Also registers MEDI infrastructure adapters (<see cref="IServiceScopeFactory"/>,
+    /// <see cref="IServiceProviderIsService"/>) if not already present.
+    /// </summary>
+    /// <param name="registrar">The Inject.NET service registrar to add services to.</param>
+    /// <param name="services">The service collection whose registrations will be replayed.</param>
+    /// <returns>The registrar for fluent chaining.</returns>
+    public static IServiceRegistrar AddServiceCollection(
+        this IServiceRegistrar registrar,
+        IServiceCollection services)
+    {
         foreach (var descriptor in services)
         {
             registrar.Register(ConvertDescriptor(descriptor));
         }
 
-        // Register MEDI infrastructure adapters if not already present
         RegisterAdaptersIfMissing(registrar);
 
         return registrar;
@@ -165,12 +179,35 @@ public static class ServiceCollectionExtensions
             };
         }
 
-        // Closed type: cache an ObjectFactory for fast repeated creation.
+        // Closed type: try to cache an ObjectFactory for fast repeated creation.
+        // Falls back to greedy constructor resolution for types with multiple constructors
+        // (e.g. ConsoleLifetime) where ActivatorUtilities.CreateFactory throws.
         var objectFactory = FactoryCache.GetOrAdd(
             (serviceType, implementationType),
-            static tuple => ActivatorUtilities.CreateFactory(tuple.implementationType, Type.EmptyTypes));
+            static tuple =>
+            {
+                try
+                {
+                    return ActivatorUtilities.CreateFactory(tuple.implementationType, Type.EmptyTypes);
+                }
+                catch (InvalidOperationException)
+                {
+                    // Multiple matching constructors - fall back to greedy resolution at runtime
+                    return null!;
+                }
+            });
 
-        return (scope, type, key) => objectFactory(scope, null);
+        if (objectFactory is not null)
+        {
+            return (scope, type, key) => objectFactory(scope, null);
+        }
+
+        // Greedy fallback for multi-constructor types
+        return (scope, type, key) =>
+        {
+            var resolutionScope = GetResolutionScope(scope);
+            return CreateInstanceGreedy(resolutionScope, implementationType);
+        };
     }
 
     /// <summary>

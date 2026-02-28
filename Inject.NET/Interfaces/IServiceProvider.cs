@@ -1,3 +1,5 @@
+using Inject.NET.Services;
+
 namespace Inject.NET.Interfaces;
 
 /// <summary>
@@ -33,4 +35,12 @@ public interface IServiceProvider : System.IServiceProvider
     /// <param name="serviceType">The type of service to check</param>
     /// <returns>True if the service type can be resolved; otherwise, false</returns>
     bool IsService(Type serviceType);
+
+    /// <summary>
+    /// Creates a child container that inherits all registrations from this provider
+    /// but can add or override registrations independently.
+    /// </summary>
+    /// <param name="configure">An action to configure additional or overriding registrations for the child container</param>
+    /// <returns>A new child service provider</returns>
+    ChildServiceProvider CreateChildContainer(Action<IServiceRegistrar> configure);
 }

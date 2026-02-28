@@ -153,7 +153,7 @@ internal static class MainWriter
             .Where(x => x.AttributeClass != null && IsCompositeAttribute(x.AttributeClass, compositeAttributeType))
             .ToArray();
 
-        var rootDependencies = DependencyDictionary.Create(compilation, dependencyAttributes, null);
+        var rootDependencies = DependencyDictionary.Create(compilation, dependencyAttributes, null, serviceProviderModel.Type);
         var decorators = DecoratorDictionary.Create(compilation, decoratorAttributes, null);
         var composites = CompositeDictionary.Create(compilation, compositeAttributes, null);
         var tenants = TenantHelper.ConstructTenants(compilation, withTenantAttributes, rootDependencies);

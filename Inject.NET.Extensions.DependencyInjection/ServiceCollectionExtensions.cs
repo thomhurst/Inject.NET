@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Reflection;
 using Inject.NET.Enums;
 using Inject.NET.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
@@ -157,7 +158,10 @@ public static class ServiceCollectionExtensions
             return (scope, type, key) =>
             {
                 var closedImplType = implementationType.MakeGenericType(type.GetGenericArguments());
-                return ActivatorUtilities.CreateInstance(scope, closedImplType);
+                // Use GetResolutionScope to ensure we can resolve all lifetimes,
+                // not just singletons (which is what the singleton scope provides).
+                var resolutionScope = GetResolutionScope(scope);
+                return CreateInstanceGreedy(resolutionScope, closedImplType);
             };
         }
 
@@ -167,6 +171,107 @@ public static class ServiceCollectionExtensions
             static tuple => ActivatorUtilities.CreateFactory(tuple.implementationType, Type.EmptyTypes));
 
         return (scope, type, key) => objectFactory(scope, null);
+    }
+
+    /// <summary>
+    /// Returns a scope suitable for ActivatorUtilities resolution. When the scope is a singleton
+    /// scope (which can only resolve singletons), creates a temporary regular scope from the
+    /// service provider so that transient and scoped dependencies can also be resolved.
+    /// </summary>
+    private static Inject.NET.Interfaces.IServiceScope GetResolutionScope(Inject.NET.Interfaces.IServiceScope scope)
+    {
+        if (scope is Inject.NET.Interfaces.ISingleton)
+        {
+            // The singleton scope can't resolve non-singleton services. Get the service provider
+            // and create a regular scope that can resolve all lifetimes.
+            var provider = scope.GetService(typeof(Inject.NET.Interfaces.IServiceProvider)) as Inject.NET.Interfaces.IServiceProvider;
+            if (provider != null)
+            {
+                return provider.CreateScope();
+            }
+        }
+        return scope;
+    }
+
+    /// <summary>
+    /// Creates an instance of the specified type using greedy constructor selection.
+    /// Picks the constructor with the most parameters that can all be resolved from the provider.
+    /// Falls back to the constructor with fewer parameters if the greediest cannot be satisfied.
+    /// This avoids the ambiguous-constructor error that <see cref="ActivatorUtilities.CreateInstance"/>
+    /// throws when multiple constructors match.
+    /// </summary>
+    private static object CreateInstanceGreedy(System.IServiceProvider provider, Type instanceType)
+    {
+        var constructors = instanceType.GetConstructors(BindingFlags.Public | BindingFlags.Instance)
+            .OrderByDescending(c => c.GetParameters().Length)
+            .ToArray();
+
+        if (constructors.Length == 0)
+        {
+            throw new InvalidOperationException(
+                $"No public constructors found on type '{instanceType.FullName}'.");
+        }
+
+        foreach (var ctor in constructors)
+        {
+            var parameters = ctor.GetParameters();
+            var args = new object?[parameters.Length];
+            var canResolve = true;
+
+            for (var i = 0; i < parameters.Length; i++)
+            {
+                var paramType = parameters[i].ParameterType;
+                var service = ResolveParameter(provider, paramType);
+
+                if (service == null && !parameters[i].HasDefaultValue)
+                {
+                    canResolve = false;
+                    break;
+                }
+
+                args[i] = service ?? parameters[i].DefaultValue;
+            }
+
+            if (canResolve)
+            {
+                return ctor.Invoke(args);
+            }
+        }
+
+        // Last resort: try ActivatorUtilities which may give a better error message
+        return ActivatorUtilities.CreateInstance(provider, instanceType);
+    }
+
+    /// <summary>
+    /// Resolves a constructor parameter from the service provider.
+    /// For IEnumerable&lt;T&gt; parameters, converts the List&lt;object&gt; returned by Inject.NET
+    /// into a properly-typed array so that constructor invocation succeeds.
+    /// </summary>
+    private static object? ResolveParameter(System.IServiceProvider provider, Type paramType)
+    {
+        var service = provider.GetService(paramType);
+
+        if (service == null)
+        {
+            return null;
+        }
+
+        // Inject.NET returns List<object> for IEnumerable<T> requests.
+        // We need to convert it to a typed array for constructor parameter compatibility.
+        if (paramType.IsGenericType &&
+            paramType.GetGenericTypeDefinition() == typeof(IEnumerable<>) &&
+            service is System.Collections.IList list)
+        {
+            var elementType = paramType.GetGenericArguments()[0];
+            var typedArray = Array.CreateInstance(elementType, list.Count);
+            for (var i = 0; i < list.Count; i++)
+            {
+                typedArray.SetValue(list[i], i);
+            }
+            return typedArray;
+        }
+
+        return service;
     }
 
     /// <summary>

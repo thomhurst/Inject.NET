@@ -153,6 +153,14 @@ where TParentServiceScope : IServiceScope
             var hasLocalDefinition = factories.Descriptors.TryGetValue(key, out var descriptors) &&
                                      descriptors.Items.Any(d => d.Lifetime == Lifetime.Singleton);
 
+            // Fallback to open generic type definition if the closed generic was not found
+            if (!hasLocalDefinition && key.Type.IsGenericType && !key.Type.IsGenericTypeDefinition)
+            {
+                hasLocalDefinition = factories.Descriptors.TryGetValue(
+                    key with { Type = key.Type.GetGenericTypeDefinition() }, out descriptors) &&
+                    descriptors.Items.Any(d => d.Lifetime == Lifetime.Singleton);
+            }
+
             // If no local definition and we have a parent, delegate to parent
             if (!hasLocalDefinition && parentScope != null)
             {

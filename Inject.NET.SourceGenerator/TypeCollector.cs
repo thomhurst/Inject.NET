@@ -23,7 +23,7 @@ public class TypeCollector
             .Where(x => x.AttributeClass?.IsGenericType is true && SymbolEqualityComparer.Default.Equals(withTenantAttributeType, x.AttributeClass.OriginalDefinition))
             .ToArray();
 
-        var rootDependencies = DependencyDictionary.Create(compilation, dependencyAttributes, null);
+        var rootDependencies = DependencyDictionary.Create(compilation, dependencyAttributes, null, serviceProviderModel.Type);
 
         var tenants = TenantHelper.ConstructTenants(compilation, withTenantAttributes, rootDependencies);
         

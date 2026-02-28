@@ -13,15 +13,16 @@ internal static class DependencyDictionary
     /// <param name="compilation">The compilation context for type resolution.</param>
     /// <param name="dependencyAttributes">Array of dependency attributes to process.</param>
     /// <param name="tenantName">Optional tenant name for multi-tenant scenarios.</param>
+    /// <param name="serviceProviderType">Optional service provider type for resolving factory methods.</param>
     /// <returns>A dictionary mapping service keys to lists of service models.</returns>
     public static IDictionary<ServiceModelCollection.ServiceKey, List<ServiceModel>> Create(Compilation compilation,
-        AttributeData[] dependencyAttributes, string? tenantName)
+        AttributeData[] dependencyAttributes, string? tenantName, INamedTypeSymbol? serviceProviderType = null)
     {
         var serviceBuilders = new List<ServiceModelBuilder>();
-        
-        ProcessAttributeData(compilation, dependencyAttributes, tenantName, serviceBuilders);
+
+        ProcessAttributeData(compilation, dependencyAttributes, tenantName, serviceBuilders, serviceProviderType);
         ProcessParameters(serviceBuilders);
-        
+
         return BuildServiceDictionary(serviceBuilders);
     }
 
@@ -33,12 +34,13 @@ internal static class DependencyDictionary
     /// <param name="dependencyAttributes">Array of dependency attributes to process.</param>
     /// <param name="tenantName">Optional tenant name for multi-tenant scenarios.</param>
     /// <param name="serviceBuilders">List to populate with service model builders.</param>
-    private static void ProcessAttributeData(Compilation compilation, AttributeData[] dependencyAttributes, 
-        string? tenantName, List<ServiceModelBuilder> serviceBuilders)
+    /// <param name="serviceProviderType">Optional service provider type for resolving factory methods.</param>
+    private static void ProcessAttributeData(Compilation compilation, AttributeData[] dependencyAttributes,
+        string? tenantName, List<ServiceModelBuilder> serviceBuilders, INamedTypeSymbol? serviceProviderType)
     {
         // Sort dependency attributes by constructor argument length
         Array.Sort(dependencyAttributes, (x, y) => x.ConstructorArguments.Length.CompareTo(y.ConstructorArguments.Length));
-        
+
         foreach (var attributeData in dependencyAttributes)
         {
             var attributeClass = attributeData.AttributeClass;
@@ -47,7 +49,7 @@ internal static class DependencyDictionary
             {
                 continue;
             }
-            
+
             if (!TryGetServiceAndImplementation(attributeData, out var serviceType, out var implementationType)
                 || serviceType is null
                 || implementationType is null)
@@ -57,6 +59,7 @@ internal static class DependencyDictionary
 
             string? key = null;
             bool externallyOwned = false;
+            string? factoryMethodName = null;
             foreach (var namedArg in attributeData.NamedArguments)
             {
                 if (namedArg.Key == "Key")
@@ -67,15 +70,19 @@ internal static class DependencyDictionary
                 {
                     externallyOwned = namedArg.Value.Value is true;
                 }
+                else if (namedArg.Key == "FactoryMethod")
+                {
+                    factoryMethodName = namedArg.Value.Value as string;
+                }
             }
             var lifetime = EnumPolyfill.Parse<Lifetime>(attributeData.AttributeClass!.Name.Replace("Attribute", string.Empty));
             var isGenericDefinition = serviceType.IsGenericDefinition();
-            
-            Add(compilation, serviceType, implementationType, serviceBuilders, key, lifetime, tenantName, externallyOwned);
+
+            Add(compilation, serviceType, implementationType, serviceBuilders, key, lifetime, tenantName, externallyOwned, factoryMethodName, serviceProviderType);
 
             if (isGenericDefinition)
             {
-                ProcessGenericTypes(compilation, serviceType, implementationType, serviceBuilders, key, lifetime, tenantName, externallyOwned);
+                ProcessGenericTypes(compilation, serviceType, implementationType, serviceBuilders, key, lifetime, tenantName, externallyOwned, serviceProviderType);
             }
         }
     }
@@ -91,9 +98,10 @@ internal static class DependencyDictionary
     /// <param name="key">Optional service key for keyed services.</param>
     /// <param name="lifetime">Service lifetime scope.</param>
     /// <param name="tenantName">Optional tenant name for multi-tenant scenarios.</param>
+    /// <param name="serviceProviderType">Optional service provider type for resolving factory methods.</param>
     private static void ProcessGenericTypes(Compilation compilation, INamedTypeSymbol serviceType,
         INamedTypeSymbol implementationType, List<ServiceModelBuilder> serviceBuilders,
-        string? key, Lifetime lifetime, string? tenantName, bool externallyOwned)
+        string? key, Lifetime lifetime, string? tenantName, bool externallyOwned, INamedTypeSymbol? serviceProviderType)
     {
         var constructedTypes = GenericTypeHelper.GetConstructedTypes(compilation, serviceType);
 
@@ -108,7 +116,7 @@ internal static class DependencyDictionary
                     break;
                 }
             }
-            
+
             if (!found)
             {
                 Add(compilation,
@@ -120,7 +128,9 @@ internal static class DependencyDictionary
                     key,
                     lifetime,
                     tenantName,
-                    externallyOwned);
+                    externallyOwned,
+                    null,
+                    serviceProviderType);
             }
         }
     }
@@ -254,11 +264,33 @@ internal static class DependencyDictionary
     }
 
     private static void Add(Compilation compilation, INamedTypeSymbol serviceType, INamedTypeSymbol implementationType,
-        List<ServiceModelBuilder> list, string? key, Lifetime lifetime, string? tenantName, bool externallyOwned)
+        List<ServiceModelBuilder> list, string? key, Lifetime lifetime, string? tenantName, bool externallyOwned,
+        string? factoryMethodName, INamedTypeSymbol? serviceProviderType)
     {
         var isGenericDefinition = serviceType.IsGenericDefinition();
 
-        var parameters = GetParameters(implementationType, compilation);
+        Parameter[] parameters;
+        if (factoryMethodName is not null && serviceProviderType is not null)
+        {
+            IMethodSymbol? factoryMethod = null;
+            foreach (var member in serviceProviderType.GetMembers(factoryMethodName))
+            {
+                if (member is IMethodSymbol { IsStatic: true } method)
+                {
+                    factoryMethod = method;
+                    break;
+                }
+            }
+
+            parameters = factoryMethod is not null
+                ? GetParametersFromMethod(factoryMethod, compilation)
+                : GetParameters(implementationType, compilation);
+        }
+        else
+        {
+            parameters = GetParameters(implementationType, compilation);
+        }
+
         var injectMethods = GetInjectMethods(implementationType, compilation);
         var injectProperties = GetInjectProperties(implementationType, compilation);
 
@@ -274,8 +306,8 @@ internal static class DependencyDictionary
             Lifetime = lifetime,
             TenantName = tenantName,
             ExternallyOwned = externallyOwned,
-            FactoryMethodName = null,
-            ServiceProviderType = null
+            FactoryMethodName = factoryMethodName,
+            ServiceProviderType = serviceProviderType
         });
     }
 
@@ -343,11 +375,26 @@ internal static class DependencyDictionary
         {
             return [];
         }
-        
+
         var result = new Parameter[parameters.Length];
         for (int i = 0; i < parameters.Length; i++)
         {
             result[i] = Map(parameters[i], compilation);
+        }
+        return result;
+    }
+
+    private static Parameter[] GetParametersFromMethod(IMethodSymbol method, Compilation compilation)
+    {
+        if (method.Parameters.IsDefaultOrEmpty)
+        {
+            return [];
+        }
+
+        var result = new Parameter[method.Parameters.Length];
+        for (int i = 0; i < method.Parameters.Length; i++)
+        {
+            result[i] = Map(method.Parameters[i], compilation);
         }
         return result;
     }

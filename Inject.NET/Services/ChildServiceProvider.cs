@@ -57,6 +57,32 @@ public sealed class ChildServiceProvider : IServiceProvider, IAsyncDisposable
     }
 
     /// <inheritdoc />
+    public bool IsService(Type serviceType)
+    {
+        if (serviceType == Types.ServiceScope
+            || serviceType == Types.ServiceProvider
+            || serviceType == Types.SystemServiceProvider)
+        {
+            return true;
+        }
+
+        var serviceKey = new ServiceKey(serviceType);
+
+        if (_mergedFactories.Descriptors.ContainsKey(serviceKey))
+        {
+            return true;
+        }
+
+        if (serviceType.IsConstructedGenericType
+            && _mergedFactories.Descriptors.ContainsKey(new ServiceKey(serviceType.GetGenericTypeDefinition())))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <inheritdoc />
     public object? GetService(Type serviceType)
     {
         using var scope = new ChildServiceScope(this, _mergedFactories);

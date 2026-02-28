@@ -57,16 +57,6 @@ internal sealed class ChildSingletonScope : IServiceScope
             return _serviceProvider;
         }
 
-        if (serviceKey.Type == Types.ServiceProviderIsService)
-        {
-            return _serviceProvider;
-        }
-
-        if (serviceKey.Type == Types.ServiceScopeFactory)
-        {
-            return _serviceProvider;
-        }
-
         // Check if there's a composite descriptor for this service key
         if (_mergedFactories.Descriptor.TryGetValue(serviceKey, out var descriptor) && descriptor.IsComposite)
         {

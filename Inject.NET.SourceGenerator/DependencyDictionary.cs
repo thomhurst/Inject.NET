@@ -282,12 +282,21 @@ internal static class DependencyDictionary
                 }
             }
 
-            parameters = factoryMethod is not null
-                ? GetParametersFromMethod(factoryMethod, compilation)
-                : GetParameters(implementationType, compilation);
+            if (factoryMethod is not null)
+            {
+                parameters = GetParametersFromMethod(factoryMethod, compilation);
+            }
+            else
+            {
+                // Factory method not found — clear the name so we don't try to call it in generated code
+                factoryMethodName = null;
+                parameters = GetParameters(implementationType, compilation);
+            }
         }
         else
         {
+            // No service provider type context (e.g. tenant definitions) — clear factory method
+            factoryMethodName = null;
             parameters = GetParameters(implementationType, compilation);
         }
 

@@ -95,6 +95,10 @@ internal static class ServiceRegistrarWriter
                 baseInvocation = $"Activator.CreateInstance(typeof({serviceModel.ImplementationType.GloballyQualified()}).MakeGenericType(type.GenericTypeArguments), {constructorParams})";
             }
         }
+        else if (serviceModel.HasFactoryMethod)
+        {
+            baseInvocation = $"{serviceModel.ServiceProviderType!.GloballyQualified()}.{serviceModel.FactoryMethodName}({string.Join(", ", BuildParameters(serviceModel))})";
+        }
         else
         {
             baseInvocation = $"new {serviceModel.ImplementationType.GloballyQualified()}({string.Join(", ", BuildParameters(serviceModel))})";

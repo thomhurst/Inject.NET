@@ -97,6 +97,10 @@ internal static class TenantServiceRegistrarWriter
                 baseInvocation = $"Activator.CreateInstance(typeof({serviceModel.ImplementationType.GloballyQualified()}).MakeGenericType(type.GenericTypeArguments), {constructorParams})";
             }
         }
+        else if (serviceModel.HasFactoryMethod)
+        {
+            baseInvocation = $"{serviceModel.ServiceProviderType!.GloballyQualified()}.{serviceModel.FactoryMethodName}({string.Join(", ", BuildParameters(serviceModel))})";
+        }
         else
         {
             var lastTypeInDictionary = tenantServices.Services[serviceModel.ServiceKey][^1];

@@ -24,6 +24,8 @@ public abstract class DependencyInjectionAttribute : Attribute, IDependencyInjec
     /// </summary>
     public bool ExternallyOwned { get; set; }
 
+    public string? FactoryMethod { get; set; }
+
     public Type ServiceType { get; }
     public Type ImplementationType { get; }
 }

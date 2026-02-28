@@ -242,7 +242,9 @@ internal static class DependencyDictionary
                     InjectProperties = smb.InjectProperties,
                     Index = index,
                     TenantName = smb.TenantName,
-                    ExternallyOwned = smb.ExternallyOwned
+                    ExternallyOwned = smb.ExternallyOwned,
+                    FactoryMethodName = smb.FactoryMethodName,
+                    ServiceProviderType = smb.ServiceProviderType
                 });
             }
             result[kvp.Key] = serviceModels;
@@ -271,7 +273,9 @@ internal static class DependencyDictionary
             Key = key,
             Lifetime = lifetime,
             TenantName = tenantName,
-            ExternallyOwned = externallyOwned
+            ExternallyOwned = externallyOwned,
+            FactoryMethodName = null,
+            ServiceProviderType = null
         });
     }
 

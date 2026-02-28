@@ -19,4 +19,6 @@ public record ServiceModelBuilder
     public required InjectProperty[] InjectProperties { get; init; }
     public required string? TenantName { get; init; }
     public required bool ExternallyOwned { get; init; }
+    public required string? FactoryMethodName { get; init; }
+    public required INamedTypeSymbol? ServiceProviderType { get; init; }
 }

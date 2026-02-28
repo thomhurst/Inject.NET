@@ -28,7 +28,10 @@ public record ServiceModel
     public required string? TenantName { get; init; }
 
     public required bool ExternallyOwned { get; init; }
-    
+    public required string? FactoryMethodName { get; init; }
+    public required INamedTypeSymbol? ServiceProviderType { get; init; }
+    public bool HasFactoryMethod => FactoryMethodName is not null;
+
     // Cached property/field names for performance
     private string? _cachedPropertyName;
     private string? _cachedFieldName;

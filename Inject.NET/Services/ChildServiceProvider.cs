@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Collections.Frozen;
 using Inject.NET.Enums;
 using Inject.NET.Extensions;
@@ -13,13 +14,13 @@ namespace Inject.NET.Services;
 /// Child singletons are independent from the parent, and scoped/transient instances
 /// are always created fresh within the child's scopes.
 /// </summary>
-public sealed class ChildServiceProvider : IServiceProvider, IAsyncDisposable
+public sealed class ChildServiceProvider : IServiceProvider, IInternalSingletonResolver, IAsyncDisposable
 {
     private readonly IServiceProvider _parent;
     private readonly ServiceFactories _childFactories;
     private readonly ServiceFactories _mergedFactories;
     private readonly ChildSingletonScope _singletonScope;
-    private readonly List<IAsyncDisposable> _childContainers = [];
+    private readonly ConcurrentBag<IAsyncDisposable> _childContainers = [];
     private bool _disposed;
 
     internal ChildServiceProvider(IServiceProvider parent, ServiceFactories parentFactories, ServiceFactoryBuilders childOverrides)
@@ -107,10 +108,46 @@ public sealed class ChildServiceProvider : IServiceProvider, IAsyncDisposable
 
     /// <summary>
     /// Checks whether the specified service type has been overridden in this child container.
+    /// For closed generic types, also checks whether the open generic type definition is
+    /// overridden, so open-generic registrations are honored for their closed resolutions.
     /// </summary>
     internal bool HasChildOverride(ServiceKey serviceKey)
     {
-        return _childFactories.Descriptors.ContainsKey(serviceKey);
+        if (_childFactories.Descriptors.ContainsKey(serviceKey))
+        {
+            return true;
+        }
+
+        if (serviceKey.Type.IsConstructedGenericType)
+        {
+            var openKey = serviceKey with { Type = serviceKey.Type.GetGenericTypeDefinition() };
+            if (_childFactories.Descriptors.ContainsKey(openKey))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Resolves singleton instances for the given key. If this child overrides the key,
+    /// builds (or reuses cached) child-owned instances. Otherwise, delegates to the parent
+    /// provider so the same parent-owned instance is returned for inherited keys.
+    /// </summary>
+    IReadOnlyList<object> IInternalSingletonResolver.ResolveSingletons(ServiceKey serviceKey)
+    {
+        if (HasChildOverride(serviceKey))
+        {
+            return _singletonScope.BuildLocalSingletons(serviceKey);
+        }
+
+        if (_parent is IInternalSingletonResolver parentResolver)
+        {
+            return parentResolver.ResolveSingletons(serviceKey);
+        }
+
+        return Array.Empty<object>();
     }
 
     /// <inheritdoc />
@@ -124,12 +161,10 @@ public sealed class ChildServiceProvider : IServiceProvider, IAsyncDisposable
         _disposed = true;
 
         // Dispose child containers first (nested children before this one)
-        foreach (var child in _childContainers)
+        while (_childContainers.TryTake(out var child))
         {
             await child.DisposeAsync();
         }
-
-        _childContainers.Clear();
 
         // Dispose our own singletons
         await _singletonScope.DisposeAsync();

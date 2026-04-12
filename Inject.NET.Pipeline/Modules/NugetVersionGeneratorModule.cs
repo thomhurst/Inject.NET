@@ -12,14 +12,22 @@ public class NugetVersionGeneratorModule : Module<string>
 {
     protected override async Task<string?> ExecuteAsync(IPipelineContext context, CancellationToken cancellationToken)
     {
-        var gitVersionInformation = await context.Git().Versioning.GetGitVersioningInformation();
-        
-        if (gitVersionInformation.BranchName == "main")
+        try
         {
-            return gitVersionInformation.SemVer!;
+            var gitVersionInformation = await context.Git().Versioning.GetGitVersioningInformation();
+
+            if (gitVersionInformation.BranchName == "main")
+            {
+                return gitVersionInformation.SemVer!;
+            }
+
+            return $"{gitVersionInformation.Major}.{gitVersionInformation.Minor}.{gitVersionInformation.Patch}-{gitVersionInformation.PreReleaseLabel}-{gitVersionInformation.CommitsSinceVersionSource}";
         }
-        
-        return $"{gitVersionInformation.Major}.{gitVersionInformation.Minor}.{gitVersionInformation.Patch}-{gitVersionInformation.PreReleaseLabel}-{gitVersionInformation.CommitsSinceVersionSource}";
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            context.Logger.LogWarning(ex, "GitVersion failed — using fallback version for PR build");
+            return "0.0.0-pr-fallback";
+        }
     }
 
     protected override async Task OnAfterExecute(IPipelineContext context)

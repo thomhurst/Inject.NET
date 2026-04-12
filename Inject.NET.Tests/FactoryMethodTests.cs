@@ -148,4 +148,45 @@ public partial class FactoryMethodTests
         await Assert.That(formal.Greet()).IsEqualTo("Good day");
         await Assert.That(casual.Greet()).IsEqualTo("Hey!");
     }
+
+    // === Test 5: Factory method on external class via FactoryType ===
+
+    public static class ExternalGreeterFactory
+    {
+        public static Greeter Create() => new Greeter("Hello from external factory!");
+
+        public static ServiceWithDependency CreateWithDep(IDependency dep)
+            => new ServiceWithDependency(dep, "external-factory");
+    }
+
+    [ServiceProvider]
+    [Singleton<IGreeter, Greeter>(FactoryType = typeof(ExternalGreeterFactory), FactoryMethod = nameof(ExternalGreeterFactory.Create))]
+    public partial class ExternalFactoryServiceProvider;
+
+    [Test]
+    public async Task ExternalFactoryType_UsesFactoryFromExternalClass()
+    {
+        await using var serviceProvider = await ExternalFactoryServiceProvider.BuildAsync();
+        await using var scope = serviceProvider.CreateScope();
+
+        var greeter = scope.GetRequiredService<IGreeter>();
+
+        await Assert.That(greeter.Greet()).IsEqualTo("Hello from external factory!");
+    }
+
+    [ServiceProvider]
+    [Singleton<IDependency, MyDependency>]
+    [Scoped<IGreeter, ServiceWithDependency>(FactoryType = typeof(ExternalGreeterFactory), FactoryMethod = nameof(ExternalGreeterFactory.CreateWithDep))]
+    public partial class ExternalFactoryWithDepsServiceProvider;
+
+    [Test]
+    public async Task ExternalFactoryType_ResolvesParametersFromContainer()
+    {
+        await using var serviceProvider = await ExternalFactoryWithDepsServiceProvider.BuildAsync();
+        await using var scope = serviceProvider.CreateScope();
+
+        var greeter = scope.GetRequiredService<IGreeter>();
+
+        await Assert.That(greeter.Greet()).IsEqualTo("resolved-dependency:external-factory");
+    }
 }

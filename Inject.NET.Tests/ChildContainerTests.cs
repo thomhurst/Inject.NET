@@ -231,12 +231,9 @@ public partial class ChildContainerTests
     [ServiceProvider]
     public partial class ChildContainerServiceProvider
     {
-        public partial class ServiceRegistrar_
+        static partial void ConfigureServices(global::Inject.NET.Interfaces.IServiceRegistrar registrar)
         {
-            partial void ConfigureServices()
-            {
-                this.AddSingleton<IParentService>(new ParentServiceImpl("Parent"));
-            }
+            registrar.AddSingleton<IParentService>(new ParentServiceImpl("Parent"));
         }
     }
 

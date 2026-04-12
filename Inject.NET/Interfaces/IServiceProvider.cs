@@ -14,7 +14,7 @@ where TScope : IServiceScope
     /// Creates a new typed service scope for dependency resolution.
     /// </summary>
     /// <returns>A new service scope instance of type TScope</returns>
-    TScope CreateTypedScope();
+    new TScope CreateScope();
 }
 
 /// <summary>

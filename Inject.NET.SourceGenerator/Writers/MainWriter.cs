@@ -32,8 +32,18 @@ internal static class MainWriter
         var serviceProviderType = serviceProviderModel.Type;
         var nestedClassCount = WriteNamespaceDeclaration(sourceCodeWriter, serviceProviderType);
         
-        var (rootDependencies, tenants, serviceModelCollection, decorators, composites) = CollectDependenciesAndTenants(compilation, serviceProviderModel);
-        
+        var (rootDependencies, tenants, serviceModelCollection, decorators, composites, diagnostics) = CollectDependenciesAndTenants(compilation, serviceProviderModel);
+
+        foreach (var diagnostic in diagnostics)
+        {
+            sourceProductionContext.ReportDiagnostic(diagnostic);
+        }
+
+        // Detect short-name collisions across all services (root + tenant) before generating property names
+        var allModels = serviceModelCollection.Services.Values.SelectMany(x => x)
+            .Concat(serviceModelCollection.Tenants.Values.SelectMany(t => t.Services.Values.SelectMany(x => x)));
+        NameHelper.PrepareForProvider(allModels);
+
         // Validate service models for conflicts
         if (!ValidateServiceModels(sourceProductionContext, serviceModelCollection))
         {
@@ -46,6 +56,9 @@ internal static class MainWriter
         GenerateProviders(sourceProductionContext, sourceCodeWriter, serviceProviderModel, serviceModelCollection, rootDependencies, tenants, decorators, composites);
         GenerateTenantProviders(sourceCodeWriter, serviceProviderModel, serviceModelCollection, tenants);
         
+        sourceCodeWriter.WriteLine("static partial void ConfigureServices(global::Inject.NET.Interfaces.IServiceRegistrar registrar);");
+        sourceCodeWriter.WriteLine();
+
         sourceCodeWriter.WriteLine(
             $"public static ValueTask<{serviceProviderModel.Prefix}ServiceProvider_> BuildAsync() =>");
         sourceCodeWriter.WriteLine($"\tnew ServiceRegistrar_().BuildAsync(null);");
@@ -125,9 +138,10 @@ internal static class MainWriter
     /// <param name="compilation">The compilation context.</param>
     /// <param name="serviceProviderModel">The service provider model.</param>
     /// <returns>A tuple containing root dependencies, tenants, and the service model collection.</returns>
-    private static (IDictionary<ServiceModelCollection.ServiceKey, List<ServiceModel>> rootDependencies, Tenant[] tenants, RootServiceModelCollection serviceModelCollection, IDictionary<ServiceModelCollection.ServiceKey, List<DecoratorModel>> decorators, IDictionary<ServiceModelCollection.ServiceKey, CompositeModel> composites)
+    private static (IDictionary<ServiceModelCollection.ServiceKey, List<ServiceModel>> rootDependencies, Tenant[] tenants, RootServiceModelCollection serviceModelCollection, IDictionary<ServiceModelCollection.ServiceKey, List<DecoratorModel>> decorators, IDictionary<ServiceModelCollection.ServiceKey, CompositeModel> composites, List<Diagnostic> diagnostics)
         CollectDependenciesAndTenants(Compilation compilation, TypedServiceProviderModel serviceProviderModel)
     {
+        var diagnostics = new List<Diagnostic>();
         var dependencyInjectionAttributeType = compilation.GetTypeByMetadataName("Inject.NET.Attributes.IDependencyInjectionAttribute");
         var withTenantAttributeType = compilation.GetTypeByMetadataName("Inject.NET.Attributes.WithTenantAttribute`1");
         var decoratorAttributeType = compilation.GetTypeByMetadataName("Inject.NET.Attributes.DecoratorAttribute");
@@ -135,31 +149,39 @@ internal static class MainWriter
 
         var attributes = serviceProviderModel.Type.GetAttributes();
 
-        var dependencyAttributes = attributes
+        var moduleAttributes = ModuleHelper.CollectModuleAttributes(attributes, compilation);
+        var allAttributes = moduleAttributes.Length > 0
+            ? attributes.AddRange(moduleAttributes)
+            : attributes;
+
+        var dependencyAttributes = allAttributes
             .Where(x => x.AttributeClass?.AllInterfaces.Contains(dependencyInjectionAttributeType,
                 SymbolEqualityComparer.Default) == true)
             .ToArray();
 
-        var withTenantAttributes = attributes
+        var withTenantAttributes = allAttributes
             .Where(x => x.AttributeClass?.IsGenericType is true && SymbolEqualityComparer.Default.Equals(withTenantAttributeType, x.AttributeClass.OriginalDefinition))
             .ToArray();
 
-        var decoratorAttributes = attributes
+        var decoratorAttributes = allAttributes
             .Where(x => x.AttributeClass?.BaseType != null &&
                    SymbolEqualityComparer.Default.Equals(decoratorAttributeType, x.AttributeClass.BaseType))
             .ToArray();
 
-        var compositeAttributes = attributes
+        var compositeAttributes = allAttributes
             .Where(x => x.AttributeClass != null && IsCompositeAttribute(x.AttributeClass, compositeAttributeType))
             .ToArray();
 
-        var rootDependencies = DependencyDictionary.Create(compilation, dependencyAttributes, null, serviceProviderModel.Type);
+        var rootDependencies = DependencyDictionary.Create(compilation, dependencyAttributes, null, serviceProviderModel.Type, diagnostics);
         var decorators = DecoratorDictionary.Create(compilation, decoratorAttributes, null);
         var composites = CompositeDictionary.Create(compilation, compositeAttributes, null);
-        var tenants = TenantHelper.ConstructTenants(compilation, withTenantAttributes, rootDependencies);
-        var serviceModelCollection = TypeCollector.Collect(serviceProviderModel, compilation);
+        var tenants = TenantHelper.ConstructTenants(compilation, withTenantAttributes, rootDependencies, diagnostics);
+        var serviceModelCollection = new RootServiceModelCollection(
+            serviceProviderModel.Type,
+            rootDependencies.SelectMany(x => x.Value).ToArray(),
+            tenants);
 
-        return (rootDependencies, tenants, serviceModelCollection, decorators, composites);
+        return (rootDependencies, tenants, serviceModelCollection, decorators, composites, diagnostics);
     }
 
     /// <summary>

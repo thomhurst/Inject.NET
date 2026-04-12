@@ -54,7 +54,6 @@ internal static class StringPool
     public static readonly string Models = GetOrAdd("Models.");
     public static readonly string Interfaces = GetOrAdd("Interfaces.");
     public static readonly string InitializeAsync = GetOrAdd("InitializeAsync");
-    public static readonly string CreateTypedScope = GetOrAdd("CreateTypedScope");
     public static readonly string Singletons = GetOrAdd("Singletons");
     public static readonly string Tenant = GetOrAdd("Tenant_");
     

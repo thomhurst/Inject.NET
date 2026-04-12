@@ -26,8 +26,8 @@ public partial class InjectDotNetBenchmark
     [Benchmark]
     public async Task GetDependency()
     {
-        await using var scope = _serviceProviderRoot.CreateTypedScope();
+        await using var scope = _serviceProviderRoot.CreateScope();
 
-        _ = scope.Benchmarks__Models__Class1____0;
+        _ = scope.Class1_0;
     }
 }

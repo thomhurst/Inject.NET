@@ -18,12 +18,12 @@ public partial class ScopedImplementationOnly
 	{
 		private global::Inject.NET.SourceGenerator.Sample.ServiceProviders.ScopedImplementationOnly.SingletonScope_? _singletons;
 		public override global::Inject.NET.SourceGenerator.Sample.ServiceProviders.ScopedImplementationOnly.SingletonScope_ Singletons => _singletons ??= new(this, serviceFactories);
-		public override global::Inject.NET.SourceGenerator.Sample.ServiceProviders.ScopedImplementationOnly.ServiceScope_ CreateTypedScope() => new(this, serviceFactories);
+		public override global::Inject.NET.SourceGenerator.Sample.ServiceProviders.ScopedImplementationOnly.ServiceScope_ CreateScope() => new(this, serviceFactories);
 		public override async ValueTask InitializeAsync()
 		{
 			await Singletons.InitializeAsync();
-			await using var scope = CreateTypedScope();
-			_ = scope.Class1____0;
+			await using var scope = CreateScope();
+			_ = scope.Class1_0;
 
 			await base.InitializeAsync();
 		}
@@ -40,9 +40,9 @@ public partial class ScopedImplementationOnly
 		{
 		}
 
-		private Class1? _class1____0;
-		public Class1 Class1____0 => _class1____0 ??= Register<Class1>(new Class1());
-		public IReadOnlyList<Class1> Class1____0Enumerable => [Class1____0];
+		private Class1? _class1_0;
+		public Class1 Class1_0 => _class1_0 ??= Register<Class1>(new Class1());
+		public IReadOnlyList<Class1> Class1_0Enumerable => [Class1_0];
 	}
 	public partial class ServiceRegistrar_ : global::Inject.NET.Services.ServiceRegistrar<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.ScopedImplementationOnly.ServiceProvider_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.ScopedImplementationOnly.ServiceProvider_>
 	{
@@ -57,10 +57,8 @@ public partial class ScopedImplementationOnly
 				new Class1()
 			});
 
-			ConfigureServices();
+			ConfigureServices(this);
 		}
-
-		partial void ConfigureServices();
 
 		public override async ValueTask<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.ScopedImplementationOnly.ServiceProvider_> BuildAsync(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.ScopedImplementationOnly.ServiceProvider_ parent)
 {
@@ -76,6 +74,8 @@ public partial class ScopedImplementationOnly
     return serviceProvider;
 }
 	}
+	static partial void ConfigureServices(global::Inject.NET.Interfaces.IServiceRegistrar registrar);
+
 	public static ValueTask<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.ScopedImplementationOnly.ServiceProvider_> BuildAsync() =>
 		new ServiceRegistrar_().BuildAsync(null);
 }

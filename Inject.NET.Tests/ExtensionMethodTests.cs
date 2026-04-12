@@ -115,63 +115,48 @@ public partial class ExtensionMethodTests
     [ServiceProvider]
     public partial class ExtensionSingletonServiceProvider
     {
-        public partial class ServiceRegistrar_
+        static partial void ConfigureServices(global::Inject.NET.Interfaces.IServiceRegistrar registrar)
         {
-            partial void ConfigureServices()
-            {
-                this.AddSingleton<ISingletonService, SingletonService>();
-            }
+            registrar.AddSingleton<ISingletonService, SingletonService>();
         }
     }
 
     [ServiceProvider]
     public partial class ExtensionScopedServiceProvider
     {
-        public partial class ServiceRegistrar_
+        static partial void ConfigureServices(global::Inject.NET.Interfaces.IServiceRegistrar registrar)
         {
-            partial void ConfigureServices()
-            {
-                this.AddScoped<IScopedService, ScopedService>();
-            }
+            registrar.AddScoped<IScopedService, ScopedService>();
         }
     }
 
     [ServiceProvider]
     public partial class ExtensionTransientServiceProvider
     {
-        public partial class ServiceRegistrar_
+        static partial void ConfigureServices(global::Inject.NET.Interfaces.IServiceRegistrar registrar)
         {
-            partial void ConfigureServices()
-            {
-                this.AddTransient<ITransientService, TransientService>();
-            }
+            registrar.AddTransient<ITransientService, TransientService>();
         }
     }
 
     [ServiceProvider]
     public partial class FluentChainServiceProvider
     {
-        public partial class ServiceRegistrar_
+        static partial void ConfigureServices(global::Inject.NET.Interfaces.IServiceRegistrar registrar)
         {
-            partial void ConfigureServices()
-            {
-                this.AddSingleton<ISingletonService, SingletonService>()
-                    .AddScoped<IScopedService, ScopedService>()
-                    .AddTransient<ITransientService, TransientService>();
-            }
+            registrar.AddSingleton<ISingletonService, SingletonService>()
+                .AddScoped<IScopedService, ScopedService>()
+                .AddTransient<ITransientService, TransientService>();
         }
     }
 
     [ServiceProvider]
     public partial class FactorySingletonServiceProvider
     {
-        public partial class ServiceRegistrar_
+        static partial void ConfigureServices(global::Inject.NET.Interfaces.IServiceRegistrar registrar)
         {
-            partial void ConfigureServices()
-            {
-                this.AddSingleton<IConfigService>(scope =>
-                    new ConfigService("Custom Factory Value"));
-            }
+            registrar.AddSingleton<IConfigService>(scope =>
+                new ConfigService("Custom Factory Value"));
         }
     }
 
@@ -179,25 +164,19 @@ public partial class ExtensionMethodTests
     [Singleton<AttributeRegisteredService>]
     public partial class MixedRegistrationServiceProvider
     {
-        public partial class ServiceRegistrar_
+        static partial void ConfigureServices(global::Inject.NET.Interfaces.IServiceRegistrar registrar)
         {
-            partial void ConfigureServices()
-            {
-                this.AddSingleton<IExtensionRegisteredService, ExtensionRegisteredService>();
-            }
+            registrar.AddSingleton<IExtensionRegisteredService, ExtensionRegisteredService>();
         }
     }
 
     [ServiceProvider]
     public partial class DependencyInjectionServiceProvider
     {
-        public partial class ServiceRegistrar_
+        static partial void ConfigureServices(global::Inject.NET.Interfaces.IServiceRegistrar registrar)
         {
-            partial void ConfigureServices()
-            {
-                this.AddSingleton<IDependency, Dependency>()
-                    .AddSingleton<IServiceWithDependency, ServiceWithDependency>();
-            }
+            registrar.AddSingleton<IDependency, Dependency>()
+                .AddSingleton<IServiceWithDependency, ServiceWithDependency>();
         }
     }
 

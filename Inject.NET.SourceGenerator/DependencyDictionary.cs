@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using Inject.NET.SourceGenerator.Constants;
 using Inject.NET.SourceGenerator.Models;
 using Microsoft.CodeAnalysis;
 
@@ -14,13 +15,15 @@ internal static class DependencyDictionary
     /// <param name="dependencyAttributes">Array of dependency attributes to process.</param>
     /// <param name="tenantName">Optional tenant name for multi-tenant scenarios.</param>
     /// <param name="serviceProviderType">Optional service provider type for resolving factory methods.</param>
+    /// <param name="diagnostics">Optional list to collect diagnostics for reporting.</param>
     /// <returns>A dictionary mapping service keys to lists of service models.</returns>
     public static IDictionary<ServiceModelCollection.ServiceKey, List<ServiceModel>> Create(Compilation compilation,
-        AttributeData[] dependencyAttributes, string? tenantName, INamedTypeSymbol? serviceProviderType = null)
+        AttributeData[] dependencyAttributes, string? tenantName, INamedTypeSymbol? serviceProviderType = null,
+        List<Diagnostic>? diagnostics = null)
     {
         var serviceBuilders = new List<ServiceModelBuilder>();
 
-        ProcessAttributeData(compilation, dependencyAttributes, tenantName, serviceBuilders, serviceProviderType);
+        ProcessAttributeData(compilation, dependencyAttributes, tenantName, serviceBuilders, serviceProviderType, diagnostics);
         ProcessParameters(serviceBuilders);
 
         return BuildServiceDictionary(serviceBuilders);
@@ -36,7 +39,8 @@ internal static class DependencyDictionary
     /// <param name="serviceBuilders">List to populate with service model builders.</param>
     /// <param name="serviceProviderType">Optional service provider type for resolving factory methods.</param>
     private static void ProcessAttributeData(Compilation compilation, AttributeData[] dependencyAttributes,
-        string? tenantName, List<ServiceModelBuilder> serviceBuilders, INamedTypeSymbol? serviceProviderType)
+        string? tenantName, List<ServiceModelBuilder> serviceBuilders, INamedTypeSymbol? serviceProviderType,
+        List<Diagnostic>? diagnostics)
     {
         // Sort dependency attributes by constructor argument length
         Array.Sort(dependencyAttributes, (x, y) => x.ConstructorArguments.Length.CompareTo(y.ConstructorArguments.Length));
@@ -60,6 +64,7 @@ internal static class DependencyDictionary
             string? key = null;
             bool externallyOwned = false;
             string? factoryMethodName = null;
+            INamedTypeSymbol? factoryType = null;
             foreach (var namedArg in attributeData.NamedArguments)
             {
                 if (namedArg.Key == "Key")
@@ -74,11 +79,16 @@ internal static class DependencyDictionary
                 {
                     factoryMethodName = namedArg.Value.Value as string;
                 }
+                else if (namedArg.Key == "FactoryType")
+                {
+                    factoryType = namedArg.Value.Value as INamedTypeSymbol;
+                }
             }
             var lifetime = EnumPolyfill.Parse<Lifetime>(attributeData.AttributeClass!.Name.Replace("Attribute", string.Empty));
             var isGenericDefinition = serviceType.IsGenericDefinition();
 
-            Add(compilation, serviceType, implementationType, serviceBuilders, key, lifetime, tenantName, externallyOwned, factoryMethodName, serviceProviderType);
+            var effectiveFactoryType = factoryType ?? serviceProviderType;
+            Add(compilation, serviceType, implementationType, serviceBuilders, key, lifetime, tenantName, externallyOwned, factoryMethodName, effectiveFactoryType, diagnostics);
 
             if (isGenericDefinition)
             {
@@ -265,7 +275,7 @@ internal static class DependencyDictionary
 
     private static void Add(Compilation compilation, INamedTypeSymbol serviceType, INamedTypeSymbol implementationType,
         List<ServiceModelBuilder> list, string? key, Lifetime lifetime, string? tenantName, bool externallyOwned,
-        string? factoryMethodName, INamedTypeSymbol? serviceProviderType)
+        string? factoryMethodName, INamedTypeSymbol? serviceProviderType, List<Diagnostic>? diagnostics = null)
     {
         var isGenericDefinition = serviceType.IsGenericDefinition();
 
@@ -288,14 +298,24 @@ internal static class DependencyDictionary
             }
             else
             {
-                // Factory method not found — clear the name so we don't try to call it in generated code
+                diagnostics?.Add(Diagnostic.Create(
+                    new DiagnosticDescriptor(
+                        DiagnosticCodes.FactoryMethodNotFound,
+                        "Factory method not found",
+                        "Factory method '{0}' was not found as a static method on type '{1}' for service '{2}'. Falling back to constructor injection.",
+                        "Inject.NET",
+                        DiagnosticSeverity.Warning,
+                        isEnabledByDefault: true),
+                    null,
+                    factoryMethodName,
+                    serviceProviderType.ToDisplayString(),
+                    serviceType.ToDisplayString()));
                 factoryMethodName = null;
                 parameters = GetParameters(implementationType, compilation);
             }
         }
         else
         {
-            // No service provider type context (e.g. tenant definitions) — clear factory method
             factoryMethodName = null;
             parameters = GetParameters(implementationType, compilation);
         }

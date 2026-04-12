@@ -24,7 +24,18 @@ public abstract class DependencyInjectionAttribute : Attribute, IDependencyInjec
     /// </summary>
     public bool ExternallyOwned { get; set; }
 
+    /// <summary>
+    /// The name of a static factory method to use for creating instances of this service.
+    /// By default, the method is looked up on the service provider class.
+    /// Use <see cref="FactoryType"/> to specify a different class.
+    /// </summary>
     public string? FactoryMethod { get; set; }
+
+    /// <summary>
+    /// The type containing the static factory method specified by <see cref="FactoryMethod"/>.
+    /// When null, the factory method is looked up on the service provider class.
+    /// </summary>
+    public Type? FactoryType { get; set; }
 
     public Type ServiceType { get; }
     public Type ImplementationType { get; }

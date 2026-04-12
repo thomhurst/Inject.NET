@@ -49,16 +49,16 @@ public partial class TenantTests
         var serviceProvider = await ServiceProvider.BuildAsync();
 
         //await using var defaultScope = serviceProvider.CreateScope();
-        await using var tenant1Scope = serviceProvider.Tenant_Tenant1.CreateTypedScope();
-        await using var tenant2Scope = serviceProvider.Tenant_Tenant2.CreateTypedScope();
+        await using var tenant1Scope = serviceProvider.Tenant_Tenant1.CreateScope();
+        await using var tenant2Scope = serviceProvider.Tenant_Tenant2.CreateScope();
 
         // await Assert.That(defaultScope.GetRequiredService<Parent>().Get())
         //     .IsEqualTo("DefaultChild");
 
-        await Assert.That(tenant1Scope.Inject__NET__Tests__TenantTests__Parent____0.Get())
+        await Assert.That(tenant1Scope.Parent_0.Get())
             .IsEqualTo("Tenant1Child");
-        
-        await Assert.That(tenant2Scope.Inject__NET__Tests__TenantTests__IChild__Tenant2__0.Get())
+
+        await Assert.That(tenant2Scope.IChild_Tenant2_0.Get())
             .IsEqualTo("Tenant2Child");
         
         await Assert.That(tenant1Scope.GetRequiredService<IChild>().Get())

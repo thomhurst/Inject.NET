@@ -9,4 +9,9 @@ public static class DiagnosticCodes
     /// Diagnostic code for circular dependency conflicts.
     /// </summary>
     public const string CircularDependency = "IJN0001";
+
+    /// <summary>
+    /// Diagnostic code for factory method not found on the specified type.
+    /// </summary>
+    public const string FactoryMethodNotFound = "IJN0002";
 }

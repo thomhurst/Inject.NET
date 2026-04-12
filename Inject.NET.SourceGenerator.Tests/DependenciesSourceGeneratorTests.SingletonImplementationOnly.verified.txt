@@ -18,12 +18,12 @@ public partial class SingletonImplementationOnly
 	{
 		private global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonImplementationOnly.SingletonScope_? _singletons;
 		public override global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonImplementationOnly.SingletonScope_ Singletons => _singletons ??= new(this, serviceFactories);
-		public override global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonImplementationOnly.ServiceScope_ CreateTypedScope() => new(this, serviceFactories);
+		public override global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonImplementationOnly.ServiceScope_ CreateScope() => new(this, serviceFactories);
 		public override async ValueTask InitializeAsync()
 		{
 			await Singletons.InitializeAsync();
-			await using var scope = CreateTypedScope();
-			_ = Singletons.Class1____0;
+			await using var scope = CreateScope();
+			_ = Singletons.Class1_0;
 
 			await base.InitializeAsync();
 		}
@@ -34,7 +34,7 @@ public partial class SingletonImplementationOnly
 		{
 		}
 
-		public Class1 Class1____0 => (Class1)GetServices(new ServiceKey { Type = typeof(Class1), Key = null })[^1];
+		public Class1 Class1_0 => (Class1)GetServices(new ServiceKey { Type = typeof(Class1), Key = null })[^1];
 	}
 	public class ServiceScope_ : global::Inject.NET.Services.ServiceScope<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonImplementationOnly.ServiceScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonImplementationOnly.ServiceProvider_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonImplementationOnly.SingletonScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonImplementationOnly.ServiceScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonImplementationOnly.SingletonScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonImplementationOnly.ServiceProvider_>
 	{
@@ -42,8 +42,8 @@ public partial class SingletonImplementationOnly
 		{
 		}
 
-		public Class1 Class1____0 => Singletons.Class1____0;
-		public IReadOnlyList<Class1> Class1____0Enumerable => [Class1____0];
+		public Class1 Class1_0 => Singletons.Class1_0;
+		public IReadOnlyList<Class1> Class1_0Enumerable => [Class1_0];
 	}
 	public partial class ServiceRegistrar_ : global::Inject.NET.Services.ServiceRegistrar<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonImplementationOnly.ServiceProvider_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonImplementationOnly.ServiceProvider_>
 	{
@@ -58,10 +58,8 @@ public partial class SingletonImplementationOnly
 				new Class1()
 			});
 
-			ConfigureServices();
+			ConfigureServices(this);
 		}
-
-		partial void ConfigureServices();
 
 		public override async ValueTask<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonImplementationOnly.ServiceProvider_> BuildAsync(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonImplementationOnly.ServiceProvider_ parent)
 {
@@ -77,6 +75,8 @@ public partial class SingletonImplementationOnly
     return serviceProvider;
 }
 	}
+	static partial void ConfigureServices(global::Inject.NET.Interfaces.IServiceRegistrar registrar);
+
 	public static ValueTask<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonImplementationOnly.ServiceProvider_> BuildAsync() =>
 		new ServiceRegistrar_().BuildAsync(null);
 }

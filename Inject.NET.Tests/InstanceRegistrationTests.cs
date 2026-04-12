@@ -130,12 +130,9 @@ public partial class InstanceRegistrationTests
     {
         public static readonly MyService ProvidedInstance = new("PreExisting");
 
-        public partial class ServiceRegistrar_
+        static partial void ConfigureServices(global::Inject.NET.Interfaces.IServiceRegistrar registrar)
         {
-            partial void ConfigureServices()
-            {
-                this.AddSingleton<IMyService>(ProvidedInstance);
-            }
+            registrar.AddSingleton<IMyService>(ProvidedInstance);
         }
     }
 
@@ -144,37 +141,28 @@ public partial class InstanceRegistrationTests
     {
         public static readonly DisposableService DisposableInstance = new();
 
-        public partial class ServiceRegistrar_
+        static partial void ConfigureServices(global::Inject.NET.Interfaces.IServiceRegistrar registrar)
         {
-            partial void ConfigureServices()
-            {
-                this.AddSingleton<IDisposableService>(DisposableInstance);
-            }
+            registrar.AddSingleton<IDisposableService>(DisposableInstance);
         }
     }
 
     [ServiceProvider]
     public partial class InstanceNonGenericServiceProvider
     {
-        public partial class ServiceRegistrar_
+        static partial void ConfigureServices(global::Inject.NET.Interfaces.IServiceRegistrar registrar)
         {
-            partial void ConfigureServices()
-            {
-                this.AddSingleton(typeof(IMyService), new MyService("NonGeneric"));
-            }
+            registrar.AddSingleton(typeof(IMyService), new MyService("NonGeneric"));
         }
     }
 
     [ServiceProvider]
     public partial class InstanceFluentServiceProvider
     {
-        public partial class ServiceRegistrar_
+        static partial void ConfigureServices(global::Inject.NET.Interfaces.IServiceRegistrar registrar)
         {
-            partial void ConfigureServices()
-            {
-                this.AddSingleton<IMyService>(new MyService("Fluent1"))
-                    .AddSingleton<IOtherService>(new OtherService(42));
-            }
+            registrar.AddSingleton<IMyService>(new MyService("Fluent1"))
+                .AddSingleton<IOtherService>(new OtherService(42));
         }
     }
 
@@ -182,12 +170,9 @@ public partial class InstanceRegistrationTests
     [Singleton<AttributeService>]
     public partial class InstanceMixedServiceProvider
     {
-        public partial class ServiceRegistrar_
+        static partial void ConfigureServices(global::Inject.NET.Interfaces.IServiceRegistrar registrar)
         {
-            partial void ConfigureServices()
-            {
-                this.AddSingleton<IMyService>(new MyService("InstanceRegistered"));
-            }
+            registrar.AddSingleton<IMyService>(new MyService("InstanceRegistered"));
         }
     }
 

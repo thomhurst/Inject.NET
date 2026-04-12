@@ -20,14 +20,14 @@ public partial class Scoped
 		{
 			private global::Inject.NET.Tests.Scoped.ScopedServiceProvider.SingletonScope_? _singletons;
 			public override global::Inject.NET.Tests.Scoped.ScopedServiceProvider.SingletonScope_ Singletons => _singletons ??= new(this, serviceFactories);
-			public override global::Inject.NET.Tests.Scoped.ScopedServiceProvider.ServiceScope_ CreateTypedScope() => new(this, serviceFactories);
+			public override global::Inject.NET.Tests.Scoped.ScopedServiceProvider.ServiceScope_ CreateScope() => new(this, serviceFactories);
 			public ServiceProvider_NonOverridingTenant Tenant_NonOverridingTenant { get; private set; } = null!;
 			public ServiceProvider_OverridingTenant Tenant_OverridingTenant { get; private set; } = null!;
 			public override async ValueTask InitializeAsync()
 			{
 				await Singletons.InitializeAsync();
-				await using var scope = CreateTypedScope();
-				_ = scope.Inject__NET__Tests__Scoped__ScopedClass____0;
+				await using var scope = CreateScope();
+				_ = scope.ScopedClass_0;
 				Tenant_NonOverridingTenant = await ServiceProvider_NonOverridingTenant.BuildAsync(this);
 				Register<global::Inject.NET.Tests.Scoped.ScopedServiceProvider.NonOverridingTenant>(Tenant_NonOverridingTenant);
 				Tenant_OverridingTenant = await ServiceProvider_OverridingTenant.BuildAsync(this);
@@ -48,9 +48,9 @@ public partial class Scoped
 			{
 			}
 
-			private global::Inject.NET.Tests.Scoped.ScopedClass? _inject__NET__Tests__Scoped__ScopedClass____0;
-			public global::Inject.NET.Tests.Scoped.ScopedClass Inject__NET__Tests__Scoped__ScopedClass____0 => _inject__NET__Tests__Scoped__ScopedClass____0 ??= Register<global::Inject.NET.Tests.Scoped.ScopedClass>(new global::Inject.NET.Tests.Scoped.ScopedClass());
-			public IReadOnlyList<global::Inject.NET.Tests.Scoped.ScopedClass> Inject__NET__Tests__Scoped__ScopedClass____0Enumerable => [Inject__NET__Tests__Scoped__ScopedClass____0];
+			private global::Inject.NET.Tests.Scoped.ScopedClass? _scopedClass_0;
+			public global::Inject.NET.Tests.Scoped.ScopedClass ScopedClass_0 => _scopedClass_0 ??= Register<global::Inject.NET.Tests.Scoped.ScopedClass>(new global::Inject.NET.Tests.Scoped.ScopedClass());
+			public IReadOnlyList<global::Inject.NET.Tests.Scoped.ScopedClass> ScopedClass_0Enumerable => [ScopedClass_0];
 		}
 		public partial class ServiceRegistrar_ : global::Inject.NET.Services.ServiceRegistrar<global::Inject.NET.Tests.Scoped.ScopedServiceProvider.ServiceProvider_, global::Inject.NET.Tests.Scoped.ScopedServiceProvider.ServiceProvider_>
 		{
@@ -65,10 +65,8 @@ public partial class Scoped
 					new global::Inject.NET.Tests.Scoped.ScopedClass()
 				});
 
-				ConfigureServices();
+				ConfigureServices(this);
 			}
-
-			partial void ConfigureServices();
 
 			public override async ValueTask<global::Inject.NET.Tests.Scoped.ScopedServiceProvider.ServiceProvider_> BuildAsync(global::Inject.NET.Tests.Scoped.ScopedServiceProvider.ServiceProvider_ parent)
 {
@@ -88,13 +86,13 @@ public partial class Scoped
 		{
 			private SingletonScope_NonOverridingTenant? _singletons;
 			public override SingletonScope_NonOverridingTenant Singletons => _singletons ??= new(this, serviceFactories, parent.Singletons);
-			public override ServiceScope_NonOverridingTenant CreateTypedScope() => new ServiceScope_NonOverridingTenant(this, serviceFactories, parent.CreateTypedScope());
+			public override ServiceScope_NonOverridingTenant CreateScope() => new ServiceScope_NonOverridingTenant(this, serviceFactories, parent.CreateScope());
 			public static ValueTask<ServiceProvider_NonOverridingTenant> BuildAsync(global::Inject.NET.Tests.Scoped.ScopedServiceProvider.ServiceProvider_ serviceProvider) =>
 				new ServiceRegistrarNonOverridingTenant().BuildAsync(serviceProvider);
 			public override async ValueTask InitializeAsync()
 			{
 				await Singletons.InitializeAsync();
-				await using var scope = CreateTypedScope();
+				await using var scope = CreateScope();
 
 				await base.InitializeAsync();
 			}
@@ -111,13 +109,13 @@ public partial class Scoped
 			{
 			}
 
-			public global::Inject.NET.Tests.Scoped.ScopedClass Inject__NET__Tests__Scoped__ScopedClass____0 => ParentScope.Inject__NET__Tests__Scoped__ScopedClass____0;
+			public global::Inject.NET.Tests.Scoped.ScopedClass ScopedClass_0 => ParentScope.ScopedClass_0;
 
 			public override IReadOnlyList<object> GetServices(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
 			{
 				if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.Tests.Scoped.ScopedClass), Key = null })
 				{
-					return [Inject__NET__Tests__Scoped__ScopedClass____0];
+					return [ScopedClass_0];
 				}
 				return base.GetServices(serviceKey, originatingScope);
 			}
@@ -126,10 +124,8 @@ public partial class Scoped
 		{
 			public ServiceRegistrarNonOverridingTenant()
 			{
-				ConfigureServices();
+				ConfigureServices(this);
 			}
-
-			partial void ConfigureServices();
 
 			public override async ValueTask<ServiceProvider_NonOverridingTenant> BuildAsync(global::Inject.NET.Tests.Scoped.ScopedServiceProvider.ServiceProvider_ parentServiceProvider)
 {
@@ -149,14 +145,14 @@ public partial class Scoped
 		{
 			private SingletonScope_OverridingTenant? _singletons;
 			public override SingletonScope_OverridingTenant Singletons => _singletons ??= new(this, serviceFactories, parent.Singletons);
-			public override ServiceScope_OverridingTenant CreateTypedScope() => new ServiceScope_OverridingTenant(this, serviceFactories, parent.CreateTypedScope());
+			public override ServiceScope_OverridingTenant CreateScope() => new ServiceScope_OverridingTenant(this, serviceFactories, parent.CreateScope());
 			public static ValueTask<ServiceProvider_OverridingTenant> BuildAsync(global::Inject.NET.Tests.Scoped.ScopedServiceProvider.ServiceProvider_ serviceProvider) =>
 				new ServiceRegistrarOverridingTenant().BuildAsync(serviceProvider);
 			public override async ValueTask InitializeAsync()
 			{
 				await Singletons.InitializeAsync();
-				await using var scope = CreateTypedScope();
-				_ = scope.Inject__NET__Tests__Scoped__ScopedClass__OverridingTenant__0;
+				await using var scope = CreateScope();
+				_ = scope.ScopedClass_OverridingTenant_0;
 
 				await base.InitializeAsync();
 			}
@@ -173,16 +169,16 @@ public partial class Scoped
 			{
 			}
 
-			public global::Inject.NET.Tests.Scoped.ScopedClass Inject__NET__Tests__Scoped__ScopedClass____0 => ParentScope.Inject__NET__Tests__Scoped__ScopedClass____0;
+			public global::Inject.NET.Tests.Scoped.ScopedClass ScopedClass_0 => ParentScope.ScopedClass_0;
 
-			private global::Inject.NET.Tests.Scoped.ScopedClass? _inject__NET__Tests__Scoped__ScopedClass__OverridingTenant__0;
-			public global::Inject.NET.Tests.Scoped.ScopedClass Inject__NET__Tests__Scoped__ScopedClass__OverridingTenant__0 => _inject__NET__Tests__Scoped__ScopedClass__OverridingTenant__0 ??= Register<global::Inject.NET.Tests.Scoped.ScopedClass>(new global::Inject.NET.Tests.Scoped.ScopedClass());
+			private global::Inject.NET.Tests.Scoped.ScopedClass? _scopedClass_OverridingTenant_0;
+			public global::Inject.NET.Tests.Scoped.ScopedClass ScopedClass_OverridingTenant_0 => _scopedClass_OverridingTenant_0 ??= Register<global::Inject.NET.Tests.Scoped.ScopedClass>(new global::Inject.NET.Tests.Scoped.ScopedClass());
 
 			public override IReadOnlyList<object> GetServices(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
 			{
 				if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.Tests.Scoped.ScopedClass), Key = null })
 				{
-					return [Inject__NET__Tests__Scoped__ScopedClass____0, Inject__NET__Tests__Scoped__ScopedClass__OverridingTenant__0];
+					return [ScopedClass_0, ScopedClass_OverridingTenant_0];
 				}
 				return base.GetServices(serviceKey, originatingScope);
 			}
@@ -200,10 +196,8 @@ public partial class Scoped
 					new global::Inject.NET.Tests.Scoped.ScopedClass()
 				});
 
-				ConfigureServices();
+				ConfigureServices(this);
 			}
-
-			partial void ConfigureServices();
 
 			public override async ValueTask<ServiceProvider_OverridingTenant> BuildAsync(global::Inject.NET.Tests.Scoped.ScopedServiceProvider.ServiceProvider_ parentServiceProvider)
 {
@@ -219,6 +213,8 @@ public partial class Scoped
     return serviceProvider;
 }
 		}
+		static partial void ConfigureServices(global::Inject.NET.Interfaces.IServiceRegistrar registrar);
+
 		public static ValueTask<global::Inject.NET.Tests.Scoped.ScopedServiceProvider.ServiceProvider_> BuildAsync() =>
 			new ServiceRegistrar_().BuildAsync(null);
 	}

@@ -19,12 +19,9 @@ public partial class ServiceScopeFactoryAdapterTests
     [Scoped<MyScopedService>]
     public partial class ScopeFactoryTestProvider
     {
-        public partial class ServiceRegistrar_
+        static partial void ConfigureServices(global::Inject.NET.Interfaces.IServiceRegistrar registrar)
         {
-            partial void ConfigureServices()
-            {
-                this.AddServiceCollection(_ => { });
-            }
+            registrar.AddServiceCollection(_ => { });
         }
     }
 

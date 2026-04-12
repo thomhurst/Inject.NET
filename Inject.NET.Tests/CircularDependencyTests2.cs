@@ -9,7 +9,7 @@ public partial class CircularDependencyTests2
     {
         var provider = await CircularDependencyServiceProvider.BuildAsync();
         
-        await using var scope = provider.CreateTypedScope();
+        await using var scope = provider.CreateScope();
     }
 
     public interface Interface1;

@@ -18,13 +18,13 @@ public partial class WithTenant
 	{
 		private global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenant.SingletonScope_? _singletons;
 		public override global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenant.SingletonScope_ Singletons => _singletons ??= new(this, serviceFactories);
-		public override global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenant.ServiceScope_ CreateTypedScope() => new(this, serviceFactories);
+		public override global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenant.ServiceScope_ CreateScope() => new(this, serviceFactories);
 		public ServiceProvider_Tenant Tenant_Tenant { get; private set; } = null!;
 		public override async ValueTask InitializeAsync()
 		{
 			await Singletons.InitializeAsync();
-			await using var scope = CreateTypedScope();
-			_ = Singletons.Inject__NET__SourceGenerator__Sample__Models__Class1____0;
+			await using var scope = CreateScope();
+			_ = Singletons.Class1_0;
 			Tenant_Tenant = await ServiceProvider_Tenant.BuildAsync(this);
 			Register<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenant.Tenant>(Tenant_Tenant);
 
@@ -37,7 +37,7 @@ public partial class WithTenant
 		{
 		}
 
-		public global::Inject.NET.SourceGenerator.Sample.Models.Class1 Inject__NET__SourceGenerator__Sample__Models__Class1____0 => (global::Inject.NET.SourceGenerator.Sample.Models.Class1)GetServices(new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.Models.Class1), Key = null })[^1];
+		public global::Inject.NET.SourceGenerator.Sample.Models.Class1 Class1_0 => (global::Inject.NET.SourceGenerator.Sample.Models.Class1)GetServices(new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.Models.Class1), Key = null })[^1];
 	}
 	public class ServiceScope_ : global::Inject.NET.Services.ServiceScope<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenant.ServiceScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenant.ServiceProvider_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenant.SingletonScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenant.ServiceScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenant.SingletonScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenant.ServiceProvider_>
 	{
@@ -45,8 +45,8 @@ public partial class WithTenant
 		{
 		}
 
-		public global::Inject.NET.SourceGenerator.Sample.Models.Class1 Inject__NET__SourceGenerator__Sample__Models__Class1____0 => Singletons.Inject__NET__SourceGenerator__Sample__Models__Class1____0;
-		public IReadOnlyList<global::Inject.NET.SourceGenerator.Sample.Models.Class1> Inject__NET__SourceGenerator__Sample__Models__Class1____0Enumerable => [Inject__NET__SourceGenerator__Sample__Models__Class1____0];
+		public global::Inject.NET.SourceGenerator.Sample.Models.Class1 Class1_0 => Singletons.Class1_0;
+		public IReadOnlyList<global::Inject.NET.SourceGenerator.Sample.Models.Class1> Class1_0Enumerable => [Class1_0];
 	}
 	public partial class ServiceRegistrar_ : global::Inject.NET.Services.ServiceRegistrar<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenant.ServiceProvider_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenant.ServiceProvider_>
 	{
@@ -61,10 +61,8 @@ public partial class WithTenant
 				new global::Inject.NET.SourceGenerator.Sample.Models.Class1()
 			});
 
-			ConfigureServices();
+			ConfigureServices(this);
 		}
-
-		partial void ConfigureServices();
 
 		public override async ValueTask<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenant.ServiceProvider_> BuildAsync(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenant.ServiceProvider_ parent)
 {
@@ -84,14 +82,14 @@ public partial class WithTenant
 	{
 		private SingletonScope_Tenant? _singletons;
 		public override SingletonScope_Tenant Singletons => _singletons ??= new(this, serviceFactories, parent.Singletons);
-		public override ServiceScope_Tenant CreateTypedScope() => new ServiceScope_Tenant(this, serviceFactories, parent.CreateTypedScope());
+		public override ServiceScope_Tenant CreateScope() => new ServiceScope_Tenant(this, serviceFactories, parent.CreateScope());
 		public static ValueTask<ServiceProvider_Tenant> BuildAsync(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenant.ServiceProvider_ serviceProvider) =>
 			new ServiceRegistrarTenant().BuildAsync(serviceProvider);
 		public override async ValueTask InitializeAsync()
 		{
 			await Singletons.InitializeAsync();
-			await using var scope = CreateTypedScope();
-			_ = Singletons.Inject__NET__SourceGenerator__Sample__Models__InheritsFromClass1__Tenant__0;
+			await using var scope = CreateScope();
+			_ = Singletons.InheritsFromClass1_Tenant_0;
 
 			await base.InitializeAsync();
 		}
@@ -102,9 +100,9 @@ public partial class WithTenant
 		{
 		}
 
-		public global::Inject.NET.SourceGenerator.Sample.Models.Class1 Inject__NET__SourceGenerator__Sample__Models__Class1____0 => ParentScope.Inject__NET__SourceGenerator__Sample__Models__Class1____0;
+		public global::Inject.NET.SourceGenerator.Sample.Models.Class1 Class1_0 => ParentScope.Class1_0;
 
-		public global::Inject.NET.SourceGenerator.Sample.Models.InheritsFromClass1 Inject__NET__SourceGenerator__Sample__Models__InheritsFromClass1__Tenant__0 => (global::Inject.NET.SourceGenerator.Sample.Models.InheritsFromClass1)GetServices(new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.Models.InheritsFromClass1), Key = null })[^1];
+		public global::Inject.NET.SourceGenerator.Sample.Models.InheritsFromClass1 InheritsFromClass1_Tenant_0 => (global::Inject.NET.SourceGenerator.Sample.Models.InheritsFromClass1)GetServices(new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.Models.InheritsFromClass1), Key = null })[^1];
 	}
 	public class ServiceScope_Tenant : global::Inject.NET.Services.ServiceScope<ServiceScope_Tenant, ServiceProvider_Tenant, SingletonScope_Tenant, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenant.ServiceScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenant.SingletonScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenant.ServiceProvider_>
 	{
@@ -112,19 +110,19 @@ public partial class WithTenant
 		{
 		}
 
-		public global::Inject.NET.SourceGenerator.Sample.Models.Class1 Inject__NET__SourceGenerator__Sample__Models__Class1____0 => Singletons.Inject__NET__SourceGenerator__Sample__Models__Class1____0;
+		public global::Inject.NET.SourceGenerator.Sample.Models.Class1 Class1_0 => Singletons.Class1_0;
 
-		public global::Inject.NET.SourceGenerator.Sample.Models.InheritsFromClass1 Inject__NET__SourceGenerator__Sample__Models__InheritsFromClass1__Tenant__0 => Singletons.Inject__NET__SourceGenerator__Sample__Models__InheritsFromClass1__Tenant__0;
+		public global::Inject.NET.SourceGenerator.Sample.Models.InheritsFromClass1 InheritsFromClass1_Tenant_0 => Singletons.InheritsFromClass1_Tenant_0;
 
 		public override IReadOnlyList<object> GetServices(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
 		{
 			if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.Models.Class1), Key = null })
 			{
-				return [Inject__NET__SourceGenerator__Sample__Models__Class1____0];
+				return [Class1_0];
 			}
 			if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.Models.InheritsFromClass1), Key = null })
 			{
-				return [Inject__NET__SourceGenerator__Sample__Models__InheritsFromClass1__Tenant__0];
+				return [InheritsFromClass1_Tenant_0];
 			}
 			return base.GetServices(serviceKey, originatingScope);
 		}
@@ -142,10 +140,8 @@ public partial class WithTenant
 				new global::Inject.NET.SourceGenerator.Sample.Models.InheritsFromClass1()
 			});
 
-			ConfigureServices();
+			ConfigureServices(this);
 		}
-
-		partial void ConfigureServices();
 
 		public override async ValueTask<ServiceProvider_Tenant> BuildAsync(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenant.ServiceProvider_ parentServiceProvider)
 {
@@ -161,6 +157,8 @@ public partial class WithTenant
     return serviceProvider;
 }
 	}
+	static partial void ConfigureServices(global::Inject.NET.Interfaces.IServiceRegistrar registrar);
+
 	public static ValueTask<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenant.ServiceProvider_> BuildAsync() =>
 		new ServiceRegistrar_().BuildAsync(null);
 }

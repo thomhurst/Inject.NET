@@ -23,7 +23,7 @@ public class NugetVersionGeneratorModule : Module<string>
 
             return $"{gitVersionInformation.Major}.{gitVersionInformation.Minor}.{gitVersionInformation.Patch}-{gitVersionInformation.PreReleaseLabel}-{gitVersionInformation.CommitsSinceVersionSource}";
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
             context.Logger.LogWarning(ex, "GitVersion failed — using fallback version for PR build");
             return "0.0.0-pr-fallback";

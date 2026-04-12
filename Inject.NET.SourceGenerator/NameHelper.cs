@@ -25,22 +25,17 @@ public class NameHelper
 
     public static string AsProperty(ServiceModel serviceModel)
     {
-        var cacheKey = $"{serviceModel.ServiceType.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)}__{serviceModel.TenantName}__{serviceModel.Index}__{serviceModel.Key}";
+        var cacheKey = $"{serviceModel.ServiceType.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)}|{serviceModel.TenantName}|{serviceModel.Index}|{serviceModel.Key}";
 
         return _propertyNameCache.GetOrAdd(cacheKey, _ =>
         {
             var shortTypeName = serviceModel.ServiceType.ToDisplayString(ShortTypeNameFormat);
-            return GeneratePropertyName(shortTypeName, cacheKey);
+            return GeneratePropertyName(shortTypeName, serviceModel.TenantName, serviceModel.Index.ToString(), serviceModel.Key);
         });
     }
 
-    private static string GeneratePropertyName(string shortTypeName, string cacheKey)
+    private static string GeneratePropertyName(string shortTypeName, string? tenantName, string index, string? serviceKey)
     {
-        var parts = cacheKey.Split(new[] { "__" }, StringSplitOptions.None);
-        var tenantName = parts[1];
-        var index = parts[2];
-        var serviceKey = parts.Length > 3 ? parts[3] : null;
-
         StringBuilder sb = new(shortTypeName.Length + 16);
 
         foreach (var c in shortTypeName)

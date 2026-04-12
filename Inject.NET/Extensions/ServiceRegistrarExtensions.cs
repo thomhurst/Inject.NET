@@ -31,9 +31,9 @@ public static class ServiceRegistrarExtensions
     /// <returns>The registrar for fluent chaining</returns>
     /// <example>
     /// <code>
-    /// partial void ConfigureServices()
+    /// static partial void ConfigureServices(IServiceRegistrar registrar)
     /// {
-    ///     this.AddSingleton&lt;ICache, MemoryCache&gt;();
+    ///     registrar.AddSingleton&lt;ICache, MemoryCache&gt;();
     /// }
     /// </code>
     /// </example>
@@ -62,9 +62,9 @@ public static class ServiceRegistrarExtensions
     /// <returns>The registrar for fluent chaining</returns>
     /// <example>
     /// <code>
-    /// partial void ConfigureServices()
+    /// static partial void ConfigureServices(IServiceRegistrar registrar)
     /// {
-    ///     this.AddSingleton&lt;MemoryCache&gt;();
+    ///     registrar.AddSingleton&lt;MemoryCache&gt;();
     /// }
     /// </code>
     /// </example>
@@ -86,10 +86,10 @@ public static class ServiceRegistrarExtensions
     /// <returns>The registrar for fluent chaining</returns>
     /// <example>
     /// <code>
-    /// partial void ConfigureServices()
+    /// static partial void ConfigureServices(IServiceRegistrar registrar)
     /// {
     ///     var config = LoadConfiguration();
-    ///     this.AddSingleton&lt;IConfiguration&gt;(config);
+    ///     registrar.AddSingleton&lt;IConfiguration&gt;(config);
     /// }
     /// </code>
     /// </example>
@@ -120,10 +120,10 @@ public static class ServiceRegistrarExtensions
     /// <returns>The registrar for fluent chaining</returns>
     /// <example>
     /// <code>
-    /// partial void ConfigureServices()
+    /// static partial void ConfigureServices(IServiceRegistrar registrar)
     /// {
     ///     var config = LoadConfiguration();
-    ///     this.AddSingleton(typeof(IConfiguration), config);
+    ///     registrar.AddSingleton(typeof(IConfiguration), config);
     /// }
     /// </code>
     /// </example>
@@ -153,9 +153,9 @@ public static class ServiceRegistrarExtensions
     /// <returns>The registrar for fluent chaining</returns>
     /// <example>
     /// <code>
-    /// partial void ConfigureServices()
+    /// static partial void ConfigureServices(IServiceRegistrar registrar)
     /// {
-    ///     this.AddSingleton&lt;IConfiguration&gt;(scope =>
+    ///     registrar.AddSingleton&lt;IConfiguration&gt;(scope =>
     ///         new JsonConfiguration("appsettings.json"));
     /// }
     /// </code>
@@ -191,9 +191,9 @@ public static class ServiceRegistrarExtensions
     /// <returns>The registrar for fluent chaining</returns>
     /// <example>
     /// <code>
-    /// partial void ConfigureServices()
+    /// static partial void ConfigureServices(IServiceRegistrar registrar)
     /// {
-    ///     this.AddScoped&lt;IRepository, SqlRepository&gt;();
+    ///     registrar.AddScoped&lt;IRepository, SqlRepository&gt;();
     /// }
     /// </code>
     /// </example>
@@ -222,9 +222,9 @@ public static class ServiceRegistrarExtensions
     /// <returns>The registrar for fluent chaining</returns>
     /// <example>
     /// <code>
-    /// partial void ConfigureServices()
+    /// static partial void ConfigureServices(IServiceRegistrar registrar)
     /// {
-    ///     this.AddScoped&lt;SqlRepository&gt;();
+    ///     registrar.AddScoped&lt;SqlRepository&gt;();
     /// }
     /// </code>
     /// </example>
@@ -245,9 +245,9 @@ public static class ServiceRegistrarExtensions
     /// <returns>The registrar for fluent chaining</returns>
     /// <example>
     /// <code>
-    /// partial void ConfigureServices()
+    /// static partial void ConfigureServices(IServiceRegistrar registrar)
     /// {
-    ///     this.AddScoped&lt;IDbConnection&gt;(scope =>
+    ///     registrar.AddScoped&lt;IDbConnection&gt;(scope =>
     ///     {
     ///         var config = scope.GetRequiredService&lt;IConfiguration&gt;();
     ///         return new SqlConnection(config.ConnectionString);
@@ -286,9 +286,9 @@ public static class ServiceRegistrarExtensions
     /// <returns>The registrar for fluent chaining</returns>
     /// <example>
     /// <code>
-    /// partial void ConfigureServices()
+    /// static partial void ConfigureServices(IServiceRegistrar registrar)
     /// {
-    ///     this.AddTransient&lt;IEmailService, SmtpEmailService&gt;();
+    ///     registrar.AddTransient&lt;IEmailService, SmtpEmailService&gt;();
     /// }
     /// </code>
     /// </example>
@@ -317,9 +317,9 @@ public static class ServiceRegistrarExtensions
     /// <returns>The registrar for fluent chaining</returns>
     /// <example>
     /// <code>
-    /// partial void ConfigureServices()
+    /// static partial void ConfigureServices(IServiceRegistrar registrar)
     /// {
-    ///     this.AddTransient&lt;EmailService&gt;();
+    ///     registrar.AddTransient&lt;EmailService&gt;();
     /// }
     /// </code>
     /// </example>
@@ -340,9 +340,9 @@ public static class ServiceRegistrarExtensions
     /// <returns>The registrar for fluent chaining</returns>
     /// <example>
     /// <code>
-    /// partial void ConfigureServices()
+    /// static partial void ConfigureServices(IServiceRegistrar registrar)
     /// {
-    ///     this.AddTransient&lt;IOperationId&gt;(scope =>
+    ///     registrar.AddTransient&lt;IOperationId&gt;(scope =>
     ///         new OperationId(Guid.NewGuid()));
     /// }
     /// </code>
@@ -379,9 +379,9 @@ public static class ServiceRegistrarExtensions
     /// <returns>The registrar for fluent chaining</returns>
     /// <example>
     /// <code>
-    /// partial void ConfigureServices()
+    /// static partial void ConfigureServices(IServiceRegistrar registrar)
     /// {
-    ///     this.AddSingleton&lt;ILogger, FileLogger&gt;(
+    ///     registrar.AddSingleton&lt;ILogger, FileLogger&gt;(
     ///         predicate: ctx => ctx.ConsumerType?.Name.EndsWith("Controller") == true);
     ///     this.AddSingleton&lt;ILogger, ConsoleLogger&gt;(); // default fallback
     /// }

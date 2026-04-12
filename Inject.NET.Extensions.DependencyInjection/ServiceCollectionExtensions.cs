@@ -48,9 +48,9 @@ public static class ServiceCollectionExtensions
     /// <returns>The registrar for fluent chaining.</returns>
     /// <example>
     /// <code>
-    /// partial void ConfigureServices()
+    /// static partial void ConfigureServices(IServiceRegistrar registrar)
     /// {
-    ///     this.AddServiceCollection(services =>
+    ///     registrar.AddServiceCollection(services =>
     ///     {
     ///         services.AddOptions&lt;MyOptions&gt;().Configure(o => o.Value = "configured");
     ///         services.AddLogging();

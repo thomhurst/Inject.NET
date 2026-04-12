@@ -73,11 +73,6 @@ public static class CodeGenerationConstants
         public const string InitializeAsync = "InitializeAsync";
 
         /// <summary>
-        /// Method name for creating typed scopes.
-        /// </summary>
-        public const string CreateTypedScope = "CreateTypedScope";
-
-        /// <summary>
         /// Method name for building service providers.
         /// </summary>
         public const string BuildAsync = "BuildAsync";

@@ -32,9 +32,9 @@ public static class ServiceRegistrarInterceptorExtensions
     /// <returns>The registrar for fluent chaining</returns>
     /// <example>
     /// <code>
-    /// partial void ConfigureServices()
+    /// static partial void ConfigureServices(IServiceRegistrar registrar)
     /// {
-    ///     this.AddSingleton&lt;IMyService, MyService&gt;()
+    ///     registrar.AddSingleton&lt;IMyService, MyService&gt;()
     ///         .AddInterceptor&lt;IMyService, LoggingInterceptor&gt;();
     /// }
     /// </code>
@@ -75,10 +75,10 @@ public static class ServiceRegistrarInterceptorExtensions
     /// <returns>The registrar for fluent chaining</returns>
     /// <example>
     /// <code>
-    /// partial void ConfigureServices()
+    /// static partial void ConfigureServices(IServiceRegistrar registrar)
     /// {
     ///     var loggingInterceptor = new LoggingInterceptor(myLogger);
-    ///     this.AddSingleton&lt;IMyService, MyService&gt;()
+    ///     registrar.AddSingleton&lt;IMyService, MyService&gt;()
     ///         .AddInterceptor&lt;IMyService&gt;(loggingInterceptor);
     /// }
     /// </code>

@@ -37,7 +37,7 @@ internal static class ModuleHelper
         foreach (var useModuleAttribute in useModuleAttributes)
         {
             var moduleType = useModuleAttribute.AttributeClass!.TypeArguments[0];
-            CollectFromModule(moduleType, useModuleAttributeType, compilation, visited, result);
+            CollectFromModule(moduleType, useModuleAttributeType, visited, result);
         }
 
         return result.ToArray();
@@ -46,19 +46,17 @@ internal static class ModuleHelper
     private static void CollectFromModule(
         ITypeSymbol moduleType,
         INamedTypeSymbol useModuleAttributeType,
-        Compilation compilation,
         HashSet<ITypeSymbol> visited,
         List<AttributeData> result)
     {
         if (!visited.Add(moduleType))
         {
-            // Already visited — skip to avoid cycles
             return;
         }
 
-        var moduleAttributes = moduleType.GetAttributes();
+        var nestedModules = new List<ITypeSymbol>();
 
-        foreach (var attr in moduleAttributes)
+        foreach (var attr in moduleType.GetAttributes())
         {
             if (attr.AttributeClass is null)
             {
@@ -68,20 +66,17 @@ internal static class ModuleHelper
             if (attr.AttributeClass.IsGenericType
                 && SymbolEqualityComparer.Default.Equals(useModuleAttributeType, attr.AttributeClass.OriginalDefinition))
             {
-                continue;
+                nestedModules.Add(attr.AttributeClass.TypeArguments[0]);
             }
-
-            result.Add(attr);
+            else
+            {
+                result.Add(attr);
+            }
         }
 
-        foreach (var attr in moduleAttributes)
+        foreach (var nestedModuleType in nestedModules)
         {
-            if (attr.AttributeClass?.IsGenericType is true
-                && SymbolEqualityComparer.Default.Equals(useModuleAttributeType, attr.AttributeClass.OriginalDefinition))
-            {
-                var nestedModuleType = attr.AttributeClass.TypeArguments[0];
-                CollectFromModule(nestedModuleType, useModuleAttributeType, compilation, visited, result);
-            }
+            CollectFromModule(nestedModuleType, useModuleAttributeType, visited, result);
         }
     }
 }

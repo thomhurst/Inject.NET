@@ -28,9 +28,9 @@ public static class ServiceRegistrarTryAddExtensions
     /// <returns>The registrar for fluent chaining</returns>
     /// <example>
     /// <code>
-    /// partial void ConfigureServices()
+    /// static partial void ConfigureServices(IServiceRegistrar registrar)
     /// {
-    ///     this.TryAddSingleton&lt;ICache, DefaultCache&gt;(); // registers only if ICache not already registered
+    ///     registrar.TryAddSingleton&lt;ICache, DefaultCache&gt;(); // registers only if ICache not already registered
     /// }
     /// </code>
     /// </example>

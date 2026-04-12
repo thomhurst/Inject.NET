@@ -18,12 +18,12 @@ public partial class SingletonGeneric
 	{
 		private global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonGeneric.SingletonScope_? _singletons;
 		public override global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonGeneric.SingletonScope_ Singletons => _singletons ??= new(this, serviceFactories);
-		public override global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonGeneric.ServiceScope_ CreateTypedScope() => new(this, serviceFactories);
+		public override global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonGeneric.ServiceScope_ CreateScope() => new(this, serviceFactories);
 		public override async ValueTask InitializeAsync()
 		{
 			await Singletons.InitializeAsync();
-			await using var scope = CreateTypedScope();
-			_ = Singletons.Generic______0;
+			await using var scope = CreateScope();
+			_ = Singletons.Generic___0;
 
 			await base.InitializeAsync();
 		}
@@ -34,7 +34,7 @@ public partial class SingletonGeneric
 		{
 		}
 
-		public Generic<> Generic______0 => (Generic<>)GetServices(new ServiceKey { Type = typeof(Generic<>), Key = null })[^1];
+		public Generic<> Generic___0 => (Generic<>)GetServices(new ServiceKey { Type = typeof(Generic<>), Key = null })[^1];
 	}
 	public class ServiceScope_ : global::Inject.NET.Services.ServiceScope<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonGeneric.ServiceScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonGeneric.ServiceProvider_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonGeneric.SingletonScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonGeneric.ServiceScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonGeneric.SingletonScope_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonGeneric.ServiceProvider_>
 	{
@@ -42,8 +42,8 @@ public partial class SingletonGeneric
 		{
 		}
 
-		public Generic<> Generic______0 => Singletons.Generic______0;
-		public IReadOnlyList<Generic<>> Generic______0Enumerable => [Generic______0];
+		public Generic<> Generic___0 => Singletons.Generic___0;
+		public IReadOnlyList<Generic<>> Generic___0Enumerable => [Generic___0];
 	}
 	public partial class ServiceRegistrar_ : global::Inject.NET.Services.ServiceRegistrar<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonGeneric.ServiceProvider_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonGeneric.ServiceProvider_>
 	{
@@ -58,10 +58,8 @@ public partial class SingletonGeneric
 				new Generic<>()
 			});
 
-			ConfigureServices();
+			ConfigureServices(this);
 		}
-
-		partial void ConfigureServices();
 
 		public override async ValueTask<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonGeneric.ServiceProvider_> BuildAsync(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonGeneric.ServiceProvider_ parent)
 {
@@ -77,6 +75,8 @@ public partial class SingletonGeneric
     return serviceProvider;
 }
 	}
+	static partial void ConfigureServices(global::Inject.NET.Interfaces.IServiceRegistrar registrar);
+
 	public static ValueTask<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.SingletonGeneric.ServiceProvider_> BuildAsync() =>
 		new ServiceRegistrar_().BuildAsync(null);
 }

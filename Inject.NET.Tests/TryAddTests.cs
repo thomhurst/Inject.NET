@@ -238,36 +238,27 @@ public partial class TryAddTests
     [ServiceProvider]
     public partial class TryAddSingletonNewServiceProvider
     {
-        public partial class ServiceRegistrar_
+        static partial void ConfigureServices(global::Inject.NET.Interfaces.IServiceRegistrar registrar)
         {
-            partial void ConfigureServices()
-            {
-                this.TryAddSingleton<IMyService, DefaultService>();
-            }
+            registrar.TryAddSingleton<IMyService, DefaultService>();
         }
     }
 
     [ServiceProvider]
     public partial class TryAddScopedNewServiceProvider
     {
-        public partial class ServiceRegistrar_
+        static partial void ConfigureServices(global::Inject.NET.Interfaces.IServiceRegistrar registrar)
         {
-            partial void ConfigureServices()
-            {
-                this.TryAddScoped<IMyScopedService, DefaultScopedService>();
-            }
+            registrar.TryAddScoped<IMyScopedService, DefaultScopedService>();
         }
     }
 
     [ServiceProvider]
     public partial class TryAddTransientNewServiceProvider
     {
-        public partial class ServiceRegistrar_
+        static partial void ConfigureServices(global::Inject.NET.Interfaces.IServiceRegistrar registrar)
         {
-            partial void ConfigureServices()
-            {
-                this.TryAddTransient<IMyTransientService, DefaultTransientService>();
-            }
+            registrar.TryAddTransient<IMyTransientService, DefaultTransientService>();
         }
     }
 
@@ -275,39 +266,30 @@ public partial class TryAddTests
     [ServiceProvider]
     public partial class TryAddSingletonExistingServiceProvider
     {
-        public partial class ServiceRegistrar_
+        static partial void ConfigureServices(global::Inject.NET.Interfaces.IServiceRegistrar registrar)
         {
-            partial void ConfigureServices()
-            {
-                this.AddSingleton<IMyService, OverrideService>();
-                this.TryAddSingleton<IMyService, DefaultService>();
-            }
+            registrar.AddSingleton<IMyService, OverrideService>();
+            registrar.TryAddSingleton<IMyService, DefaultService>();
         }
     }
 
     [ServiceProvider]
     public partial class TryAddScopedExistingServiceProvider
     {
-        public partial class ServiceRegistrar_
+        static partial void ConfigureServices(global::Inject.NET.Interfaces.IServiceRegistrar registrar)
         {
-            partial void ConfigureServices()
-            {
-                this.AddScoped<IMyScopedService, OverrideScopedService>();
-                this.TryAddScoped<IMyScopedService, DefaultScopedService>();
-            }
+            registrar.AddScoped<IMyScopedService, OverrideScopedService>();
+            registrar.TryAddScoped<IMyScopedService, DefaultScopedService>();
         }
     }
 
     [ServiceProvider]
     public partial class TryAddTransientExistingServiceProvider
     {
-        public partial class ServiceRegistrar_
+        static partial void ConfigureServices(global::Inject.NET.Interfaces.IServiceRegistrar registrar)
         {
-            partial void ConfigureServices()
-            {
-                this.AddTransient<IMyTransientService, OverrideTransientService>();
-                this.TryAddTransient<IMyTransientService, DefaultTransientService>();
-            }
+            registrar.AddTransient<IMyTransientService, OverrideTransientService>();
+            registrar.TryAddTransient<IMyTransientService, DefaultTransientService>();
         }
     }
 
@@ -315,13 +297,10 @@ public partial class TryAddTests
     [ServiceProvider]
     public partial class TryAddMultipleServiceProvider
     {
-        public partial class ServiceRegistrar_
+        static partial void ConfigureServices(global::Inject.NET.Interfaces.IServiceRegistrar registrar)
         {
-            partial void ConfigureServices()
-            {
-                this.TryAddSingleton<IMyService, DefaultService>();
-                this.TryAddSingleton<IMyService, OverrideService>(); // should be skipped
-            }
+            registrar.TryAddSingleton<IMyService, DefaultService>();
+            registrar.TryAddSingleton<IMyService, OverrideService>(); // should be skipped
         }
     }
 
@@ -329,13 +308,10 @@ public partial class TryAddTests
     [ServiceProvider]
     public partial class MixAddTryAddServiceProvider
     {
-        public partial class ServiceRegistrar_
+        static partial void ConfigureServices(global::Inject.NET.Interfaces.IServiceRegistrar registrar)
         {
-            partial void ConfigureServices()
-            {
-                this.AddSingleton<IMyService, OverrideService>();
-                this.TryAddSingleton<IMyService, DefaultService>(); // should be skipped
-            }
+            registrar.AddSingleton<IMyService, OverrideService>();
+            registrar.TryAddSingleton<IMyService, DefaultService>(); // should be skipped
         }
     }
 
@@ -343,12 +319,9 @@ public partial class TryAddTests
     [ServiceProvider]
     public partial class TryAddFactoryNewServiceProvider
     {
-        public partial class ServiceRegistrar_
+        static partial void ConfigureServices(global::Inject.NET.Interfaces.IServiceRegistrar registrar)
         {
-            partial void ConfigureServices()
-            {
-                this.TryAddSingleton<IConfigService>(_ => new ConfigServiceImpl("Default"));
-            }
+            registrar.TryAddSingleton<IConfigService>(_ => new ConfigServiceImpl("Default"));
         }
     }
 
@@ -356,13 +329,10 @@ public partial class TryAddTests
     [ServiceProvider]
     public partial class TryAddFactoryExistingServiceProvider
     {
-        public partial class ServiceRegistrar_
+        static partial void ConfigureServices(global::Inject.NET.Interfaces.IServiceRegistrar registrar)
         {
-            partial void ConfigureServices()
-            {
-                this.AddSingleton<IConfigService>(_ => new ConfigServiceImpl("Override"));
-                this.TryAddSingleton<IConfigService>(_ => new ConfigServiceImpl("Default")); // skipped
-            }
+            registrar.AddSingleton<IConfigService>(_ => new ConfigServiceImpl("Override"));
+            registrar.TryAddSingleton<IConfigService>(_ => new ConfigServiceImpl("Default")); // skipped
         }
     }
 
@@ -370,12 +340,9 @@ public partial class TryAddTests
     [ServiceProvider]
     public partial class TryAddSelfRegistrationServiceProvider
     {
-        public partial class ServiceRegistrar_
+        static partial void ConfigureServices(global::Inject.NET.Interfaces.IServiceRegistrar registrar)
         {
-            partial void ConfigureServices()
-            {
-                this.TryAddSingleton<ConcreteService>();
-            }
+            registrar.TryAddSingleton<ConcreteService>();
         }
     }
 
@@ -384,12 +351,9 @@ public partial class TryAddTests
     [Singleton<IAttributeService, AttributeServiceImpl>]
     public partial class TryAddWithAttributeServiceProvider
     {
-        public partial class ServiceRegistrar_
+        static partial void ConfigureServices(global::Inject.NET.Interfaces.IServiceRegistrar registrar)
         {
-            partial void ConfigureServices()
-            {
-                this.TryAddSingleton<IAttributeService, TryAddAttributeServiceImpl>(); // skipped because attribute registered first
-            }
+            registrar.TryAddSingleton<IAttributeService, TryAddAttributeServiceImpl>(); // skipped because attribute registered first
         }
     }
 

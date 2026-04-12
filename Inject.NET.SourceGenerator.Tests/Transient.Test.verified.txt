@@ -20,13 +20,13 @@ public partial class Transient
 		{
 			private global::Inject.NET.Tests.Transient.TransientServiceProvider.SingletonScope_? _singletons;
 			public override global::Inject.NET.Tests.Transient.TransientServiceProvider.SingletonScope_ Singletons => _singletons ??= new(this, serviceFactories);
-			public override global::Inject.NET.Tests.Transient.TransientServiceProvider.ServiceScope_ CreateTypedScope() => new(this, serviceFactories);
+			public override global::Inject.NET.Tests.Transient.TransientServiceProvider.ServiceScope_ CreateScope() => new(this, serviceFactories);
 			public ServiceProvider_NonOverridingTenant Tenant_NonOverridingTenant { get; private set; } = null!;
 			public ServiceProvider_OverridingTenant Tenant_OverridingTenant { get; private set; } = null!;
 			public override async ValueTask InitializeAsync()
 			{
 				await Singletons.InitializeAsync();
-				await using var scope = CreateTypedScope();
+				await using var scope = CreateScope();
 				Tenant_NonOverridingTenant = await ServiceProvider_NonOverridingTenant.BuildAsync(this);
 				Register<global::Inject.NET.Tests.Transient.TransientServiceProvider.NonOverridingTenant>(Tenant_NonOverridingTenant);
 				Tenant_OverridingTenant = await ServiceProvider_OverridingTenant.BuildAsync(this);
@@ -47,11 +47,11 @@ public partial class Transient
 			{
 			}
 
-			public global::Inject.NET.Tests.Transient.ClassContainingTransient Inject__NET__Tests__Transient__ClassContainingTransient____0 => Register<global::Inject.NET.Tests.Transient.ClassContainingTransient>(new global::Inject.NET.Tests.Transient.ClassContainingTransient(new global::Inject.NET.Tests.Transient.TransientClass()));
-			public IReadOnlyList<global::Inject.NET.Tests.Transient.ClassContainingTransient> Inject__NET__Tests__Transient__ClassContainingTransient____0Enumerable => [Inject__NET__Tests__Transient__ClassContainingTransient____0];
+			public global::Inject.NET.Tests.Transient.ClassContainingTransient ClassContainingTransient_0 => Register<global::Inject.NET.Tests.Transient.ClassContainingTransient>(new global::Inject.NET.Tests.Transient.ClassContainingTransient(new global::Inject.NET.Tests.Transient.TransientClass()));
+			public IReadOnlyList<global::Inject.NET.Tests.Transient.ClassContainingTransient> ClassContainingTransient_0Enumerable => [ClassContainingTransient_0];
 
-			public global::Inject.NET.Tests.Transient.TransientClass Inject__NET__Tests__Transient__TransientClass____0 => Register<global::Inject.NET.Tests.Transient.TransientClass>(new global::Inject.NET.Tests.Transient.TransientClass());
-			public IReadOnlyList<global::Inject.NET.Tests.Transient.TransientClass> Inject__NET__Tests__Transient__TransientClass____0Enumerable => [Inject__NET__Tests__Transient__TransientClass____0];
+			public global::Inject.NET.Tests.Transient.TransientClass TransientClass_0 => Register<global::Inject.NET.Tests.Transient.TransientClass>(new global::Inject.NET.Tests.Transient.TransientClass());
+			public IReadOnlyList<global::Inject.NET.Tests.Transient.TransientClass> TransientClass_0Enumerable => [TransientClass_0];
 		}
 		public partial class ServiceRegistrar_ : global::Inject.NET.Services.ServiceRegistrar<global::Inject.NET.Tests.Transient.TransientServiceProvider.ServiceProvider_, global::Inject.NET.Tests.Transient.TransientServiceProvider.ServiceProvider_>
 		{
@@ -75,10 +75,8 @@ public partial class Transient
 					new global::Inject.NET.Tests.Transient.ClassContainingTransient(scope.GetRequiredService<global::Inject.NET.Tests.Transient.TransientClass>())
 				});
 
-				ConfigureServices();
+				ConfigureServices(this);
 			}
-
-			partial void ConfigureServices();
 
 			public override async ValueTask<global::Inject.NET.Tests.Transient.TransientServiceProvider.ServiceProvider_> BuildAsync(global::Inject.NET.Tests.Transient.TransientServiceProvider.ServiceProvider_ parent)
 {
@@ -98,13 +96,13 @@ public partial class Transient
 		{
 			private SingletonScope_NonOverridingTenant? _singletons;
 			public override SingletonScope_NonOverridingTenant Singletons => _singletons ??= new(this, serviceFactories, parent.Singletons);
-			public override ServiceScope_NonOverridingTenant CreateTypedScope() => new ServiceScope_NonOverridingTenant(this, serviceFactories, parent.CreateTypedScope());
+			public override ServiceScope_NonOverridingTenant CreateScope() => new ServiceScope_NonOverridingTenant(this, serviceFactories, parent.CreateScope());
 			public static ValueTask<ServiceProvider_NonOverridingTenant> BuildAsync(global::Inject.NET.Tests.Transient.TransientServiceProvider.ServiceProvider_ serviceProvider) =>
 				new ServiceRegistrarNonOverridingTenant().BuildAsync(serviceProvider);
 			public override async ValueTask InitializeAsync()
 			{
 				await Singletons.InitializeAsync();
-				await using var scope = CreateTypedScope();
+				await using var scope = CreateScope();
 
 				await base.InitializeAsync();
 			}
@@ -121,19 +119,19 @@ public partial class Transient
 			{
 			}
 
-			public global::Inject.NET.Tests.Transient.ClassContainingTransient Inject__NET__Tests__Transient__ClassContainingTransient____0 => new global::Inject.NET.Tests.Transient.ClassContainingTransient(new global::Inject.NET.Tests.Transient.TransientClass());
+			public global::Inject.NET.Tests.Transient.ClassContainingTransient ClassContainingTransient_0 => new global::Inject.NET.Tests.Transient.ClassContainingTransient(new global::Inject.NET.Tests.Transient.TransientClass());
 
-			public global::Inject.NET.Tests.Transient.TransientClass Inject__NET__Tests__Transient__TransientClass____0 => new global::Inject.NET.Tests.Transient.TransientClass();
+			public global::Inject.NET.Tests.Transient.TransientClass TransientClass_0 => new global::Inject.NET.Tests.Transient.TransientClass();
 
 			public override IReadOnlyList<object> GetServices(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
 			{
 				if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.Tests.Transient.ClassContainingTransient), Key = null })
 				{
-					return [Inject__NET__Tests__Transient__ClassContainingTransient____0];
+					return [ClassContainingTransient_0];
 				}
 				if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.Tests.Transient.TransientClass), Key = null })
 				{
-					return [Inject__NET__Tests__Transient__TransientClass____0];
+					return [TransientClass_0];
 				}
 				return base.GetServices(serviceKey, originatingScope);
 			}
@@ -142,10 +140,8 @@ public partial class Transient
 		{
 			public ServiceRegistrarNonOverridingTenant()
 			{
-				ConfigureServices();
+				ConfigureServices(this);
 			}
-
-			partial void ConfigureServices();
 
 			public override async ValueTask<ServiceProvider_NonOverridingTenant> BuildAsync(global::Inject.NET.Tests.Transient.TransientServiceProvider.ServiceProvider_ parentServiceProvider)
 {
@@ -165,13 +161,13 @@ public partial class Transient
 		{
 			private SingletonScope_OverridingTenant? _singletons;
 			public override SingletonScope_OverridingTenant Singletons => _singletons ??= new(this, serviceFactories, parent.Singletons);
-			public override ServiceScope_OverridingTenant CreateTypedScope() => new ServiceScope_OverridingTenant(this, serviceFactories, parent.CreateTypedScope());
+			public override ServiceScope_OverridingTenant CreateScope() => new ServiceScope_OverridingTenant(this, serviceFactories, parent.CreateScope());
 			public static ValueTask<ServiceProvider_OverridingTenant> BuildAsync(global::Inject.NET.Tests.Transient.TransientServiceProvider.ServiceProvider_ serviceProvider) =>
 				new ServiceRegistrarOverridingTenant().BuildAsync(serviceProvider);
 			public override async ValueTask InitializeAsync()
 			{
 				await Singletons.InitializeAsync();
-				await using var scope = CreateTypedScope();
+				await using var scope = CreateScope();
 
 				await base.InitializeAsync();
 			}
@@ -188,21 +184,21 @@ public partial class Transient
 			{
 			}
 
-			public global::Inject.NET.Tests.Transient.ClassContainingTransient Inject__NET__Tests__Transient__ClassContainingTransient____0 => new global::Inject.NET.Tests.Transient.ClassContainingTransient(new global::Inject.NET.Tests.Transient.TransientClass());
+			public global::Inject.NET.Tests.Transient.ClassContainingTransient ClassContainingTransient_0 => new global::Inject.NET.Tests.Transient.ClassContainingTransient(new global::Inject.NET.Tests.Transient.TransientClass());
 
-			public global::Inject.NET.Tests.Transient.TransientClass Inject__NET__Tests__Transient__TransientClass____0 => new global::Inject.NET.Tests.Transient.TransientClass();
+			public global::Inject.NET.Tests.Transient.TransientClass TransientClass_0 => new global::Inject.NET.Tests.Transient.TransientClass();
 
-			public global::Inject.NET.Tests.Transient.TransientClass Inject__NET__Tests__Transient__TransientClass__OverridingTenant__0 => new global::Inject.NET.Tests.Transient.TransientClass();
+			public global::Inject.NET.Tests.Transient.TransientClass TransientClass_OverridingTenant_0 => new global::Inject.NET.Tests.Transient.TransientClass();
 
 			public override IReadOnlyList<object> GetServices(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
 			{
 				if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.Tests.Transient.ClassContainingTransient), Key = null })
 				{
-					return [Inject__NET__Tests__Transient__ClassContainingTransient____0];
+					return [ClassContainingTransient_0];
 				}
 				if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.Tests.Transient.TransientClass), Key = null })
 				{
-					return [Inject__NET__Tests__Transient__TransientClass____0, Inject__NET__Tests__Transient__TransientClass__OverridingTenant__0];
+					return [TransientClass_0, TransientClass_OverridingTenant_0];
 				}
 				return base.GetServices(serviceKey, originatingScope);
 			}
@@ -229,10 +225,8 @@ public partial class Transient
 					new global::Inject.NET.Tests.Transient.TransientClass()
 				});
 
-				ConfigureServices();
+				ConfigureServices(this);
 			}
-
-			partial void ConfigureServices();
 
 			public override async ValueTask<ServiceProvider_OverridingTenant> BuildAsync(global::Inject.NET.Tests.Transient.TransientServiceProvider.ServiceProvider_ parentServiceProvider)
 {
@@ -248,6 +242,8 @@ public partial class Transient
     return serviceProvider;
 }
 		}
+		static partial void ConfigureServices(global::Inject.NET.Interfaces.IServiceRegistrar registrar);
+
 		public static ValueTask<global::Inject.NET.Tests.Transient.TransientServiceProvider.ServiceProvider_> BuildAsync() =>
 			new ServiceRegistrar_().BuildAsync(null);
 	}

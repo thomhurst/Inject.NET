@@ -21,7 +21,7 @@ internal static class ServiceProviderWriter
             $"public override {serviceProviderModel.Prefix}SingletonScope_ Singletons => _singletons ??= new(this, serviceFactories);");
 
         sourceCodeWriter.WriteLine(
-            $"public override {serviceProviderModel.Prefix}ServiceScope_ CreateTypedScope() => new(this, serviceFactories);");
+            $"public override {serviceProviderModel.Prefix}ServiceScope_ CreateScope() => new(this, serviceFactories);");
                 
         foreach (var tenant in tenants)
         {
@@ -41,7 +41,7 @@ internal static class ServiceProviderWriter
         
         sourceCodeWriter.WriteLine("await Singletons.InitializeAsync();");
 
-        sourceCodeWriter.WriteLine("await using var scope = CreateTypedScope();");
+        sourceCodeWriter.WriteLine("await using var scope = CreateScope();");
         
         foreach (var serviceModel in rootServiceModelCollection.Services.Where(x => x.Key.Type is INamedTypeSymbol { IsUnboundGenericType: false }).Select(x => x.Value[^1]))
         {

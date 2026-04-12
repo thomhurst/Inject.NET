@@ -19,15 +19,9 @@ internal static class TenantServiceRegistrarWriter
 
         WriteRegistration(sourceCodeWriter, tenantServices, string.Empty);
 
-        // Call user-defined configuration hook for extension method registrations
-        sourceCodeWriter.WriteLine("ConfigureServices();");
+        sourceCodeWriter.WriteLine("ConfigureServices(this);");
 
         sourceCodeWriter.WriteLine("}");
-
-        sourceCodeWriter.WriteLine();
-
-        // Declare partial method that users can implement for extension-based service registration
-        sourceCodeWriter.WriteLine("partial void ConfigureServices();");
 
         sourceCodeWriter.WriteLine();
 

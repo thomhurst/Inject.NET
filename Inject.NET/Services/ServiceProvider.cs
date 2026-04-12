@@ -136,12 +136,6 @@ public abstract class ServiceProvider<TSelf, TSingletonScope, TScope, TParentSer
     }
 
     /// <summary>
-    /// Creates a new typed service scope for dependency resolution.
-    /// </summary>
-    /// <returns>A new service scope instance</returns>
-    public abstract TScope CreateTypedScope();
-
-    /// <summary>
     /// Validates the service provider configuration by attempting to resolve all registered services.
     /// Throws an <see cref="AggregateException"/> containing details of all services that failed to resolve.
     /// </summary>
@@ -158,7 +152,7 @@ public abstract class ServiceProvider<TSelf, TSingletonScope, TScope, TParentSer
     {
         var errors = new List<Exception>();
 
-        await using var scope = CreateTypedScope();
+        await using var scope = CreateScope();
 
         foreach (var (serviceKey, descriptors) in ServiceFactories.Descriptors)
         {
@@ -288,10 +282,12 @@ public abstract class ServiceProvider<TSelf, TSingletonScope, TScope, TParentSer
     /// <summary>
     /// Creates a new service scope for managing scoped services.
     /// </summary>
-    /// <returns>A new service scope instance</returns>
-    public IServiceScope CreateScope()
-    {
-        return CreateTypedScope();
-    }
+    /// <returns>A new typed service scope instance</returns>
+    public abstract TScope CreateScope();
+
+    /// <summary>
+    /// Explicit interface implementation for the non-generic IServiceProvider.CreateScope().
+    /// </summary>
+    IServiceScope Interfaces.IServiceProvider.CreateScope() => CreateScope();
 
 }

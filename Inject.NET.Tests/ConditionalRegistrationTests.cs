@@ -211,140 +211,110 @@ public partial class ConditionalRegistrationTests
     [ServiceProvider]
     public partial class ConditionalSingletonServiceProvider
     {
-        public partial class ServiceRegistrar_
+        static partial void ConfigureServices(global::Inject.NET.Interfaces.IServiceRegistrar registrar)
         {
-            partial void ConfigureServices()
-            {
-                this.AddSingleton<ILogger, ConsoleLogger>();
-                this.AddSingleton<ILogger, SpecialLogger>(
-                    predicate: _ => true); // Always matches
-            }
+            registrar.AddSingleton<ILogger, ConsoleLogger>();
+            registrar.AddSingleton<ILogger, SpecialLogger>(
+                predicate: _ => true); // Always matches
         }
     }
 
     [ServiceProvider]
     public partial class ConditionalFallbackServiceProvider
     {
-        public partial class ServiceRegistrar_
+        static partial void ConfigureServices(global::Inject.NET.Interfaces.IServiceRegistrar registrar)
         {
-            partial void ConfigureServices()
-            {
-                this.AddSingleton<ILogger, ConsoleLogger>();
-                this.AddSingleton<ILogger, SpecialLogger>(
-                    predicate: _ => false); // Never matches, falls back to ConsoleLogger
-            }
+            registrar.AddSingleton<ILogger, ConsoleLogger>();
+            registrar.AddSingleton<ILogger, SpecialLogger>(
+                predicate: _ => false); // Never matches, falls back to ConsoleLogger
         }
     }
 
     [ServiceProvider]
     public partial class MultiConditionServiceProvider
     {
-        public partial class ServiceRegistrar_
+        static partial void ConfigureServices(global::Inject.NET.Interfaces.IServiceRegistrar registrar)
         {
-            partial void ConfigureServices()
-            {
-                this.AddSingleton<ILogger, ConsoleLogger>(); // fallback
-                this.AddSingleton<ILogger, FileLogger>(
-                    predicate: _ => false); // Does not match
-                this.AddSingleton<ILogger, DebugLogger>(
-                    predicate: ctx => ctx.ServiceType == typeof(ILogger)); // Matches
-            }
+            registrar.AddSingleton<ILogger, ConsoleLogger>(); // fallback
+            registrar.AddSingleton<ILogger, FileLogger>(
+                predicate: _ => false); // Does not match
+            registrar.AddSingleton<ILogger, DebugLogger>(
+                predicate: ctx => ctx.ServiceType == typeof(ILogger)); // Matches
         }
     }
 
     [ServiceProvider]
     public partial class NonConditionalServiceProvider
     {
-        public partial class ServiceRegistrar_
+        static partial void ConfigureServices(global::Inject.NET.Interfaces.IServiceRegistrar registrar)
         {
-            partial void ConfigureServices()
-            {
-                this.AddSingleton<ILogger, ConsoleLogger>();
-            }
+            registrar.AddSingleton<ILogger, ConsoleLogger>();
         }
     }
 
     [ServiceProvider]
     public partial class MultiNonConditionalServiceProvider
     {
-        public partial class ServiceRegistrar_
+        static partial void ConfigureServices(global::Inject.NET.Interfaces.IServiceRegistrar registrar)
         {
-            partial void ConfigureServices()
-            {
-                this.AddSingleton<ILogger, ConsoleLogger>();
-                this.AddSingleton<ILogger, FileLogger>();
-            }
+            registrar.AddSingleton<ILogger, ConsoleLogger>();
+            registrar.AddSingleton<ILogger, FileLogger>();
         }
     }
 
     [ServiceProvider]
     public partial class ConditionalScopedServiceProvider
     {
-        public partial class ServiceRegistrar_
+        static partial void ConfigureServices(global::Inject.NET.Interfaces.IServiceRegistrar registrar)
         {
-            partial void ConfigureServices()
-            {
-                this.AddScoped<ILogger, ConsoleLogger>();
-                this.AddScoped<ILogger, SpecialLogger>(
-                    predicate: _ => true);
-            }
+            registrar.AddScoped<ILogger, ConsoleLogger>();
+            registrar.AddScoped<ILogger, SpecialLogger>(
+                predicate: _ => true);
         }
     }
 
     [ServiceProvider]
     public partial class ConditionalScopedFallbackServiceProvider
     {
-        public partial class ServiceRegistrar_
+        static partial void ConfigureServices(global::Inject.NET.Interfaces.IServiceRegistrar registrar)
         {
-            partial void ConfigureServices()
-            {
-                this.AddScoped<ILogger, ConsoleLogger>();
-                this.AddScoped<ILogger, SpecialLogger>(
-                    predicate: _ => false);
-            }
+            registrar.AddScoped<ILogger, ConsoleLogger>();
+            registrar.AddScoped<ILogger, SpecialLogger>(
+                predicate: _ => false);
         }
     }
 
     [ServiceProvider]
     public partial class ConditionalTransientServiceProvider
     {
-        public partial class ServiceRegistrar_
+        static partial void ConfigureServices(global::Inject.NET.Interfaces.IServiceRegistrar registrar)
         {
-            partial void ConfigureServices()
-            {
-                this.AddTransient<ILogger, ConsoleLogger>();
-                this.AddTransient<ILogger, SpecialLogger>(
-                    predicate: _ => true);
-            }
+            registrar.AddTransient<ILogger, ConsoleLogger>();
+            registrar.AddTransient<ILogger, SpecialLogger>(
+                predicate: _ => true);
         }
     }
 
     [ServiceProvider]
     public partial class ConditionalTransientFallbackServiceProvider
     {
-        public partial class ServiceRegistrar_
+        static partial void ConfigureServices(global::Inject.NET.Interfaces.IServiceRegistrar registrar)
         {
-            partial void ConfigureServices()
-            {
-                this.AddTransient<ILogger, ConsoleLogger>();
-                this.AddTransient<ILogger, SpecialLogger>(
-                    predicate: _ => false);
-            }
+            registrar.AddTransient<ILogger, ConsoleLogger>();
+            registrar.AddTransient<ILogger, SpecialLogger>(
+                predicate: _ => false);
         }
     }
 
     [ServiceProvider]
     public partial class ConditionalFactoryServiceProvider
     {
-        public partial class ServiceRegistrar_
+        static partial void ConfigureServices(global::Inject.NET.Interfaces.IServiceRegistrar registrar)
         {
-            partial void ConfigureServices()
-            {
-                this.AddSingleton<ILogger>(scope => new ConsoleLogger());
-                this.AddSingleton<ILogger>(
-                    scope => new SpecialLogger(),
-                    predicate: _ => true);
-            }
+            registrar.AddSingleton<ILogger>(scope => new ConsoleLogger());
+            registrar.AddSingleton<ILogger>(
+                scope => new SpecialLogger(),
+                predicate: _ => true);
         }
     }
 
@@ -354,46 +324,37 @@ public partial class ConditionalRegistrationTests
     [ServiceProvider]
     public partial class ConditionalContextServiceProvider
     {
-        public partial class ServiceRegistrar_
+        static partial void ConfigureServices(global::Inject.NET.Interfaces.IServiceRegistrar registrar)
         {
-            partial void ConfigureServices()
-            {
-                this.AddSingleton<ILogger, ConsoleLogger>();
-                this.AddSingleton<ILogger, SpecialLogger>(
-                    predicate: ctx =>
-                    {
-                        _capturedContext = ctx;
-                        return true;
-                    });
-            }
+            registrar.AddSingleton<ILogger, ConsoleLogger>();
+            registrar.AddSingleton<ILogger, SpecialLogger>(
+                predicate: ctx =>
+                {
+                    _capturedContext = ctx;
+                    return true;
+                });
         }
     }
 
     [ServiceProvider]
     public partial class MixedConditionalServiceProvider
     {
-        public partial class ServiceRegistrar_
+        static partial void ConfigureServices(global::Inject.NET.Interfaces.IServiceRegistrar registrar)
         {
-            partial void ConfigureServices()
-            {
-                this.AddSingleton<ILogger, ConsoleLogger>(); // non-conditional fallback
-                this.AddSingleton<ILogger, SpecialLogger>(
-                    predicate: _ => true); // conditional, matches
-            }
+            registrar.AddSingleton<ILogger, ConsoleLogger>(); // non-conditional fallback
+            registrar.AddSingleton<ILogger, SpecialLogger>(
+                predicate: _ => true); // conditional, matches
         }
     }
 
     [ServiceProvider]
     public partial class MixedConditionalFallbackServiceProvider
     {
-        public partial class ServiceRegistrar_
+        static partial void ConfigureServices(global::Inject.NET.Interfaces.IServiceRegistrar registrar)
         {
-            partial void ConfigureServices()
-            {
-                this.AddSingleton<ILogger, ConsoleLogger>(); // non-conditional fallback
-                this.AddSingleton<ILogger, SpecialLogger>(
-                    predicate: _ => false); // conditional, does not match
-            }
+            registrar.AddSingleton<ILogger, ConsoleLogger>(); // non-conditional fallback
+            registrar.AddSingleton<ILogger, SpecialLogger>(
+                predicate: _ => false); // conditional, does not match
         }
     }
 

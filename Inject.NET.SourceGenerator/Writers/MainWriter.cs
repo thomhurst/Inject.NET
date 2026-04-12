@@ -46,6 +46,9 @@ internal static class MainWriter
         GenerateProviders(sourceProductionContext, sourceCodeWriter, serviceProviderModel, serviceModelCollection, rootDependencies, tenants, decorators, composites);
         GenerateTenantProviders(sourceCodeWriter, serviceProviderModel, serviceModelCollection, tenants);
         
+        sourceCodeWriter.WriteLine("static partial void ConfigureServices(global::Inject.NET.Interfaces.IServiceRegistrar registrar);");
+        sourceCodeWriter.WriteLine();
+
         sourceCodeWriter.WriteLine(
             $"public static ValueTask<{serviceProviderModel.Prefix}ServiceProvider_> BuildAsync() =>");
         sourceCodeWriter.WriteLine($"\tnew ServiceRegistrar_().BuildAsync(null);");
@@ -135,21 +138,26 @@ internal static class MainWriter
 
         var attributes = serviceProviderModel.Type.GetAttributes();
 
-        var dependencyAttributes = attributes
+        var moduleAttributes = ModuleHelper.CollectModuleAttributes(attributes, compilation);
+        var allAttributes = moduleAttributes.Length > 0
+            ? attributes.AddRange(moduleAttributes)
+            : attributes;
+
+        var dependencyAttributes = allAttributes
             .Where(x => x.AttributeClass?.AllInterfaces.Contains(dependencyInjectionAttributeType,
                 SymbolEqualityComparer.Default) == true)
             .ToArray();
 
-        var withTenantAttributes = attributes
+        var withTenantAttributes = allAttributes
             .Where(x => x.AttributeClass?.IsGenericType is true && SymbolEqualityComparer.Default.Equals(withTenantAttributeType, x.AttributeClass.OriginalDefinition))
             .ToArray();
 
-        var decoratorAttributes = attributes
+        var decoratorAttributes = allAttributes
             .Where(x => x.AttributeClass?.BaseType != null &&
                    SymbolEqualityComparer.Default.Equals(decoratorAttributeType, x.AttributeClass.BaseType))
             .ToArray();
 
-        var compositeAttributes = attributes
+        var compositeAttributes = allAttributes
             .Where(x => x.AttributeClass != null && IsCompositeAttribute(x.AttributeClass, compositeAttributeType))
             .ToArray();
 
@@ -157,7 +165,10 @@ internal static class MainWriter
         var decorators = DecoratorDictionary.Create(compilation, decoratorAttributes, null);
         var composites = CompositeDictionary.Create(compilation, compositeAttributes, null);
         var tenants = TenantHelper.ConstructTenants(compilation, withTenantAttributes, rootDependencies);
-        var serviceModelCollection = TypeCollector.Collect(serviceProviderModel, compilation);
+        var serviceModelCollection = new RootServiceModelCollection(
+            serviceProviderModel.Type,
+            rootDependencies.SelectMany(x => x.Value).ToArray(),
+            tenants);
 
         return (rootDependencies, tenants, serviceModelCollection, decorators, composites);
     }

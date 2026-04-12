@@ -161,13 +161,10 @@ public partial class VerifyTests
     [ServiceProvider]
     public partial class ValidExtensionMethodServiceProvider
     {
-        public partial class ServiceRegistrar_
+        static partial void ConfigureServices(global::Inject.NET.Interfaces.IServiceRegistrar registrar)
         {
-            partial void ConfigureServices()
-            {
-                this.AddSingleton<IVerifyService, VerifyServiceImpl>()
-                    .AddScoped<IVerifyScopedService, VerifyScopedServiceImpl>();
-            }
+            registrar.AddSingleton<IVerifyService, VerifyServiceImpl>()
+                .AddScoped<IVerifyScopedService, VerifyScopedServiceImpl>();
         }
     }
 
@@ -185,25 +182,19 @@ public partial class VerifyTests
     [ServiceProvider]
     public partial class FailingFactoryServiceProvider
     {
-        public partial class ServiceRegistrar_
+        static partial void ConfigureServices(global::Inject.NET.Interfaces.IServiceRegistrar registrar)
         {
-            partial void ConfigureServices()
-            {
-                this.AddSingleton<IFailingService>(scope =>
-                    throw new InvalidOperationException("Intentional failure for testing"));
-            }
+            registrar.AddSingleton<IFailingService>(scope =>
+                throw new InvalidOperationException("Intentional failure for testing"));
         }
     }
 
     [ServiceProvider]
     public partial class NullFactoryServiceProvider
     {
-        public partial class ServiceRegistrar_
+        static partial void ConfigureServices(global::Inject.NET.Interfaces.IServiceRegistrar registrar)
         {
-            partial void ConfigureServices()
-            {
-                this.AddSingleton<INullService>(scope => null!);
-            }
+            registrar.AddSingleton<INullService>(scope => null!);
         }
     }
 

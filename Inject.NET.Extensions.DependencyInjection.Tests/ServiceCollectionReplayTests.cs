@@ -47,15 +47,12 @@ public partial class ServiceCollectionReplayTests
     [ServiceProvider]
     public partial class TypeBasedProvider
     {
-        public partial class ServiceRegistrar_
+        static partial void ConfigureServices(global::Inject.NET.Interfaces.IServiceRegistrar registrar)
         {
-            partial void ConfigureServices()
+            registrar.AddServiceCollection(services =>
             {
-                this.AddServiceCollection(services =>
-                {
-                    services.AddSingleton<IService, ServiceImpl>();
-                });
-            }
+                services.AddSingleton<IService, ServiceImpl>();
+            });
         }
     }
 
@@ -76,15 +73,12 @@ public partial class ServiceCollectionReplayTests
     [ServiceProvider]
     public partial class FactoryBasedProvider
     {
-        public partial class ServiceRegistrar_
+        static partial void ConfigureServices(global::Inject.NET.Interfaces.IServiceRegistrar registrar)
         {
-            partial void ConfigureServices()
+            registrar.AddServiceCollection(services =>
             {
-                this.AddServiceCollection(services =>
-                {
-                    services.AddSingleton<IService>(sp => new FactoryService());
-                });
-            }
+                services.AddSingleton<IService>(sp => new FactoryService());
+            });
         }
     }
 
@@ -105,16 +99,13 @@ public partial class ServiceCollectionReplayTests
     [ServiceProvider]
     public partial class InstanceBasedProvider
     {
-        public partial class ServiceRegistrar_
+        static partial void ConfigureServices(global::Inject.NET.Interfaces.IServiceRegistrar registrar)
         {
-            partial void ConfigureServices()
+            var instance = new InstanceService("PreCreated");
+            registrar.AddServiceCollection(services =>
             {
-                var instance = new InstanceService("PreCreated");
-                this.AddServiceCollection(services =>
-                {
-                    services.AddSingleton<IService>(instance);
-                });
-            }
+                services.AddSingleton<IService>(instance);
+            });
         }
     }
 
@@ -135,15 +126,12 @@ public partial class ServiceCollectionReplayTests
     [ServiceProvider]
     public partial class ScopedLifetimeProvider
     {
-        public partial class ServiceRegistrar_
+        static partial void ConfigureServices(global::Inject.NET.Interfaces.IServiceRegistrar registrar)
         {
-            partial void ConfigureServices()
+            registrar.AddServiceCollection(services =>
             {
-                this.AddServiceCollection(services =>
-                {
-                    services.AddScoped<ScopedService>();
-                });
-            }
+                services.AddScoped<ScopedService>();
+            });
         }
     }
 
@@ -170,15 +158,12 @@ public partial class ServiceCollectionReplayTests
     [ServiceProvider]
     public partial class TransientLifetimeProvider
     {
-        public partial class ServiceRegistrar_
+        static partial void ConfigureServices(global::Inject.NET.Interfaces.IServiceRegistrar registrar)
         {
-            partial void ConfigureServices()
+            registrar.AddServiceCollection(services =>
             {
-                this.AddServiceCollection(services =>
-                {
-                    services.AddTransient<TransientService>();
-                });
-            }
+                services.AddTransient<TransientService>();
+            });
         }
     }
 

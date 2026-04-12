@@ -22,7 +22,7 @@ internal static class TenantServiceProviderWriter
             $"public override SingletonScope_{tenant.TenantDefinition.Name} Singletons => _singletons ??= new(this, serviceFactories, parent.Singletons);");
 
         sourceCodeWriter.WriteLine(
-            $"public override ServiceScope_{tenant.TenantDefinition.Name} CreateTypedScope() => new ServiceScope_{tenant.TenantDefinition.Name}(this, serviceFactories, parent.CreateTypedScope());");
+            $"public override ServiceScope_{tenant.TenantDefinition.Name} CreateScope() => new ServiceScope_{tenant.TenantDefinition.Name}(this, serviceFactories, parent.CreateScope());");
                 
         sourceCodeWriter.WriteLine(
             $"public static ValueTask<{className}> BuildAsync({serviceProviderModel.Prefix}ServiceProvider_ serviceProvider) =>");
@@ -40,7 +40,7 @@ internal static class TenantServiceProviderWriter
         
         sourceCodeWriter.WriteLine("await Singletons.InitializeAsync();");
         
-        sourceCodeWriter.WriteLine("await using var scope = CreateTypedScope();");
+        sourceCodeWriter.WriteLine("await using var scope = CreateScope();");
         
         foreach (var serviceModel in tenant.TenantDependencies.Where(x => x.Key.Type is INamedTypeSymbol { IsUnboundGenericType: false }).Select(x => x.Value[^1]))
         {

@@ -18,12 +18,12 @@ public partial class WithTenantOverridingType
 	{
 		private global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.SingletonScope_? _singletons;
 		public override global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.SingletonScope_ Singletons => _singletons ??= new(this, serviceFactories);
-		public override global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.ServiceScope_ CreateTypedScope() => new(this, serviceFactories);
+		public override global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.ServiceScope_ CreateScope() => new(this, serviceFactories);
 		public ServiceProvider_Tenant Tenant_Tenant { get; private set; } = null!;
 		public override async ValueTask InitializeAsync()
 		{
 			await Singletons.InitializeAsync();
-			await using var scope = CreateTypedScope();
+			await using var scope = CreateScope();
 			Tenant_Tenant = await ServiceProvider_Tenant.BuildAsync(this);
 			Register<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.Tenant>(Tenant_Tenant);
 
@@ -42,11 +42,11 @@ public partial class WithTenantOverridingType
 		{
 		}
 
-		public global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.IChild Inject__NET__SourceGenerator__Sample__ServiceProviders__WithTenantOverridingType__IChild____0 => Register<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.IChild>(new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.Child1());
-		public IReadOnlyList<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.IChild> Inject__NET__SourceGenerator__Sample__ServiceProviders__WithTenantOverridingType__IChild____0Enumerable => [Inject__NET__SourceGenerator__Sample__ServiceProviders__WithTenantOverridingType__IChild____0];
+		public global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.IChild IChild_0 => Register<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.IChild>(new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.Child1());
+		public IReadOnlyList<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.IChild> IChild_0Enumerable => [IChild_0];
 
-		public global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.Parent Inject__NET__SourceGenerator__Sample__ServiceProviders__WithTenantOverridingType__Parent____0 => Register<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.Parent>(new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.Parent(new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.Child1()));
-		public IReadOnlyList<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.Parent> Inject__NET__SourceGenerator__Sample__ServiceProviders__WithTenantOverridingType__Parent____0Enumerable => [Inject__NET__SourceGenerator__Sample__ServiceProviders__WithTenantOverridingType__Parent____0];
+		public global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.Parent Parent_0 => Register<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.Parent>(new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.Parent(new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.Child1()));
+		public IReadOnlyList<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.Parent> Parent_0Enumerable => [Parent_0];
 	}
 	public partial class ServiceRegistrar_ : global::Inject.NET.Services.ServiceRegistrar<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.ServiceProvider_, global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.ServiceProvider_>
 	{
@@ -70,10 +70,8 @@ public partial class WithTenantOverridingType
 				new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.Child1()
 			});
 
-			ConfigureServices();
+			ConfigureServices(this);
 		}
-
-		partial void ConfigureServices();
 
 		public override async ValueTask<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.ServiceProvider_> BuildAsync(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.ServiceProvider_ parent)
 {
@@ -93,13 +91,13 @@ public partial class WithTenantOverridingType
 	{
 		private SingletonScope_Tenant? _singletons;
 		public override SingletonScope_Tenant Singletons => _singletons ??= new(this, serviceFactories, parent.Singletons);
-		public override ServiceScope_Tenant CreateTypedScope() => new ServiceScope_Tenant(this, serviceFactories, parent.CreateTypedScope());
+		public override ServiceScope_Tenant CreateScope() => new ServiceScope_Tenant(this, serviceFactories, parent.CreateScope());
 		public static ValueTask<ServiceProvider_Tenant> BuildAsync(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.ServiceProvider_ serviceProvider) =>
 			new ServiceRegistrarTenant().BuildAsync(serviceProvider);
 		public override async ValueTask InitializeAsync()
 		{
 			await Singletons.InitializeAsync();
-			await using var scope = CreateTypedScope();
+			await using var scope = CreateScope();
 
 			await base.InitializeAsync();
 		}
@@ -116,21 +114,21 @@ public partial class WithTenantOverridingType
 		{
 		}
 
-		public global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.IChild Inject__NET__SourceGenerator__Sample__ServiceProviders__WithTenantOverridingType__IChild____0 => new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.Child1();
+		public global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.IChild IChild_0 => new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.Child1();
 
-		public global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.IChild Inject__NET__SourceGenerator__Sample__ServiceProviders__WithTenantOverridingType__IChild__Tenant__0 => new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.TenantChild1();
+		public global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.IChild IChild_Tenant_0 => new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.TenantChild1();
 
-		public global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.Parent Inject__NET__SourceGenerator__Sample__ServiceProviders__WithTenantOverridingType__Parent____0 => new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.Parent(new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.TenantChild1());
+		public global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.Parent Parent_0 => new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.Parent(new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.TenantChild1());
 
 		public override IReadOnlyList<object> GetServices(global::Inject.NET.Models.ServiceKey serviceKey, Inject.NET.Interfaces.IServiceScope originatingScope)
 		{
 			if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.IChild), Key = null })
 			{
-				return [Inject__NET__SourceGenerator__Sample__ServiceProviders__WithTenantOverridingType__IChild____0, Inject__NET__SourceGenerator__Sample__ServiceProviders__WithTenantOverridingType__IChild__Tenant__0];
+				return [IChild_0, IChild_Tenant_0];
 			}
 			if (serviceKey == new ServiceKey { Type = typeof(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.Parent), Key = null })
 			{
-				return [Inject__NET__SourceGenerator__Sample__ServiceProviders__WithTenantOverridingType__Parent____0];
+				return [Parent_0];
 			}
 			return base.GetServices(serviceKey, originatingScope);
 		}
@@ -157,10 +155,8 @@ public partial class WithTenantOverridingType
 				new global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.Parent(scope.GetRequiredService<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.IChild>())
 			});
 
-			ConfigureServices();
+			ConfigureServices(this);
 		}
-
-		partial void ConfigureServices();
 
 		public override async ValueTask<ServiceProvider_Tenant> BuildAsync(global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.ServiceProvider_ parentServiceProvider)
 {
@@ -176,6 +172,8 @@ public partial class WithTenantOverridingType
     return serviceProvider;
 }
 	}
+	static partial void ConfigureServices(global::Inject.NET.Interfaces.IServiceRegistrar registrar);
+
 	public static ValueTask<global::Inject.NET.SourceGenerator.Sample.ServiceProviders.WithTenantOverridingType.ServiceProvider_> BuildAsync() =>
 		new ServiceRegistrar_().BuildAsync(null);
 }

@@ -300,12 +300,9 @@ public partial class EnumerableInjectionTests
     [Scoped<INotifier, SmsNotifier>]
     public partial class RuntimeAndAttributeServiceProvider
     {
-        public partial class ServiceRegistrar_
+        static partial void ConfigureServices(global::Inject.NET.Interfaces.IServiceRegistrar registrar)
         {
-            partial void ConfigureServices()
-            {
-                this.AddScoped<INotifier, PushNotifier>();
-            }
+            registrar.AddScoped<INotifier, PushNotifier>();
         }
     }
 

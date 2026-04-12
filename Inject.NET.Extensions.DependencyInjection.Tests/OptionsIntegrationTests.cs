@@ -16,15 +16,12 @@ public partial class OptionsIntegrationTests
     [ServiceProvider]
     public partial class OptionsTestProvider
     {
-        public partial class ServiceRegistrar_
+        static partial void ConfigureServices(global::Inject.NET.Interfaces.IServiceRegistrar registrar)
         {
-            partial void ConfigureServices()
+            registrar.AddServiceCollection(services =>
             {
-                this.AddServiceCollection(services =>
-                {
-                    services.AddOptions<MyOptions>().Configure(o => o.Value = "configured");
-                });
-            }
+                services.AddOptions<MyOptions>().Configure(o => o.Value = "configured");
+            });
         }
     }
 

@@ -15,12 +15,9 @@ public partial class ServiceProviderIsServiceAdapterTests
     [Singleton<RegisteredSingleton>]
     public partial class IsServiceTestProvider
     {
-        public partial class ServiceRegistrar_
+        static partial void ConfigureServices(global::Inject.NET.Interfaces.IServiceRegistrar registrar)
         {
-            partial void ConfigureServices()
-            {
-                this.AddServiceCollection(_ => { });
-            }
+            registrar.AddServiceCollection(_ => { });
         }
     }
 

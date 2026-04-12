@@ -60,6 +60,7 @@ internal static class DependencyDictionary
             string? key = null;
             bool externallyOwned = false;
             string? factoryMethodName = null;
+            INamedTypeSymbol? factoryType = null;
             foreach (var namedArg in attributeData.NamedArguments)
             {
                 if (namedArg.Key == "Key")
@@ -74,11 +75,16 @@ internal static class DependencyDictionary
                 {
                     factoryMethodName = namedArg.Value.Value as string;
                 }
+                else if (namedArg.Key == "FactoryType")
+                {
+                    factoryType = namedArg.Value.Value as INamedTypeSymbol;
+                }
             }
             var lifetime = EnumPolyfill.Parse<Lifetime>(attributeData.AttributeClass!.Name.Replace("Attribute", string.Empty));
             var isGenericDefinition = serviceType.IsGenericDefinition();
 
-            Add(compilation, serviceType, implementationType, serviceBuilders, key, lifetime, tenantName, externallyOwned, factoryMethodName, serviceProviderType);
+            var effectiveFactoryType = factoryType ?? serviceProviderType;
+            Add(compilation, serviceType, implementationType, serviceBuilders, key, lifetime, tenantName, externallyOwned, factoryMethodName, effectiveFactoryType);
 
             if (isGenericDefinition)
             {

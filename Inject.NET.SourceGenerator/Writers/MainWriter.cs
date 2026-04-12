@@ -175,7 +175,7 @@ internal static class MainWriter
         var rootDependencies = DependencyDictionary.Create(compilation, dependencyAttributes, null, serviceProviderModel.Type, diagnostics);
         var decorators = DecoratorDictionary.Create(compilation, decoratorAttributes, null);
         var composites = CompositeDictionary.Create(compilation, compositeAttributes, null);
-        var tenants = TenantHelper.ConstructTenants(compilation, withTenantAttributes, rootDependencies);
+        var tenants = TenantHelper.ConstructTenants(compilation, withTenantAttributes, rootDependencies, diagnostics);
         var serviceModelCollection = new RootServiceModelCollection(
             serviceProviderModel.Type,
             rootDependencies.SelectMany(x => x.Value).ToArray(),

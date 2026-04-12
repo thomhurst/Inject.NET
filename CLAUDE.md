@@ -8,7 +8,7 @@ Inject.NET is a high-performance Dependency Injection library that leverages C# 
 
 ## Project Structure
 
-- **Inject.NET** - Core library (targets .NET 8.0 & 9.0)
+- **Inject.NET** - Core library (targets .NET 8.0, 9.0, and 10.0)
   - `Attributes/` - All DI attributes (`[ServiceProvider]`, `[Singleton]`, `[Scoped]`, `[Transient]`, `[WithTenant]`, decorators, etc.)
   - `Types.cs`, `ThrowHelpers.cs`, `Pools.cs` - Runtime utilities
 
@@ -98,7 +98,7 @@ Services are registered using attributes:
 
 ## Important Notes
 
-- Core library (Inject.NET) targets both .NET 8.0 and .NET 9.0
+- Core library (Inject.NET) targets .NET 8.0, 9.0, and 10.0
 - Test projects and samples use .NET 9.0 with C# preview features
 - TUnit is the test framework (not xUnit/NUnit)
 - Source generators require rebuilding the Inject.NET.SourceGenerator project to see changes

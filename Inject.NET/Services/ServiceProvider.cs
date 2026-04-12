@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using Inject.NET.Enums;
 using Inject.NET.Interfaces;
 using Inject.NET.Models;
@@ -15,7 +16,7 @@ namespace Inject.NET.Services;
 /// <typeparam name="TParentServiceProvider">The parent service provider type</typeparam>
 /// <typeparam name="TParentSingletonScope">The parent singleton scope type</typeparam>
 /// <typeparam name="TParentServiceScope">The parent service scope type</typeparam>
-public abstract class ServiceProvider<TSelf, TSingletonScope, TScope, TParentServiceProvider, TParentSingletonScope, TParentServiceScope> : IServiceProviderRoot<TScope>, Microsoft.Extensions.DependencyInjection.IServiceProviderIsService, Microsoft.Extensions.DependencyInjection.IServiceScopeFactory
+public abstract class ServiceProvider<TSelf, TSingletonScope, TScope, TParentServiceProvider, TParentSingletonScope, TParentServiceScope> : IServiceProviderRoot<TScope>, IInternalSingletonResolver
     where TSelf : ServiceProvider<TSelf, TSingletonScope, TScope, TParentServiceProvider, TParentSingletonScope, TParentServiceScope>
     where TSingletonScope : SingletonScope<TSingletonScope, TSelf, TScope, TParentSingletonScope, TParentServiceScope, TParentServiceProvider>
     where TScope : ServiceScope<TScope, TSelf, TSingletonScope, TParentServiceScope, TParentSingletonScope, TParentServiceProvider>
@@ -29,6 +30,10 @@ public abstract class ServiceProvider<TSelf, TSingletonScope, TScope, TParentSer
     protected readonly ServiceFactories ServiceFactories;
 
     protected readonly Dictionary<Type, IServiceProvider> Tenants = [];
+
+    // Tracks child containers created via CreateChildContainer so they can be disposed
+    // when this root provider is disposed.
+    private readonly ConcurrentBag<IAsyncDisposable> _childContainers = [];
     
     /// <summary>
     /// Gets the singleton scope that manages all singleton services.
@@ -86,15 +91,37 @@ public abstract class ServiceProvider<TSelf, TSingletonScope, TScope, TParentSer
     internal bool TryGetSingletons(ServiceKey serviceKey, out IReadOnlyList<object> singletons)
     {
         var foundSingletons = Singletons.GetServices(serviceKey).ToArray();
-        
+
         if (foundSingletons.Length > 0)
         {
             singletons = foundSingletons;
             return true;
         }
-        
+
         singletons = Array.Empty<object>();
         return false;
+    }
+
+    /// <summary>
+    /// Resolves singleton instances for the given key from this provider's singleton scope,
+    /// transitively falling back to any parent provider. Returns an empty list if no
+    /// singletons are registered for the key in this chain.
+    /// Used by child containers to reuse parent singleton instances for inherited keys.
+    /// </summary>
+    IReadOnlyList<object> IInternalSingletonResolver.ResolveSingletons(ServiceKey serviceKey)
+    {
+        var local = Singletons.GetServices(serviceKey);
+        if (local.Count > 0)
+        {
+            return local;
+        }
+
+        if (ParentServiceProvider is IInternalSingletonResolver parentResolver)
+        {
+            return parentResolver.ResolveSingletons(serviceKey);
+        }
+
+        return Array.Empty<object>();
     }
     
     /// <summary>
@@ -181,6 +208,13 @@ public abstract class ServiceProvider<TSelf, TSingletonScope, TScope, TParentSer
     /// <returns>A task representing the disposal operation</returns>
     public async ValueTask DisposeAsync()
     {
+        // Dispose any child containers created from this root first, so they release their
+        // own resources before the root singletons (which they may reference) are disposed.
+        while (_childContainers.TryTake(out var child))
+        {
+            await child.DisposeAsync();
+        }
+
         foreach (var (_, value) in Tenants)
         {
             if(value is IAsyncDisposable asyncDisposable)
@@ -209,12 +243,9 @@ public abstract class ServiceProvider<TSelf, TSingletonScope, TScope, TParentSer
     /// <returns>True if the service type is registered; otherwise, false</returns>
     public bool IsService(Type serviceType)
     {
-        // Built-in types are always available
         if (serviceType == Types.ServiceScope
             || serviceType == Types.ServiceProvider
-            || serviceType == Types.SystemServiceProvider
-            || serviceType == Types.ServiceProviderIsService
-            || serviceType == Types.ServiceScopeFactory)
+            || serviceType == Types.SystemServiceProvider)
         {
             return true;
         }
@@ -249,7 +280,9 @@ public abstract class ServiceProvider<TSelf, TSingletonScope, TScope, TParentSer
     {
         var registrar = new ChildContainerRegistrar();
         configure(registrar);
-        return new ChildServiceProvider(this, ServiceFactories, registrar.ServiceFactoryBuilders);
+        var child = new ChildServiceProvider(this, ServiceFactories, registrar.ServiceFactoryBuilders);
+        _childContainers.Add(child);
+        return child;
     }
 
     /// <summary>
@@ -261,14 +294,4 @@ public abstract class ServiceProvider<TSelf, TSingletonScope, TScope, TParentSer
         return CreateTypedScope();
     }
 
-    /// <summary>
-    /// Creates a new service scope that implements <see cref="Microsoft.Extensions.DependencyInjection.IServiceScope"/>.
-    /// This enables interoperability with ASP.NET Core and other libraries that depend on
-    /// <see cref="Microsoft.Extensions.DependencyInjection.IServiceScopeFactory"/>.
-    /// </summary>
-    /// <returns>A new <see cref="Microsoft.Extensions.DependencyInjection.IServiceScope"/> wrapping the typed scope</returns>
-    Microsoft.Extensions.DependencyInjection.IServiceScope Microsoft.Extensions.DependencyInjection.IServiceScopeFactory.CreateScope()
-    {
-        return new ServiceScopeWrapper(CreateTypedScope());
-    }
 }

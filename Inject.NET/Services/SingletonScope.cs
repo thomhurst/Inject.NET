@@ -77,16 +77,6 @@ where TParentServiceScope : IServiceScope
             return ServiceProvider;
         }
 
-        if (serviceKey.Type == Types.ServiceProviderIsService)
-        {
-            return ServiceProvider;
-        }
-
-        if (serviceKey.Type == Types.ServiceScopeFactory)
-        {
-            return ServiceProvider;
-        }
-
         // Check if there's a composite descriptor for this service key
         // If so, resolve the composite directly instead of going through GetServices
         // (which excludes composites from enumerable resolution)
@@ -162,6 +152,14 @@ where TParentServiceScope : IServiceScope
             // Check if this service is defined locally
             var hasLocalDefinition = factories.Descriptors.TryGetValue(key, out var descriptors) &&
                                      descriptors.Items.Any(d => d.Lifetime == Lifetime.Singleton);
+
+            // Fallback to open generic type definition if the closed generic was not found
+            if (!hasLocalDefinition && key.Type.IsGenericType && !key.Type.IsGenericTypeDefinition)
+            {
+                hasLocalDefinition = factories.Descriptors.TryGetValue(
+                    key with { Type = key.Type.GetGenericTypeDefinition() }, out descriptors) &&
+                    descriptors.Items.Any(d => d.Lifetime == Lifetime.Singleton);
+            }
 
             // If no local definition and we have a parent, delegate to parent
             if (!hasLocalDefinition && parentScope != null)

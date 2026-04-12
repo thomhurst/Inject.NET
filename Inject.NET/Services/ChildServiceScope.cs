@@ -98,16 +98,6 @@ internal sealed class ChildServiceScope : IServiceScope
             return _serviceProvider;
         }
 
-        if (serviceKey.Type == Types.ServiceProviderIsService)
-        {
-            return _serviceProvider;
-        }
-
-        if (serviceKey.Type == Types.ServiceScopeFactory)
-        {
-            return _serviceProvider;
-        }
-
         // Check if requesting IEnumerable<T>
         if (serviceKey.Type.IsIEnumerable())
         {

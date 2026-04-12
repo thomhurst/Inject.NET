@@ -1,15 +1,16 @@
-﻿using System.Collections.Concurrent;
-using System.Text;
+﻿using System.Text;
 using Inject.NET.SourceGenerator.Models;
 using Microsoft.CodeAnalysis;
 using SymbolDisplayFormat = Microsoft.CodeAnalysis.SymbolDisplayFormat;
 
 namespace Inject.NET.SourceGenerator;
 
+// All state is reset per provider via PrepareForProvider(). The generator executes
+// single-threaded per RegisterSourceOutput callback, so plain collections suffice.
 public class NameHelper
 {
-    private static readonly ConcurrentDictionary<string, string> _propertyNameCache = new();
-    private static readonly ConcurrentDictionary<string, string> _fieldNameCache = new();
+    private static readonly Dictionary<string, string> _propertyNameCache = new();
+    private static readonly Dictionary<string, string> _fieldNameCache = new();
     private static readonly HashSet<string> _qualifiedTypes = new();
     private static readonly Dictionary<char, string> CharReplacements = new()
     {
@@ -78,14 +79,17 @@ public class NameHelper
     {
         var cacheKey = $"{serviceModel.ServiceType.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)}|{serviceModel.TenantName}|{serviceModel.Index}|{serviceModel.Key}";
 
-        return _propertyNameCache.GetOrAdd(cacheKey, _ =>
+        if (!_propertyNameCache.TryGetValue(cacheKey, out var cached))
         {
             var fullName = serviceModel.ServiceType.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat);
             var displayName = _qualifiedTypes.Contains(fullName)
                 ? serviceModel.ServiceType.ToDisplayString(QualifiedTypeNameFormat)
                 : serviceModel.ServiceType.ToDisplayString(ShortTypeNameFormat);
-            return GeneratePropertyName(displayName, serviceModel.TenantName, serviceModel.Index.ToString(), serviceModel.Key);
-        });
+            cached = GeneratePropertyName(displayName, serviceModel.TenantName, serviceModel.Index.ToString(), serviceModel.Key);
+            _propertyNameCache[cacheKey] = cached;
+        }
+
+        return cached;
     }
 
     private static string GeneratePropertyName(string shortTypeName, string? tenantName, string index, string? serviceKey)
@@ -127,7 +131,12 @@ public class NameHelper
     {
         var propertyName = AsProperty(serviceModel);
 
-        return _fieldNameCache.GetOrAdd(propertyName, static name =>
-            $"_{name[..1].ToLower()}{name[1..]}");
+        if (!_fieldNameCache.TryGetValue(propertyName, out var cached))
+        {
+            cached = $"_{propertyName[..1].ToLower()}{propertyName[1..]}";
+            _fieldNameCache[propertyName] = cached;
+        }
+
+        return cached;
     }
 }

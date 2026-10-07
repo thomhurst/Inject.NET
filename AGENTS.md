@@ -104,3 +104,7 @@ Services are registered using attributes:
 - Source generators require rebuilding the Inject.NET.SourceGenerator project to see changes
 - Verify snapshot tests auto-generate `.verified.txt` files - these are committed to source control
 - When snapshot tests fail, review the `.received.txt` files to see actual vs expected output
+
+## Pull request reviews
+
+- Resolve each PR review thread, whether a human or a bot opened it, as soon as you have dispositioned it: the fix is pushed to the PR head and your reply names the commit, or your reply pushes back on the finding with evidence. Leave a thread open only while it has no disposition. If the reviewer replies after your disposition, unresolve the thread and handle the reply.

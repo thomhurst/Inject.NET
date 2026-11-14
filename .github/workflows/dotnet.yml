@@ -25,7 +25,9 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 9.0.x
+          dotnet-version: |
+            9.0.x
+            11.0.x
       - name: Run Pipeline
         run: dotnet run -c Release
         working-directory: "Inject.NET.Pipeline"

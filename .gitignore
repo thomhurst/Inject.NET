@@ -402,3 +402,5 @@ FodyWeavers.xsd
 **/SourceGeneratedViewer/
 requirements
 .claude/settings.local.json
+
+.modularpipelines/run-history/

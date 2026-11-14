@@ -1,18 +1,16 @@
-﻿using Microsoft.Extensions.Logging;
-using ModularPipelines.Attributes;
-using ModularPipelines.Context;
+using Microsoft.Extensions.Logging;
+using ModularPipelines;
 using ModularPipelines.FileSystem;
-using ModularPipelines.Modules;
 
 namespace Inject.NET.Pipeline.Modules.LocalMachine;
 
 [DependsOn<RunUnitTestsModule>]
 [DependsOn<PackagePathsParserModule>]
-public class CreateLocalNugetFolderModule : Module<Folder>
+public class CreateLocalNugetFolderModule : Module<FolderPath>
 {
-    protected override async Task<Folder?> ExecuteAsync(IPipelineContext context, CancellationToken cancellationToken)
+    protected override async Task<FolderPath> ExecuteAsync(IModuleContext context, CancellationToken cancellationToken)
     {
-        var localNugetRepositoryFolder = context.FileSystem.GetFolder(Environment.SpecialFolder.ApplicationData)
+        var localNugetRepositoryFolder = context.Files.GetFolder(Environment.SpecialFolder.ApplicationData)
             .GetFolder("ModularPipelines")
             .GetFolder("LocalNuget")
             .Create();

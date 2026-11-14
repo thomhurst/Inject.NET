@@ -1,15 +1,13 @@
 using EnumerableAsyncProcessor.Extensions;
+using ModularPipelines;
 using ModularPipelines.Context;
-using ModularPipelines.DotNet.Extensions;
 using ModularPipelines.DotNet.Options;
-using ModularPipelines.Models;
-using ModularPipelines.Modules;
 
 namespace Inject.NET.Pipeline.Modules;
 
 public class RunUnitTestsModule : Module<CommandResult[]>
 {
-    protected override async Task<CommandResult[]?> ExecuteAsync(IPipelineContext context, CancellationToken cancellationToken)
+    protected override async Task<CommandResult[]> ExecuteAsync(IModuleContext context, CancellationToken cancellationToken)
     {
         string[] projects =
         [
@@ -17,10 +15,10 @@ public class RunUnitTestsModule : Module<CommandResult[]>
             Sourcy.DotNet.Projects.Inject_NET_Tests.FullName
         ];
 
-        return await projects.SelectAsync(project => context.DotNet().Run(new DotNetRunOptions
+        return await projects.SelectAsync(project => context.Tools.DotNet.RunAsync(new DotNetRunOptions
             {
                 Project = project
-            }, cancellationToken),
+            }, cancellationToken: cancellationToken),
             cancellationToken: cancellationToken).ProcessOneAtATime();
     }
 }
